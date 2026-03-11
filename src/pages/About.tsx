@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useCanonical, useMetaTags, JsonLd, organizationSchema, buildBreadcrumbSchema } from "@/components/SEO";
+import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
 import { getArticles } from "@/lib/queries";
 import { type Article } from "@/lib/sanity";
 import { trackEvent } from "@/lib/analytics";
@@ -39,7 +39,7 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <JsonLd data={[organizationSchema, personSchema, buildBreadcrumbSchema([
+      <JsonLd data={[personSchema, buildBreadcrumbSchema([
         { name: "Home", path: "/" },
         { name: "About" },
       ])]} />

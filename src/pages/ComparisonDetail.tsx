@@ -282,6 +282,21 @@ const ComparisonDetail = () => {
                 </section>
               )}
 
+              {/* Related Skin Concerns */}
+              <section className="mt-10 pt-10 border-t border-border">
+                <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">Related Skin Concerns</h2>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { name: "Aging & Wrinkles", slug: "aging-wrinkles-men" },
+                    { name: "Dark Circles", slug: "dark-circles-men" },
+                    { name: "Sensitive Skin", slug: "sensitive-skin-men" },
+                    { name: "Oily Skin", slug: "oily-skin-men" },
+                  ].map((c) => (
+                    <Link key={c.slug} to={`/skin-concerns/${c.slug}`} className="bg-card px-4 py-2 rounded-lg font-body text-sm hover:bg-muted transition-colors border border-border">{c.name}</Link>
+                  ))}
+                </div>
+              </section>
+
               {/* FAQs */}
               {comp.faqs && comp.faqs.length > 0 && (
                 <section className="mt-10 pt-10 border-t border-border">

@@ -238,6 +238,15 @@ const SkinConcernDetail = () => {
                 </section>
               )}
 
+              {/* Related Comparisons */}
+              <section className="mt-10 pt-10 border-t border-border">
+                <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">Compare Moisturizers</h2>
+                <div className="flex flex-wrap gap-3">
+                  <Link to="/comparisons/best-mens-face-moisturizers-compared" className="bg-card px-4 py-2 rounded-lg font-body text-sm hover:bg-muted transition-colors border border-border">Best Men's Face Moisturizers Compared</Link>
+                  <Link to="/comparisons/cerave-vs-base-layer" className="bg-card px-4 py-2 rounded-lg font-body text-sm hover:bg-muted transition-colors border border-border">CeraVe vs Base Layer</Link>
+                </div>
+              </section>
+
               {/* FAQs */}
               {sc.faqs && sc.faqs.length > 0 && (
                 <section className="mt-10 pt-10 border-t border-border">

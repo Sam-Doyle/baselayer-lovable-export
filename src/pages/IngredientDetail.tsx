@@ -281,6 +281,29 @@ const IngredientDetail = () => {
                 </section>
               )}
 
+              {/* Explore More */}
+              <section className="mt-10 pt-10 border-t border-border">
+                <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">Explore More</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Link to="/skin-concerns/aging-wrinkles-men" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">Aging & Wrinkles in Men</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">How clinical actives fight fine lines and loss of firmness.</p>
+                  </Link>
+                  <Link to="/skin-concerns/sensitive-skin-men" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">Sensitive Skin Care for Men</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">Calm redness and irritation with fragrance-free formulas.</p>
+                  </Link>
+                  <Link to="/skin-concerns/dark-circles-men" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">Dark Circles Under Eyes</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">Reduce tired-looking eyes with peptides and hydration.</p>
+                  </Link>
+                  <Link to="/comparisons/best-mens-face-moisturizers-compared" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">Best Men's Moisturizers Compared</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">Side-by-side comparison of top moisturizers for men.</p>
+                  </Link>
+                </div>
+              </section>
+
               {/* FAQs */}
               {ing.faqs && ing.faqs.length > 0 && (
                 <section className="mt-10 pt-10 border-t border-border min-h-[120px]">

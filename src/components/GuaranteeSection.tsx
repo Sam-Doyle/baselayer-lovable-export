@@ -21,9 +21,9 @@ const GuaranteeSection = () => {
     <section id="guarantee" className="grid lg:grid-cols-2 bg-secondary">
       <div className="flex flex-col justify-center px-5 md:px-12 lg:px-16 xl:px-24 py-16 lg:py-24 order-2 lg:order-1">
         <div className="max-w-md">
-          <span className="block font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase mb-4">
+          <p className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase mb-4">
             Simple offer
-          </span>
+          </p>
           <h2 className="font-heading text-[1.75rem] md:text-3xl lg:text-4xl font-black tracking-tight text-foreground uppercase leading-[0.95] mb-8">
             ONE BOTTLE. $38.<br />NO DOWNSIDE.
           </h2>
@@ -32,9 +32,9 @@ const GuaranteeSection = () => {
             {offerBullets.map((item) => (
               <div key={item} className="flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0" />
-                <span className="font-body text-[15px] text-muted-foreground">
+                <p className="font-body text-[15px] text-muted-foreground">
                   {item}
-                </span>
+                </p>
               </div>
             ))}
           </div>
@@ -46,10 +46,12 @@ const GuaranteeSection = () => {
                 30-Day Guarantee
               </span>
             </div>
-            <p className="font-body text-sm text-muted-foreground leading-relaxed">
+            <p className="font-body text-sm text-muted-foreground leading-relaxed mb-2">
               Use it for 30 days. If your skin doesn't look better and feel
-              better, email us and we'll refund you. No return shipping. No
-              hassle.
+              better, email us and we'll refund you.
+            </p>
+            <p className="font-body text-sm text-muted-foreground leading-relaxed">
+              No return shipping. No hassle.
             </p>
           </div>
 

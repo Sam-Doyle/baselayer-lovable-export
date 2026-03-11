@@ -687,9 +687,9 @@ const MatteMoisturizer = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: "Oily Skin Guide", path: "/skin-concerns/oily-skin-men" },
-                { label: "Acne-Prone Skin", path: "/skin-concerns/acne-prone-skin-men" },
-                { label: "Niacinamide Guide", path: "/ingredients/niacinamide" },
-                { label: "Squalane Guide", path: "/ingredients/squalane" },
+                { label: "Sensitive Skin Guide", path: "/skin-concerns/sensitive-skin-men" },
+                { label: "Best Men's Moisturizers Compared", path: "/comparisons/best-mens-face-moisturizers-compared" },
+                { label: "CeraVe vs Base Layer", path: "/comparisons/cerave-vs-base-layer" },
               ].map((link) => (
                 <Link
                   key={link.path}

@@ -540,14 +540,14 @@ const NonGreasyMoisturizer = () => {
                   desc: "Tight, flaky patches after showering or in dry office air. Hyaluronic acid hydrates and panthenol repairs the moisture barrier.",
                 },
                 {
-                  title: "Acne-Prone",
-                  slug: "acne-prone-skin-men",
-                  desc: "Breakouts from heavy products or gym sweat. Non-comedogenic formula with centella to calm inflammation.",
+                  title: "Sensitive Skin",
+                  slug: "sensitive-skin-men",
+                  desc: "Redness, stinging, and reactions to most products. Fragrance-free formula with centella and panthenol to calm and protect.",
                 },
                 {
-                  title: "Post-Shave",
-                  slug: "post-shave-irritation",
-                  desc: "Redness and stinging after a close shave. Panthenol soothes without fragrance that burns broken skin.",
+                  title: "Dark Circles",
+                  slug: "dark-circles-men",
+                  desc: "Tired-looking under-eyes on Zoom calls. Copper peptide and hyaluronic acid plump and firm the delicate eye area.",
                 },
               ].map((item) => (
                 <Link
@@ -680,10 +680,10 @@ const NonGreasyMoisturizer = () => {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
+                { label: "Best Men's Moisturizers Compared", path: "/comparisons/best-mens-face-moisturizers-compared" },
+                { label: "CeraVe vs Base Layer", path: "/comparisons/cerave-vs-base-layer" },
+                { label: "Aging & Wrinkles Guide", path: "/skin-concerns/aging-wrinkles-men" },
                 { label: "Squalane Deep Dive", path: "/ingredients/squalane" },
-                { label: "Hyaluronic Acid Guide", path: "/ingredients/hyaluronic-acid" },
-                { label: "Oily Skin Solutions", path: "/skin-concerns/oily-skin-men" },
-                { label: "Post-Shave Care", path: "/skin-concerns/post-shave-irritation" },
               ].map((link) => (
                 <Link
                   key={link.path}

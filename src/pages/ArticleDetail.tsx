@@ -214,6 +214,29 @@ const ArticleDetail = () => {
                 </section>
               )}
 
+              {/* You Might Also Like — static cross-links for internal linking */}
+              <section className="mt-10 pt-10 border-t border-border">
+                <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">You Might Also Like</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Link to="/comparisons/best-mens-face-moisturizers-compared" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">Best Men's Face Moisturizers Compared</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">Side-by-side comparison of the top moisturizers for men.</p>
+                  </Link>
+                  <Link to="/comparisons/cerave-vs-base-layer" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">CeraVe vs Base Layer</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">How drugstore moisturizer stacks up against clinical-grade actives.</p>
+                  </Link>
+                  <Link to="/skin-concerns/aging-wrinkles-men" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">Aging & Wrinkles Guide for Men</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">Fight fine lines with copper peptide GHK-Cu and proven actives.</p>
+                  </Link>
+                  <Link to="/skin-concerns/dark-circles-men" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                    <h3 className="font-heading font-bold text-sm">Dark Circles Under Eyes for Men</h3>
+                    <p className="font-body text-xs text-muted-foreground mt-1">Reduce tired-looking eyes with peptides and hyaluronic acid.</p>
+                  </Link>
+                </div>
+              </section>
+
               {/* FAQs */}
               {art.faqs && art.faqs.length > 0 && (
                 <section className="mt-10 pt-10 border-t border-border min-h-[120px]">

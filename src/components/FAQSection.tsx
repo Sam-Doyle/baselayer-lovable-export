@@ -34,9 +34,9 @@ const FAQSection = () => {
   return (
     <section id="faq" className="py-16 md:py-20 px-5 md:px-8 bg-background">
       <div className="max-w-xl mx-auto">
-        <span className="block font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase mb-4">
+        <p className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase mb-4">
           Common questions
-        </span>
+        </p>
         <h2 className="font-heading text-2xl md:text-[1.75rem] font-black tracking-tight text-foreground uppercase leading-[0.95] mb-10">
           EVERYTHING YOU NEED TO KNOW.
         </h2>

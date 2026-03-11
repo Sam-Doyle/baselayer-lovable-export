@@ -545,22 +545,22 @@ const AllInOneSkincare = () => {
                   timeline: "Visible oil reduction within 7 days",
                 },
                 {
-                  title: "Tired Under-Eyes On Zoom",
-                  slug: "dry-dehydrated-skin-men",
+                  title: "Dark Circles & Tired Eyes",
+                  slug: "dark-circles-men",
                   ingredient: "Copper Peptide + HA",
-                  timeline: "Firmer-looking skin in 4-8 weeks",
+                  timeline: "Firmer, brighter under-eyes in 4-8 weeks",
                 },
                 {
-                  title: "Razor Burn After Shaving",
-                  slug: "post-shave-irritation",
+                  title: "Fine Lines & Wrinkles",
+                  slug: "aging-wrinkles-men",
+                  ingredient: "Copper Peptide GHK-Cu",
+                  timeline: "Smoother texture in 4-8 weeks",
+                },
+                {
+                  title: "Sensitive & Reactive Skin",
+                  slug: "sensitive-skin-men",
                   ingredient: "Panthenol + Centella",
-                  timeline: "Redness calms within 24-48 hours",
-                },
-                {
-                  title: "Breakouts From Heavy Products",
-                  slug: "acne-prone-skin-men",
-                  ingredient: "Niacinamide + Centella",
-                  timeline: "Clearer skin in 2-4 weeks",
+                  timeline: "Calmer, stronger barrier in 2-4 weeks",
                 },
               ].map((item) => (
                 <Link
@@ -751,9 +751,9 @@ const AllInOneSkincare = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: "Face Cream Details", path: "/face-cream" },
-                { label: "All Ingredients", path: "/ingredients" },
-                { label: "Skin Concerns", path: "/skin-concerns" },
-                { label: "How We Compare", path: "/comparisons" },
+                { label: "Best Men's Moisturizers Compared", path: "/comparisons/best-mens-face-moisturizers-compared" },
+                { label: "CeraVe vs Base Layer", path: "/comparisons/cerave-vs-base-layer" },
+                { label: "All Skin Concerns", path: "/skin-concerns" },
               ].map((link) => (
                 <Link
                   key={link.path}

@@ -57,10 +57,13 @@ export function useMetaTags({ title, description, type = "website", image, url }
     setMeta("property", "og:image", ogImage);
     setMeta("property", "og:image:alt", `${title} - Base Layer Men's Skincare`);
     setMeta("property", "og:site_name", "Base Layer");
+    setMeta("property", "og:locale", "en_US");
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
     setMeta("name", "twitter:image", ogImage);
+    setMeta("name", "twitter:site", "@baselayerskin");
+    setMeta("name", "twitter:creator", "@baselayerskin");
   }, [title, description, type, pageUrl, ogImage]);
 }
 

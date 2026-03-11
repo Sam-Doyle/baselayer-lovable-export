@@ -53,6 +53,9 @@ const concerns = [
   { name: "Acne-Prone Skin", slug: "acne-prone-skin-men" },
   { name: "Post-Shave Irritation", slug: "post-shave-irritation" },
   { name: "Dry & Dehydrated Skin", slug: "dry-dehydrated-skin-men" },
+  { name: "Aging & Wrinkles", slug: "aging-wrinkles-men" },
+  { name: "Dark Circles", slug: "dark-circles-men" },
+  { name: "Sensitive Skin", slug: "sensitive-skin-men" },
 ];
 
 const faqs = [
@@ -60,7 +63,7 @@ const faqs = [
   { question: "Can I put this on right after shaving?", answer: "That's exactly when it works best. Panthenol at 2% calms razor burn and micro-irritation within 24 hours. Centella repairs the moisture barrier that shaving strips away. And because there's zero fragrance, there's no stinging on freshly shaved skin. Most aftershave products are loaded with alcohol and fragrance that make irritation worse." },
   { question: "Will this break me out?", answer: "Every ingredient is non-comedogenic. Squalane has a comedogenicity rating of 0 — the lowest possible. There are no silicones, no coconut oil, no petroleum, and no fragrance. Niacinamide actually reduces the inflammation that leads to breakouts. If moisturizers have broken you out before, it was almost certainly the base formula, not the concept of moisturizing." },
   { question: "I have oily skin. Why would I add more moisture?", answer: "When your skin is dehydrated, it overproduces oil to compensate. That's why your forehead gets shiny by noon even though it felt tight after washing. Niacinamide at 5% reduces sebum production at the source. Hyaluronic acid delivers hydration beneath the surface so your skin stops overcompensating. Most guys with oily skin see noticeably less shine within a week." },
-  { question: "How is this different from CeraVe or Nivea?", answer: "Those are basic moisturizers — they hydrate, and that's about it. Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 1% stimulates collagen synthesis — something no drugstore moisturizer does. Panthenol repairs your skin barrier after shaving. You won't notice CeraVe doing anything because it isn't doing much beyond basic moisture. Base Layer is built so you see real changes: less oil in week one, firmer-looking skin by week six." },
+  { question: "How is this different from CeraVe or Nivea?", answer: "Those are basic moisturizers — they hydrate, and that's about it. Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 1% stimulates collagen synthesis — something no drugstore moisturizer does. Panthenol repairs your skin barrier after shaving. You won't notice CeraVe doing anything because it isn't doing much beyond basic moisture. Base Layer is built so you see real changes: less oil in week one, firmer-looking skin by week six. Read our full CeraVe vs Base Layer comparison for the detailed breakdown." },
   { question: "Do I need a whole routine with this?", answer: "A cleanser — any basic one you already own — and SPF in the morning. That's it. Base Layer handles moisturizer, serum, and eye cream in one step. Three total products, about 60 seconds. No layering, no waiting between steps." },
   { question: "When will I actually see a difference?", answer: "Day one: your skin feels hydrated without residue. Week one: noticeably less shine, especially across your forehead and nose. Weeks four to eight: smoother texture and firmer-looking skin as copper peptide builds collagen underneath." },
   { question: "I travel a lot. Is this TSA-friendly?", answer: "Yes. The bottle is 50 mL (1.7 fl oz) — well under the 3.4 oz limit. It replaces your moisturizer, serum, and eye cream, so you're packing one product instead of three. Your entire skincare routine fits in a Dopp kit pocket." },
@@ -233,6 +236,31 @@ const FaceCream = () => {
                 </AccordionItem>
               ))}
             </Accordion>
+          </div>
+        </section>
+
+        {/* Related Comparisons & Guides */}
+        <section className="px-6 py-16 bg-card">
+          <div className="max-w-[1200px] mx-auto">
+            <h2 className="font-heading text-xl font-bold uppercase tracking-wide text-center mb-8">
+              See How We Compare
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "Best Men's Moisturizers Compared", path: "/comparisons/best-mens-face-moisturizers-compared" },
+                { label: "CeraVe vs Base Layer", path: "/comparisons/cerave-vs-base-layer" },
+                { label: "All Comparisons", path: "/comparisons" },
+                { label: "All Articles", path: "/articles" },
+              ].map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="bg-background p-4 rounded-lg border border-border hover:bg-muted transition-colors text-center"
+                >
+                  <span className="font-heading font-bold text-sm">{link.label}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 

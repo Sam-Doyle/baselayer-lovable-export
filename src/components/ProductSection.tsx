@@ -40,9 +40,9 @@ const ProductSection = () => {
         }}
       >
         <div className="max-w-md">
-          <span className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase">
+          <p className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase">
             What it does
-          </span>
+          </p>
           <h2 className="font-heading text-[1.75rem] md:text-3xl lg:text-4xl font-black mt-4 mb-8 tracking-tight text-foreground uppercase leading-[0.95]">
             HYDRATES. MATTIFIES.
             <br />
@@ -53,9 +53,9 @@ const ProductSection = () => {
             {benefits.map((item) => (
               <div key={item} className="flex items-start gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0 mt-2" />
-                <span className="font-body text-[15px] text-muted-foreground leading-relaxed">
+                <p className="font-body text-[15px] text-muted-foreground leading-relaxed">
                   {item}
-                </span>
+                </p>
               </div>
             ))}
           </div>

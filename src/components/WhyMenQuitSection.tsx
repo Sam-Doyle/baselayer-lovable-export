@@ -28,9 +28,9 @@ const WhyMenQuitSection = () => {
         }}
       >
         <div className="max-w-md">
-          <span className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase">
+          <p className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase">
             Why most men quit skincare
-          </span>
+          </p>
           <h2 className="font-heading text-[1.75rem] md:text-3xl lg:text-4xl font-black mt-4 mb-6 tracking-tight text-foreground uppercase leading-[0.95]">
             TOO MANY STEPS.
             <br />
@@ -38,11 +38,13 @@ const WhyMenQuitSection = () => {
             <br />
             TOO LITTLE PAYOFF.
           </h2>
-          <p className="font-body text-[15px] text-muted-foreground leading-relaxed mb-6">
+          <p className="font-body text-[15px] text-muted-foreground leading-relaxed mb-4">
             Most products fail for the same reasons: they feel greasy, sting
-            after shaving, or ask you to commit to a full routine. Base Layer
-            does the opposite. One bottle. One step. Better skin you don't have
-            to think about again until tomorrow.
+            after shaving, or ask you to commit to a full routine.
+          </p>
+          <p className="font-body text-[15px] text-muted-foreground leading-relaxed mb-6">
+            Base Layer does the opposite. One bottle. One step. Better skin you
+            don't have to think about again until tomorrow.
           </p>
           <button
             onClick={() =>

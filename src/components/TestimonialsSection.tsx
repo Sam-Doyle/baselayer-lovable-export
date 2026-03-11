@@ -56,9 +56,9 @@ const TestimonialsSection = () => {
             transform: `translateY(${isVisible ? "0" : "30px"})`,
           }}
         >
-          <span className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase">
+          <p className="font-body text-[11px] tracking-[0.3em] text-muted-foreground uppercase">
             Early testers
-          </span>
+          </p>
           <h2 className="font-heading text-2xl md:text-3xl font-black mt-4 tracking-tight text-foreground uppercase leading-[0.95]">
             MEN WITH DIFFERENT SKIN TYPES ALL SAID THE SAME THING.
           </h2>
