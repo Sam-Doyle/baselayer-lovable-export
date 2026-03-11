@@ -1,0 +1,4 @@
+project_id = "rxcoecpfznxkprnvqmem"
+
+[functions.fb-capi]
+verify_jwt = false

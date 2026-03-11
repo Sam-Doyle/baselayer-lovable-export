@@ -1,0 +1,46 @@
+# =============================================================================
+# Base Layer — Netlify Redirects (Lovable SPA)
+# =============================================================================
+
+# Product URL variants
+/product                                    /face-cream       301
+/shop                                       /face-cream       301
+/products/*                                 /face-cream       301
+
+# Blog → Articles (canonical)
+/blog                                       /articles         301
+/blog/*                                     /articles/:splat  301
+/blogs/articles                             /articles         301
+
+# Broken comparison URL
+/compare                                    /comparisons      301
+
+# Article slug variants
+/articles/3-step-skincare-routine-men       /articles/3-step-skincare-routine         301
+/articles/skincare-ingredients-that-work    /articles/skincare-ingredients             301
+/articles/skin-barrier-guide                /articles/skincare-ingredients             301
+/articles/post-shave-recovery               /skin-concerns/post-shave-irritation      301
+/articles/razor-burn-guide                  /skin-concerns/post-shave-irritation      301
+
+# Ingredient slug variants
+/ingredients/copper-peptide-ghk-cu              /ingredients/copper-peptide            301
+/ingredients/hyaluronic-acid-hydration          /ingredients/hyaluronic-acid           301
+/ingredients/niacinamide-for-oily-skin          /ingredients/niacinamide               301
+/ingredients/panthenol-skin-barrier             /ingredients/panthenol                 301
+/ingredients/squalane-lightweight-hydration     /ingredients/squalane                  301
+/ingredients/centella-asiatica-sensitive-skin   /ingredients/centella-asiatica          301
+/ingredients/ceramides                          /ingredients                           301
+/ingredients/provitamin-b5                      /ingredients/panthenol                 301
+/ingredients/cica                               /ingredients/centella-asiatica          301
+
+# Skin concern variants
+/skin-concerns/razor-burn                   /skin-concerns/post-shave-irritation      301
+/skin-concerns/oily-skin                    /skin-concerns/oily-skin-men              301
+/skin-concerns/aging                        /skin-concerns/aging-wrinkles-men         301
+/skin-concerns/dark-circles                 /skin-concerns/dark-circles-men           301
+/skin-concerns/dry-skin                     /skin-concerns/dry-dehydrated-skin-men    301
+/skin-concerns/acne                         /skin-concerns/acne-prone-skin-men        301
+
+# SPA fallback — MUST be last line
+# Serves index.html for all unmatched routes (200 rewrite, not redirect)
+/*    /index.html   200
