@@ -27,6 +27,8 @@ const WhoWeAreSection = () => {
       <img
         src={skierColorado}
         alt="Colorado mountains"
+        width={1344}
+        height={768}
         loading="lazy"
         decoding="async"
         className="absolute inset-0 w-full h-full object-cover"

@@ -2,6 +2,11 @@
 
 **Email performance analysis for Base Layer Skin. Ingests Klaviyo or Mailchimp exports, benchmarks against DTC skincare standards, identifies top/bottom performers, and delivers quick wins you can act on this week.**
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/channels/email-specs.md`
+- `brand/references/benchmarks/dtc-skincare.md`
+
 ---
 
 ## When NOT to Use

@@ -4,6 +4,12 @@
 
 Takes a campaign type and outputs production-ready HTML with inline CSS, subject line variants, preview text variants, and dark mode support — all in Base Layer brand voice for men 20-40.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/visual/identity.md`
+- `brand/references/product/catalog.md`
+- `brand/references/channels/email-specs.md`
+
 ## When NOT to Use
 - For email text copy only, no HTML needed (use `/email-copywriter`)
 - For designing email automation flows and sequences (use `/email-strategist`)
@@ -49,8 +55,6 @@ Every email targets:
 ---
 
 ## Brand Voice — Non-Negotiable
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 Key rules for email:
 - **Direct, confident, conversational.** Like a sharp friend who knows skincare but doesn't make it weird.

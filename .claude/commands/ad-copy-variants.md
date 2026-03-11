@@ -4,6 +4,17 @@
 
 Takes a product, benefit angles, and emotional triggers — outputs 15+ copy variants organized by psychological lever. Each variant includes hook, primary text (short + long), headline, description, and CTA. Built for Meta (Instagram/Facebook) ads targeting men 20-40. Tone: confident, direct, no-BS. NOT feminine skincare language.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/voice/tone-rules.md`
+- `brand/references/voice/copy-patterns.md`
+- `brand/references/product/catalog.md`
+- `brand/references/product/ingredient-database.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/audience/segments.md`
+- `brand/references/audience/objection-bank.md`
+- `brand/references/channels/meta-ad-specs.md`
+
 ## When NOT to Use
 - For full ad production with images and assets (use `/ad-creative-pipeline`)
 - For email subject lines and body copy (use `/email-copywriter`)
@@ -50,8 +61,6 @@ Every variant targets:
 ---
 
 ## Brand Voice — Non-Negotiable
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 ### Voice: "Your Sharp Friend"
 

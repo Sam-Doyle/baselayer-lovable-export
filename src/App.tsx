@@ -1,9 +1,8 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/context/CartContext";
 import { EarlyAccessProvider } from "@/context/EarlyAccessContext";
-import { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import MetaRouterTracker from "@/analytics/MetaRouterTracker";
 import { JsonLd, organizationSchema, websiteSchema } from "@/components/SEO";
@@ -33,7 +32,47 @@ const AllInOneSkincare = lazy(() => import("./pages/AllInOneSkincare"));
 const About = lazy(() => import("./pages/About"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 
-const queryClient = new QueryClient();
+// ── Deferred QueryClientProvider ──────────────────────────────────
+// Dynamically imports @tanstack/react-query so the 36KB chunk is NOT
+// in the synchronous ES module import chain. The homepage renders
+// immediately without waiting for the chunk; react-query loads in the
+// background. Pages that use useQuery are already behind Suspense/lazy
+// boundaries so they naturally wait for the provider to be ready.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _rqModule: any = null;
+const _rqPromise = import("@tanstack/react-query").then((m) => {
+  _rqModule = m;
+  return m;
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _queryClient: any = null;
+
+const DeferredQueryProvider = ({ children }: { children: React.ReactNode }) => {
+  const [ready, setReady] = useState(!!_rqModule);
+  useEffect(() => {
+    if (!ready) {
+      _rqPromise.then(() => setReady(true));
+    }
+  }, [ready]);
+
+  if (!ready || !_rqModule) {
+    // react-query chunk not yet loaded — render children without the
+    // provider. Safe because the homepage doesn't call useQuery, and
+    // pages that do are behind lazy() boundaries that haven't loaded yet.
+    return <>{children}</>;
+  }
+
+  if (!_queryClient) {
+    _queryClient = new _rqModule.QueryClient();
+  }
+
+  return (
+    <_rqModule.QueryClientProvider client={_queryClient}>
+      {children}
+    </_rqModule.QueryClientProvider>
+  );
+};
 
 const PageFallback = () => <div style={{ minHeight: "100vh", background: "#0a0a0a" }} />;
 
@@ -208,7 +247,7 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <DeferredQueryProvider>
       <TooltipProvider>
         <Suspense fallback={null}><Toaster /></Suspense>
         <Suspense fallback={null}><Sonner /></Suspense>
@@ -245,7 +284,7 @@ const App = () => {
           </CartProvider>
         </EarlyAccessProvider>
       </TooltipProvider>
-    </QueryClientProvider>
+    </DeferredQueryProvider>
   );
 };
 

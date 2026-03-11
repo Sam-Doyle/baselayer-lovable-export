@@ -2,6 +2,13 @@
 
 **Competitive monitoring and analysis for Base Layer Skin. Tracks competitor pricing, product launches, ad creative, SEO positioning, content strategy, and review sentiment. Generates market positioning maps, opportunity gaps, and actionable "steal this" recommendations.**
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/product/catalog.md`
+- `brand/references/competitors/profiles.md`
+- `brand/references/competitors/positioning-map.md`
+- `brand/references/benchmarks/dtc-skincare.md`
+
 ---
 
 ## Inputs

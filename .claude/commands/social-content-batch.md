@@ -4,6 +4,16 @@
 
 Takes a weekly theme or content brief, then generates ready-to-post content across Instagram Feed, Instagram Stories, Instagram Reels, and Facebook — complete with copy, visual direction, hashtags, image generation prompts for nano-banana-pro, and a posting schedule optimized for men 20-40 on Meta.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/voice/tone-rules.md`
+- `brand/references/voice/copy-patterns.md`
+- `brand/references/visual/photography.md`
+- `brand/references/visual/platform-sizes.md`
+- `brand/references/product/catalog.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/channels/social-specs.md`
+
 ---
 
 ## The Process
@@ -552,8 +562,6 @@ look, colorful chemistry visuals, feminine aesthetics.
 ---
 
 ## Brand Voice — Applied to Social
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 **Social-specific rules:**
 - Voice is "Your Sharp Friend" — direct, confident, conversational

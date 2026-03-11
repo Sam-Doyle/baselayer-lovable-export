@@ -4,6 +4,13 @@
 
 Takes one hero image/prompt plus brand guidelines, generates ALL platform-ready sizes, maintains visual consistency across derivatives, and outputs to a dated campaign folder with manifest. Uses nano-banana-pro for image generation.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/visual/identity.md`
+- `brand/references/visual/photography.md`
+- `brand/references/visual/platform-sizes.md`
+- `brand/references/product/catalog.md`
+
 ## When NOT to Use
 - For full ad creative production with copy and strategy (use `/ad-creative-pipeline`)
 - For social content with captions and scheduling (use `/social-content-batch`)
@@ -40,8 +47,6 @@ Assets serve:
 ---
 
 ## Brand Visual Constraints — Non-Negotiable
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 Applied to every generated image:
 

@@ -2,6 +2,17 @@
 
 **High-output email copy generator for Base Layer Skin. Takes a campaign type, product, and segment — returns production-ready email copy with subject lines, preview text, full body in three tones, and A/B test pairings.**
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/voice/tone-rules.md`
+- `brand/references/voice/copy-patterns.md`
+- `brand/references/product/catalog.md`
+- `brand/references/product/ingredient-database.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/audience/segments.md`
+- `brand/references/audience/objection-bank.md`
+- `brand/references/channels/email-specs.md`
+
 ---
 
 ## When NOT to Use
@@ -49,8 +60,6 @@ Every email targets:
 ---
 
 ## Brand Voice — Non-Negotiable
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 Key rules for email copy:
 - **Confident, peer-to-peer, masculine.** Like a sharp friend who knows skincare but doesn't make it weird.

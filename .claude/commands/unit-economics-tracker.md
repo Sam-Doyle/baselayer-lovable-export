@@ -2,6 +2,11 @@
 
 **DTC unit economics model for Base Layer Skin. Tracks COGS, CAC, LTV, contribution margin, payback period, and break-even ROAS. Accepts manual input or platform exports. Persists a running model, runs scenario analysis, and alerts on danger thresholds.**
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/product/catalog.md`
+- `brand/references/benchmarks/dtc-skincare.md`
+
 ---
 
 ## Inputs

@@ -2,6 +2,11 @@
 
 **Unified weekly growth report for Base Layer Skin. Ingests data from Shopify, GA4, Meta Ads, Klaviyo, and Search Console. Synthesizes into a single document with trend arrows, anomaly flags, and specific action items.**
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/product/catalog.md`
+- `brand/references/benchmarks/dtc-skincare.md`
+
 ---
 
 ## Data Sources & Input Formats

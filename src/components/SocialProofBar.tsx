@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Shield, Star, FlaskConical, BadgeCheck } from "lucide-react";
+import { Shield, Mountain, Wind, BadgeCheck } from "lucide-react";
 
 /*
  * SOCIAL PROOF BAR
@@ -10,21 +10,14 @@ import { Shield, Star, FlaskConical, BadgeCheck } from "lucide-react";
  * Placement: Between Hero and Testimonials in Index.tsx
  * (i.e., the first thing after the hero CTA zone)
  *
- * Contains:
- * - Aggregate star rating
- * - "Tested by 50 real guys" badge
- * - Dermatologist-tested claim
- * - Cruelty-free
- * - 30-day money-back
- *
- * Auto-fades in on scroll into viewport.
+ * Contains ruggedized outdoor-focused trust signals.
  */
 
 const proofItems = [
-  { icon: Star, text: "5.0 from early testers", highlight: true },
-  { icon: BadgeCheck, text: "Works on oily, dry, and sensitive skin" },
-  { icon: FlaskConical, text: "Dermatologist-reviewed formula" },
-  { icon: Shield, text: "30-day money-back guarantee" },
+  { icon: Shield, text: "Tested at 10,000 ft elevation", highlight: true },
+  { icon: Wind, text: "Protects against wind, cold, and UV reflection" },
+  { icon: Mountain, text: "Built in Colorado for harsh environments" },
+  { icon: BadgeCheck, text: "30-day money-back guarantee" },
 ];
 
 const SocialProofBar = () => {
@@ -45,14 +38,14 @@ const SocialProofBar = () => {
   return (
     <div
       ref={ref}
-      className="bg-secondary border-y border-border/30 py-4 overflow-hidden transition-all duration-700"
+      className="bg-[#121212] border-y border-[#2C3E2D]/50 py-5 overflow-hidden transition-all duration-700"
       style={{ opacity: visible ? 1 : 0, transform: `translateY(${visible ? "0" : "10px"})` }}
     >
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-center gap-6 md:gap-10 flex-wrap">
         {proofItems.map((item, i) => (
           <div key={i} className="flex items-center gap-2 shrink-0">
-            <item.icon className={`w-4 h-4 ${item.highlight ? "text-amber-400" : "text-muted-foreground"}`} />
-            <span className={`font-body text-xs uppercase tracking-wider ${item.highlight ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
+            <item.icon className={`w-4 h-4 ${item.highlight ? "text-[#E8EAE6]" : "text-[#7A8077]"}`} />
+            <span className={`font-body text-xs uppercase tracking-wider ${item.highlight ? "text-[#E8EAE6] font-semibold" : "text-[#7A8077]"}`}>
               {item.text}
             </span>
           </div>

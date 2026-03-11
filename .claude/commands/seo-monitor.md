@@ -4,6 +4,11 @@
 
 This skill orchestrates the existing `/seo` skill — it does not reinvent auditing. It adds the diff layer: what changed, what broke, what improved.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/channels/seo-guidelines.md`
+- `brand/references/benchmarks/dtc-skincare.md`
+
 ---
 
 ## When to Use

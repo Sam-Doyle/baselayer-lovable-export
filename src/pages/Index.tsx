@@ -5,13 +5,12 @@ import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
 
-const WhyMenQuitSection = lazy(() => import("@/components/WhyMenQuitSection"));
+const PerformanceSpecsSection = lazy(() => import("@/components/PerformanceSpecsSection"));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
-const ProductSection = lazy(() => import("@/components/ProductSection"));
+const TheGearSection = lazy(() => import("@/components/TheGearSection"));
 const GuaranteeSection = lazy(() => import("@/components/GuaranteeSection"));
 const FAQSection = lazy(() => import("@/components/FAQSection"));
-const WhoWeAreSection = lazy(() => import("@/components/WhoWeAreSection"));
-const FinalCTASection = lazy(() => import("@/components/FinalCTASection"));
+const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
 const Footer = lazy(() => import("@/components/Footer"));
 const SocialProofBar = lazy(() => import("@/components/SocialProofBar"));
 const ScrollProgressBar = lazy(() => import("@/components/ScrollProgressBar"));
@@ -68,30 +67,11 @@ const REVIEW_SCHEMA = {
   },
 };
 
-/*
- * LANDING PAGE — Optimized for cold Instagram ad traffic
- *
- * Section order (wireframe spec):
- * 1. Sticky top bar (offer + CTA)
- * 2. Hero (instant clarity + primary CTA)
- * 3. Trust strip (quick credibility)
- * 4. Problem / Solution (pain → fix)
- * 5. Testimonials / Proof (social proof)
- * 6. Product Benefits (outcomes + ingredients)
- * 7. Offer + Guarantee (risk reversal)
- * 8. FAQ (objection handling)
- * 9. Founder / Brand (human layer)
- * 10. Final CTA (close)
- *
- * Navigation: Minimal for paid traffic — no blog, about, learn links.
- */
-
 const Index = () => {
   useCanonical();
   useMetaTags({
-    title: "Base Layer Skin | Fast-Absorbing Face Moisturizer for Men",
-    description:
-      "One lightweight face moisturizer for men that hydrates, calms post-shave irritation, controls shine, and helps improve texture. Absorbs fast. No greasy finish.",
+    title: "Base Layer Skin | Built in CO for Harsh Elements",
+    description: "One lightweight face moisturizer for men that hydrates, calms post-shave irritation, controls shine, and helps improve texture. Absorbs fast. No greasy finish.",
   });
 
   return (
@@ -104,19 +84,20 @@ const Index = () => {
       </Suspense>
 
       {/* Offer strip below navbar */}
-      <div className="bg-foreground text-background text-center py-1.5 font-body text-[10px] tracking-[0.2em] uppercase fixed top-14 left-0 right-0 z-40">
-        $38 prelaunch &middot; free shipping &middot; 30-day guarantee
+      <div className="bg-[#1B231D] text-[#E8EAE6] text-center py-2 font-body text-[11px] sm:text-[12px] tracking-[0.05em] uppercase fixed top-14 left-0 right-0 z-40 border-b border-[#2C3E2D]/50 flex items-center justify-center gap-2 px-4 shadow-sm">
+        <span className="text-yellow-500/90 hidden sm:inline-block">⚠️</span>
+        <span>Batch 01 (April 2026) is strictly limited to 500 bottles.</span>
       </div>
-      <Navbar minimal />
+      <Navbar />
 
       <HeroSection />
 
       <Suspense fallback={null}>
         <SocialProofBar />
-        <WhyMenQuitSection />
+        <PerformanceSpecsSection />
         <TestimonialsSection />
         <div className="content-auto">
-          <ProductSection />
+          <TheGearSection />
         </div>
         <div className="content-auto">
           <GuaranteeSection />
@@ -125,10 +106,7 @@ const Index = () => {
           <FAQSection />
         </div>
         <div className="content-auto">
-          <WhoWeAreSection />
-        </div>
-        <div className="content-auto">
-          <FinalCTASection />
+          <OurOriginSection />
         </div>
         <Footer />
       </Suspense>

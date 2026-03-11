@@ -4,6 +4,13 @@
 
 Takes seed keywords, discovers the full keyword universe via web search, clusters by search intent, maps each cluster to a content type, cross-references existing Sanity content for gaps, and outputs a prioritized action plan. Built for men's skincare keyword language — not generic beauty terms.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/product/catalog.md`
+- `brand/references/product/ingredient-database.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/channels/seo-guidelines.md`
+
 ---
 
 ## When to Use

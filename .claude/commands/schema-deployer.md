@@ -4,6 +4,12 @@
 
 Reads all content from Sanity via MCP, generates Google-compliant JSON-LD schema markup, validates against Rich Results requirements, and outputs deploy-ready `<script>` blocks for every page type.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/product/catalog.md`
+- `brand/references/product/compliance.md`
+- `brand/references/channels/seo-guidelines.md`
+
 ---
 
 ## When NOT to Use
@@ -45,8 +51,6 @@ Schema markup serves:
 ---
 
 ## Brand Voice in Schema
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 Schema `description` fields must match brand voice:
 - Direct, confident, conversational

@@ -4,6 +4,16 @@
 
 Takes a campaign brief and outputs a production-ready, mobile-first landing page with Tailwind CSS, Meta Pixel integration, UTM tracking, and A/B test variant support — wired for Vite + React + TypeScript on Netlify.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/voice/tone-rules.md`
+- `brand/references/voice/copy-patterns.md`
+- `brand/references/visual/identity.md`
+- `brand/references/product/catalog.md`
+- `brand/references/product/ingredient-database.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/audience/objection-bank.md`
+
 ## When NOT to Use
 - For product page copy without a dedicated landing page (use `/product-description-writer`)
 - For schema markup deployment only (use `/schema-deployer`)
@@ -51,8 +61,6 @@ Every landing page targets:
 ---
 
 ## Brand Voice — Non-Negotiable
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 Key rules for landing pages:
 - **Direct, confident, conversational.** Like a sharp friend who knows skincare but doesn't make it weird.

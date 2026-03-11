@@ -4,6 +4,15 @@
 
 Takes a flow request or "full program" directive and outputs production-ready automation blueprints — every email mapped with trigger, timing, subject line, content outline, CTA, and exit conditions.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/voice/tone-rules.md`
+- `brand/references/product/catalog.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/audience/segments.md`
+- `brand/references/channels/email-specs.md`
+- `brand/references/benchmarks/dtc-skincare.md`
+
 ## When NOT to Use
 - For writing specific email copy and subject lines (use `/email-copywriter`)
 - For building HTML email templates (use `/email-template-builder`)
@@ -47,8 +56,6 @@ Every flow targets:
 ---
 
 ## Brand Voice — Non-Negotiable
-
-Read and internalize: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md`
 
 Key rules for email strategy:
 - **Direct, confident, conversational.** Like a sharp friend who knows skincare.

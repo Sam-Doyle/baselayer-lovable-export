@@ -4,6 +4,13 @@
 
 Accepts CSV exports from Meta Ads Manager and Google Ads. Analyzes every performance dimension — creative, audience, placement, day-of-week — identifies winners and losers with statistical significance, flags creative fatigue, and outputs specific budget reallocation recommendations. Built for a DTC men's skincare brand running cold traffic on Meta to a $38 AOV product.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/product/catalog.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/channels/meta-ad-specs.md`
+- `brand/references/benchmarks/dtc-skincare.md`
+
 ## When NOT to Use
 - For creating new ad creatives or copy (use `/ad-creative-pipeline` or `/ad-copy-variants`)
 - For a high-level weekly business overview including ads (use `/weekly-growth-report`)

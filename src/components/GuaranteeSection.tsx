@@ -76,6 +76,8 @@ const GuaranteeSection = () => {
           <img
             src={productShot}
             alt="Base Layer Performance Daily Face Cream bottle"
+            width={966}
+            height={1732}
             loading="lazy"
             decoding="async"
             className="absolute inset-0 w-full h-full object-cover"

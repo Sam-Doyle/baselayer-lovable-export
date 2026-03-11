@@ -4,6 +4,17 @@
 
 Takes product data (from Sanity, Shopify export, or manual input), applies brand voice guidelines, and generates a complete product page copy suite — hero headline through Schema.org markup. Built for men who are new to skincare: direct, science-backed, zero fluff. Can batch-process an entire catalog and write directly to Sanity via MCP.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/voice/tone-rules.md`
+- `brand/references/voice/copy-patterns.md`
+- `brand/references/product/catalog.md`
+- `brand/references/product/ingredient-database.md`
+- `brand/references/product/compliance.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/audience/objection-bank.md`
+- `brand/references/channels/seo-guidelines.md`
+
 ---
 
 ## The Process
@@ -92,8 +103,6 @@ Use `mcp__Sanity__query_documents` to execute this query. If the schema is unkno
 ## Phase 2: Brand Voice Rules
 
 **Read and internalize these before writing a single word.**
-
-Reference: `/Users/samdoyle/baselayer-lovable-export/brand/BASE_LAYER_BRAND_GUIDELINES.md` Section 7.
 
 ### Voice: "Your Sharp Friend"
 Direct, confident, conversational. Like a friend who happens to know about skincare but doesn't make it weird.

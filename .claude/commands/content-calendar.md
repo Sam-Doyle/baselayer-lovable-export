@@ -4,6 +4,14 @@
 
 Takes brand voice, keyword targets, and seasonal context to generate 30/60/90 day content plans mapped to the customer journey and funnel stages. Outputs structured data ready to write to Sanity as draft documents.
 
+## References — Auto-Load
+Read and internalize before executing:
+- `brand/references/voice/tone-rules.md`
+- `brand/references/product/catalog.md`
+- `brand/references/audience/icp-core.md`
+- `brand/references/audience/segments.md`
+- `brand/references/channels/social-specs.md`
+
 ---
 
 ## The Process
