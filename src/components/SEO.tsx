@@ -181,11 +181,6 @@ export const websiteSchema = {
   url: "https://baselayerskin.co",
   description: "Men's skincare engineered for active lifestyles.",
   publisher: { "@type": "Organization", name: "Base Layer" },
-  potentialAction: {
-    "@type": "SearchAction",
-    target: "https://baselayerskin.co/search?q={search_term_string}",
-    "query-input": "required name=search_term_string",
-  },
 };
 
 export { BASE_URL, DEFAULT_OG_IMAGE };

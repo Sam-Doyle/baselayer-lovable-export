@@ -38,34 +38,7 @@ const STATIC_PAGES: PageMeta[] = [
     ogImage: `${BASE_URL}/og-face-cream.jpg`,
     changefreq: "weekly",
     priority: "1.0",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: "Base Layer Performance Face Moisturizer",
-        description: "Advanced men's face moisturizer with niacinamide, copper peptide GHK-Cu, panthenol, centella asiatica, squalane, and hyaluronic acid.",
-        brand: { "@type": "Brand", name: "Base Layer" },
-        offers: { "@type": "Offer", price: "38.00", priceCurrency: "USD", availability: "https://schema.org/PreOrder", url: `${BASE_URL}/face-cream`, priceValidUntil: "2026-12-31" },
-        image: `${BASE_URL}/og-image.jpg`,
-        url: `${BASE_URL}/face-cream`,
-        sku: "BL-PDFC-50ML",
-        aggregateRating: { "@type": "AggregateRating", ratingValue: "5", reviewCount: "3", bestRating: "5" },
-        review: [
-          { "@type": "Review", author: { "@type": "Person", name: "Sean G." }, reviewBody: "One step, no shine — that's all I wanted. Base Layer nailed it.", reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" }, datePublished: "2025-12-01" },
-          { "@type": "Review", author: { "@type": "Person", name: "Matt M." }, reviewBody: "I never wanted a 6-step routine. Base Layer gave me one thing that just works.", reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" }, datePublished: "2025-12-15" },
-          { "@type": "Review", author: { "@type": "Person", name: "Cooper S." }, reviewBody: "Everything else feels heavy now in comparison. Base Layer gives me clean hydration.", reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" }, datePublished: "2026-01-05" },
-        ],
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
-          { "@type": "ListItem", position: 2, name: "Face Cream" },
-        ],
-      },
-      // FAQPage schema removed — restricted to gov/healthcare since Aug 2023.
-    ],
+    // jsonLd handled by React FaceCream.tsx component during Puppeteer SSR
   },
   {
     path: "/about",
@@ -285,8 +258,11 @@ function prerenderPlugin(): Plugin {
       const homeSrcset = heroSrcset("hero-product");
       const fcSrcset = heroSrcset("product-hero-rock");
 
+      // Preload for the hero-guy-orange image served from public/images/
+      const heroGuyOrangePreload = '<link rel="preload" as="image" type="image/webp" href="/images/hero-guy-orange-4k.webp" fetchpriority="high">';
+
       const heroPreloadForPage: Record<string, string> = {
-        "/": preloadTag(homeSrcset),
+        "/": preloadTag(homeSrcset) || heroGuyOrangePreload,
         "/face-cream": preloadTag(fcSrcset),
         "/matte-moisturizer-for-men": preloadTag(fcSrcset),
         "/non-greasy-moisturizer-for-men": preloadTag(fcSrcset),

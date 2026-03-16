@@ -69,13 +69,10 @@ const EarlyAccessModal = () => {
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
-  // Return visitor recognition
+  // Reset to email step each time modal opens
   useEffect(() => {
     if (isOpen) {
-      const alreadyCaptured = localStorage.getItem("bl_email_captured");
-      if (alreadyCaptured === "true") {
-        setStep("returning");
-      }
+      reset();
     }
   }, [isOpen]);
 

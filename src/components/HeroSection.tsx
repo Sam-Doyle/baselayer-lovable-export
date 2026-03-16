@@ -44,13 +44,6 @@ const HeroSection = () => {
     }
   }, []);
 
-  // Returning visitor — already signed up
-  useEffect(() => {
-    if (localStorage.getItem("bl_email_captured") === "true") {
-      setSubmitted(true);
-    }
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || loading) return;
@@ -65,8 +58,11 @@ const HeroSection = () => {
         .invoke("email-subscribe", { body: { email: email.trim(), source: "hero_inline" } })
         .catch(() => { });
       setSubmitted(true);
+      setEmail("");
+      setTimeout(() => setSubmitted(false), 4000);
     } catch {
       setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
     } finally {
       setLoading(false);
     }
@@ -77,14 +73,21 @@ const HeroSection = () => {
       {/* Background "Video" Simulation (Slow Pan Static Image fallback) */}
       <div className="absolute inset-0 z-0 bg-[#F4F4F0]">
         <picture>
+          <source
+            type="image/webp"
+            srcSet="/images/hero-guy-orange-4k.webp"
+            sizes="100vw"
+          />
           <img
             ref={heroImgRef}
             src="/images/hero-guy-orange-4k.png"
             alt="Bright, rugged alpine environment"
             width={640}
             height={640}
+            sizes="100vw"
             fetchPriority="high"
-            decoding="async"
+            loading="eager"
+            decoding="sync"
             className="absolute inset-0 w-full h-full object-cover"
           />
         </picture>

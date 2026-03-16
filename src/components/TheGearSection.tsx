@@ -18,9 +18,7 @@ const TheGearSection = () => {
     // Email capture state
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
-    const [submitted, setSubmitted] = useState(
-        () => typeof window !== "undefined" && localStorage.getItem("bl_email_captured") === "true"
-    );
+    const [submitted, setSubmitted] = useState(false);
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
@@ -50,8 +48,11 @@ const TheGearSection = () => {
                 .invoke("email-subscribe", { body: { email: email.trim(), source: "gear_inline" } })
                 .catch(() => { });
             setSubmitted(true);
+            setEmail("");
+            setTimeout(() => setSubmitted(false), 4000);
         } catch {
             setSubmitted(true);
+            setTimeout(() => setSubmitted(false), 4000);
         } finally {
             setLoading(false);
         }

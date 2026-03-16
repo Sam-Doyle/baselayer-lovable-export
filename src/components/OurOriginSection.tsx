@@ -18,12 +18,6 @@ const OurOriginSection = () => {
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
-    useEffect(() => {
-        if (localStorage.getItem("bl_email_captured") === "true") {
-            setSubmitted(true);
-        }
-    }, []);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email.trim() || loading) return;
@@ -38,8 +32,11 @@ const OurOriginSection = () => {
                 .invoke("email-subscribe", { body: { email: email.trim(), source: "origin_inline" } })
                 .catch(() => { });
             setSubmitted(true);
+            setEmail("");
+            setTimeout(() => setSubmitted(false), 4000);
         } catch {
             setSubmitted(true);
+            setTimeout(() => setSubmitted(false), 4000);
         } finally {
             setLoading(false);
         }
