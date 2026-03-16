@@ -91,8 +91,8 @@ const TheGearSection = () => {
                     className="text-center mb-16 transition-all duration-700 ease-out"
                     style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "30px"})` }}
                 >
-                    <div className="inline-block border border-[#E85D04] bg-[#E85D04]/10 px-3 py-1 mb-6 rounded-none">
-                        <span className="font-heading text-[10px] uppercase tracking-[0.2em] font-bold text-[#E85D04]">
+                    <div className="inline-block border border-[#F95D1A] bg-[#F95D1A]/10 px-3 py-1 mb-6 rounded-none">
+                        <span className="font-heading text-[10px] uppercase tracking-[0.2em] font-bold text-[#F95D1A]">
                             [ ONE-STEP ARMOR ]
                         </span>
                     </div>
@@ -119,19 +119,19 @@ const TheGearSection = () => {
 
                         <ul className="space-y-6">
                             <li className="flex items-start gap-4">
-                                <Shield className="w-5 h-5 text-[#E85D04] shrink-0 mt-0.5" />
+                                <Shield className="w-5 h-5 text-[#F95D1A] shrink-0 mt-0.5" />
                                 <span className="font-body text-[15px] font-medium text-[#1E201E]/90 tracking-wide">
                                     Locks in moisture at 10,000 ft.
                                 </span>
                             </li>
                             <li className="flex items-start gap-4">
-                                <Shield className="w-5 h-5 text-[#E85D04] shrink-0 mt-0.5" />
+                                <Shield className="w-5 h-5 text-[#F95D1A] shrink-0 mt-0.5" />
                                 <span className="font-body text-[15px] font-medium text-[#1E201E]/90 tracking-wide">
                                     Repairs wind-chapped skin instantly.
                                 </span>
                             </li>
                             <li className="flex items-start gap-4">
-                                <Shield className="w-5 h-5 text-[#E85D04] shrink-0 mt-0.5" />
+                                <Shield className="w-5 h-5 text-[#F95D1A] shrink-0 mt-0.5" />
                                 <span className="font-body text-[15px] font-medium text-[#1E201E]/90 tracking-wide">
                                     Leaves zero greasy residue.
                                 </span>
@@ -152,18 +152,18 @@ const TheGearSection = () => {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Enter your email"
-                                        className="w-full sm:w-3/5 px-4 py-3 bg-transparent border-2 border-[#1E201E]/20 text-[#1E201E] text-sm font-body placeholder:text-[#1E201E]/50 focus:outline-none focus:border-[#E85D04] focus:bg-[#E85D04]/5 transition-all rounded-none"
+                                        className="w-full sm:w-3/5 px-4 py-3 bg-transparent border-2 border-[#1E201E]/20 text-[#1E201E] text-sm font-body placeholder:text-[#1E201E]/50 focus:outline-none focus:border-[#F95D1A] focus:bg-[#F95D1A]/5 transition-all rounded-none"
                                     />
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="w-full sm:w-2/5 flex items-center justify-center gap-2 py-3 bg-[#E85D04] text-[#F4F4F0] font-heading font-black tracking-widest text-[12px] uppercase hover:bg-[#1E201E] transition-all duration-300 disabled:opacity-50 rounded-none group"
+                                        className="w-full sm:w-2/5 flex items-center justify-center gap-2 py-3 bg-[#F95D1A] text-[#F4F4F0] font-heading font-black tracking-widest text-[12px] uppercase hover:bg-[#1E201E] transition-all duration-300 disabled:opacity-50 rounded-none group"
                                     >
                                         {loading ? "\u2026" : "RESERVE"} <ArrowUpRight className="w-3 h-3 text-[#F4F4F0]" />
                                     </button>
                                 </form>
                             ) : (
-                                <div className="flex flex-col gap-4 border-2 border-[#E85D04]/50 bg-[#1E201E] p-4 border-l-4 border-l-[#E85D04] rounded-none w-full">
+                                <div className="flex flex-col gap-4 border-2 border-[#F95D1A]/50 bg-[#1E201E] p-4 border-l-4 border-l-[#F95D1A] rounded-none w-full">
                                     <div className="flex flex-col">
                                         <span className="font-heading text-[13px] font-black tracking-widest uppercase text-[#F4F4F0]">You're on the list.</span>
                                         <span className="font-body text-xs text-[#F4F4F0]/70 mt-1">We'll notify you when Batch 01 drops.</span>
@@ -184,13 +184,13 @@ const TheGearSection = () => {
                     {/* Right Column: Product Image */}
                     <div className="relative min-h-[300px] h-full overflow-hidden bg-[#E8EAE6]">
                         <img
-                            src="/images/product-on-rock.png"
-                            alt="Base Layer bottle on dark alpine rock"
+                            src="/images/baselayer-carton.jpeg"
+                            alt="Base Layer Carton"
                             width={640}
                             height={640}
                             loading="lazy"
                             decoding="async"
-                            className="absolute inset-0 w-full h-full object-cover mix-blend-multiply hover:scale-105 transition-all duration-700"
+                            className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-all duration-700"
                         />
                     </div>
 

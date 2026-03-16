@@ -82,6 +82,12 @@ export interface Ingredient {
   products?: Product[];
   faqs?: FAQ[];
   seo?: SEO;
+  heroImage?: {
+    asset: {
+      url: string;
+    };
+    alt?: string;
+  };
 }
 
 export interface SkinConcern {

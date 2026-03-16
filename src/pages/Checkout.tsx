@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, setCapturedEmail } from "@/lib/analytics";
 import { Lock, Shield, Truck } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SoldOutModal from "@/components/SoldOutModal";
@@ -10,9 +10,9 @@ import CartDrawer from "@/components/CartDrawer";
 import { useCanonical, useMetaTags } from "@/components/SEO";
 
 const US_STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
-  "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
-  "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ];
 
 function CheckoutForm() {
@@ -82,7 +82,12 @@ function CheckoutForm() {
                 <input
                   type="email" required placeholder="Email address" value={form.email}
                   onChange={(e) => update("email", e.target.value)}
-                  onBlur={() => form.email && trackEvent("checkout_email_entered", { email: form.email })}
+                  onBlur={() => {
+                    if (form.email) {
+                      setCapturedEmail(form.email);
+                      trackEvent("checkout_email_entered", { email: form.email });
+                    }
+                  }}
                   className="w-full px-4 py-3 bg-transparent border border-border text-sm font-body placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground transition-colors"
                 />
               </fieldset>

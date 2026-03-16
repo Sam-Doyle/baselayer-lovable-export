@@ -13,24 +13,31 @@ async function getSupabase() {
  * See https://www.facebook.com/business/help/402791146561655
  */
 const FB_STANDARD_EVENTS: Record<string, { event: string; defaults?: Record<string, unknown> }> = {
-  view_item:       { event: "ViewContent",      defaults: { content_type: "product" } },
-  add_to_cart:     { event: "AddToCart",         defaults: { content_type: "product", currency: "USD" } },
-  begin_checkout:  { event: "InitiateCheckout",  defaults: { currency: "USD" } },
-  purchase_intent: { event: "Lead",             defaults: { content_type: "product", content_name: "Purchase Intent", value: 38, currency: "USD" } },
-  email_signup:    { event: "CompleteRegistration", defaults: { content_name: "Early Access Signup", value: 38, currency: "USD" } },
+  view_item: { event: "ViewContent", defaults: { content_type: "product" } },
+  add_to_cart: { event: "AddToCart", defaults: { content_type: "product", currency: "USD" } },
+  begin_checkout: { event: "InitiateCheckout", defaults: { currency: "USD" } },
+  purchase_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Purchase Intent", value: 38, currency: "USD" } },
+  email_signup: { event: "CompleteRegistration", defaults: { content_name: "Early Access Signup", value: 38, currency: "USD" } },
   waitlist_signup: { event: "CompleteRegistration", defaults: { content_name: "Waitlist Signup", value: 38, currency: "USD" } },
-  reserve_intent:  { event: "Lead",              defaults: { content_type: "product", content_name: "Reserve Intent", value: 38, currency: "USD" } },
+  reserve_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Reserve Intent", value: 38, currency: "USD" } },
 };
 
 /** Events worth sending server-side via Conversions API for better attribution */
 const CAPI_EVENTS = new Set(["email_signup", "waitlist_signup", "begin_checkout", "purchase_intent", "add_to_cart", "reserve_intent", "view_item"]);
 
 function getSessionId(): string {
-  let id = sessionStorage.getItem("bl_session");
+  // 1. Try to read the persistent cookie (survives IG browser closes)
+  const match = document.cookie.split(";").find(c => c.trim().startsWith("bl_session="));
+  let id = match ? match.split("=")[1] : null;
+
+  // 2. Fallback to sessionStorage, then to generating a new UUID
   if (!id) {
-    id = crypto.randomUUID();
-    sessionStorage.setItem("bl_session", id);
+    id = sessionStorage.getItem("bl_session") || crypto.randomUUID();
   }
+
+  // 3. Always ensure it is written both to cookie & session for safety
+  sessionStorage.setItem("bl_session", id);
+  document.cookie = `bl_session=${id}; path=/; max-age=2592000`; // 30 days
   return id;
 }
 
@@ -100,7 +107,7 @@ function sendCAPI(
         ...(sessionStorage.getItem("utm_campaign") && { utm_campaign: sessionStorage.getItem("utm_campaign") }),
       },
     }),
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 export async function trackEvent(eventName: string, payload: Record<string, unknown> = {}) {

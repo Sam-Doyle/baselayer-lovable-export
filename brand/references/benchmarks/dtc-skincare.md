@@ -94,25 +94,63 @@ Single source of truth for all performance analysis. No skill should hardcode th
 | Repeat Purchase (12-mo) | <20% | 20-25% | 30-40% | >40% |
 | Avg Time Between Orders | >180 days | 126-180 days | 90-126 days | <90 days |
 
-## Base Layer Specific
+## Base Layer Unit Economics
+
+### Assumptions
+- Materials: $7.00 | Packaging: $2.50 | COGS: $9.50/unit
+- 3PL pick/pack: $3.00 | Standard ground shipping: $5.50 | Mailer: $0.75 | Fulfillment: $9.25/order
+- Shopify Payments: 2.9% + $0.30
+- CPC (observed): $0.36 | CVR (ecommerce standard): 2.5% | CPA: $14.40
+
+### P&L Per Unit — Founding ($38)
+
+| Line | Amount | % of Revenue |
+|------|--------|-------------|
+| Revenue | $38.00 | 100% |
+| COGS (materials + packaging) | -$9.50 | 25.0% |
+| **Gross Profit** | **$28.50** | **75.0%** |
+| 3PL fulfillment | -$9.25 | 24.3% |
+| Payment processing | -$1.40 | 3.7% |
+| **Contribution Margin (pre-CAC)** | **$17.85** | **47.0%** |
+| CPA (paid acquisition) | -$14.40 | 37.9% |
+| **Contribution Margin (post-CAC)** | **$3.45** | **9.1%** |
+
+### P&L Per Unit — Retail ($48)
+
+| Line | Amount | % of Revenue |
+|------|--------|-------------|
+| Revenue | $48.00 | 100% |
+| COGS (materials + packaging) | -$9.50 | 19.8% |
+| **Gross Profit** | **$38.50** | **80.2%** |
+| 3PL fulfillment | -$9.25 | 19.3% |
+| Payment processing | -$1.69 | 3.5% |
+| **Contribution Margin (pre-CAC)** | **$27.56** | **57.4%** |
+| CPA (paid acquisition) | -$14.40 | 30.0% |
+| **Contribution Margin (post-CAC)** | **$13.16** | **27.4%** |
+
+### Key Metrics
 
 | Item | Value |
 |------|-------|
-| AOV (founding) | $38 |
-| AOV (retail) | $48 |
-| COGS | ~$5-7 (13-18%) |
-| Gross margin | ~$31-33 (82-87%) |
-| Shipping + fulfillment | ~$5-7 |
-| Payment processing | ~$1.50 (3.9%) |
-| Contribution margin (before CAC) | ~$22-26 (58-68%) |
-| Break-even ROAS | ~1.59 (at 63% CM) |
-| Target ROAS | 2.5-3.5x |
-| Blended CAC ceiling | <$38 (1:1 first order) |
-| Ideal CAC | <$19 (2:1 AOV:CAC) |
-| LTV target | >$114 (3:1 at $38 CAC) |
-| LTV implied orders | 3+ over lifetime |
+| Break-even ROAS (founding) | 2.13x |
+| Break-even ROAS (retail) | 1.74x |
+| Current ROAS (founding) | 2.64x |
+| Current ROAS (retail) | 3.33x |
+| Target ROAS (scaling) | 3.0-4.5x |
+| CAC ceiling (first-order breakeven) | $17.85 (founding) / $27.56 (retail) |
+| Ideal CAC | <$14 (healthy first-order margin) |
+| LTV target | >$53 (3:1 LTV:CAC at founding) |
+| LTV implied orders | 2-3+ over lifetime |
 | Repeat rate needed | 30-40% |
 | MER target | 3-5x |
 | Email revenue target | 30-40% of total |
 | Bottle life | 6-8 weeks (replenishment window) |
 | Avg time between orders (beauty) | 126 days |
+
+### Shipping Policy
+- Free shipping on orders $50+
+- Single unit ($38 founding / $48 retail) = shipping charged — incentivizes 2-unit purchase at founding price ($76 > $50 threshold)
+- At $48 retail, single unit still under threshold — consider adjusting post-launch if conversion data shows friction
+
+### Strategic Note
+First-order margin at founding price ($3.45) is thin by design — founding batch is a customer acquisition play. Profitability depends on LTV via repeat purchases and transition to $48 retail. Every organic/email/repeat order at $48 contributes $27.56 pre-CAC.

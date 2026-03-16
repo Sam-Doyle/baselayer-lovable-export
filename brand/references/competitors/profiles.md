@@ -58,10 +58,10 @@
   - Wide retail distribution
 - **Weaknesses:**
   - Customer service complaints; premium pricing questioned
-  - Only SPF 20 on moisturizer (below dermatologist-recommended SPF 30)
+  - Only SPF 20 on moisturizer
   - Retail markup; no clinical-dose actives (no retinol, no niacinamide at clinical %)
 - **Customer complaints:** Overpriced vs. comparable products; poor customer service
-- **Base Layer advantage:** SPF 30 > SPF 20. DTC pricing advantage. Six clinical actives vs. botanical extracts.
+- **Base Layer advantage:** DTC pricing advantage. Six clinical actives vs. botanical extracts. Single-SKU simplicity.
 
 ## Bulldog Skincare
 - **URL:** bulldogskincare.com

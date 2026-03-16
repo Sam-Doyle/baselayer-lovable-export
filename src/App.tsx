@@ -120,12 +120,24 @@ const App = () => {
         if (k && v) acc[k] = v;
         return acc;
       }, {} as Record<string, string>);
+
+      // Immediate _fbp generation to bypass Race Condition
+      let fbp = cookies._fbp || null;
+      if (!fbp && !isBot) {
+        // format: fb.subdomainIndex.creationTime.random
+        fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 10000000000)}`;
+        const domain = window.location.hostname.replace("www.", "");
+        document.cookie = `_fbp=${fbp}; path=/; max-age=7776000; domain=${domain}`; // 90 days
+      }
+
       const fbc = cookies._fbc || sessionStorage.getItem("_fbc") || null;
-      const fbp = cookies._fbp || null;
-      let sessionId = sessionStorage.getItem("bl_session");
+
+      // Upgrade bl_session to persistent cookie (max-age 30 days)
+      let sessionId = cookies.bl_session;
       if (!sessionId) {
-        sessionId = crypto.randomUUID();
+        sessionId = sessionStorage.getItem("bl_session") || crypto.randomUUID();
         sessionStorage.setItem("bl_session", sessionId);
+        document.cookie = `bl_session=${sessionId}; path=/; max-age=2592000`; // 30 days
       }
 
       fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fb-capi`, {
@@ -150,7 +162,7 @@ const App = () => {
             ...(sessionStorage.getItem("utm_campaign") && { utm_campaign: sessionStorage.getItem("utm_campaign") }),
           },
         }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     // ── Deferred Analytics Loader ──

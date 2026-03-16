@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800');
+      .brand-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 72px;
+        letter-spacing: 0.02em;
+      }
+      .brand-label {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 0.1em;
+      }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#1A2F4C"/>
+  <text x="40" y="60" class="brand-label" fill="#FFFFFF">THE LOGO</text>
+  <text x="50%" y="50%" text-anchor="middle" dy=".35em" class="brand-text" fill="#FFFFFF">BASE LAYER<tspan fill="#F95D1A">.</tspan></text>
+</svg>

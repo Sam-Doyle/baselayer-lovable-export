@@ -33,8 +33,8 @@ Seven named segments within the Base Layer ICP. Each has distinct motivations, o
 - **Motivation:** Already interested, deep in research. Has read r/SkincareAddiction threads. Wants the "right" product based on ingredients, not branding.
 - **Primary objection:** "Is this actually good, or is it just marketing?" Ingredient-literate. Will compare formulations.
 - **Messaging angle:** Full ingredient transparency, clinical data, comparison content. "Here's exactly what's in it and why."
-- **Channel preference:** Reddit, YouTube long-form reviews, Google search ("best men's moisturizer with SPF reddit"), Amazon reviews.
-- **Ad hook example:** "Niacinamide for oil control. Hyaluronic acid for hydration. SPF 30 for protection. No filler. No fragrance. Check the ingredients yourself."
+- **Channel preference:** Reddit, YouTube long-form reviews, Google search ("best men's moisturizer reddit"), Amazon reviews.
+- **Ad hook example:** "Niacinamide for oil control. Hyaluronic acid for hydration. Copper peptides for firmer skin. No filler. No fragrance. Check the ingredients yourself."
 
 ## Segment 5: The Gift Recipient
 - **Age skew:** 25-40
@@ -48,14 +48,14 @@ Seven named segments within the Base Layer ICP. Each has distinct motivations, o
 - **Age skew:** 33-40
 - **Motivation:** Visible aging has started — fine lines, dark circles, sun damage. "The mirror moment." Prevention mindset kicks in.
 - **Primary objection:** "Is it too late?" and "Will this actually work?" Willing to spend but skeptical of results.
-- **Messaging angle:** Prevention investment framing. "The best time was 10 years ago. The second best time is now." SPF as the #1 anti-aging tool.
+- **Messaging angle:** "The best time was 10 years ago. The second best time is now." Prevention investment framing.
 - **Channel preference:** Google search, YouTube, email, Meta ads. Less TikTok, more deliberate research.
-- **Ad hook example:** "By the time you see the wrinkles, 80% of the damage is done. SPF 30. Niacinamide. One step. Start now — your 45-year-old self will thank you."
+- **Ad hook example:** "By the time you see the wrinkles, 80% of the damage is done. Niacinamide. Copper peptides. One step. Start now — your 45-year-old self will thank you."
 
 ## Segment 7: The Outdoor/Active
 - **Age skew:** 25-38
-- **Motivation:** Surfers, hikers, runners, skiers. UV exposure is a tangible daily concern. Skin takes a beating from sun, wind, elements.
-- **Primary objection:** "Sunscreen is enough." May already use sport sunscreen but nothing else.
-- **Messaging angle:** Protection + recovery. SPF 30 as the hero ingredient — they already understand UV damage. Upgrade from sticky sport sunscreen.
+- **Motivation:** Surfers, hikers, runners, skiers. Skin takes a beating from sun, wind, and elements. Need recovery and protection between adventures.
+- **Primary objection:** "My skin is fine, I just use sunscreen." May already use sport sunscreen but nothing for repair/recovery.
+- **Messaging angle:** Recovery + repair after element exposure. Niacinamide for post-sun inflammation, HA for rehydration, copper peptides for repair. Pair with their existing SPF.
 - **Channel preference:** YouTube, Instagram, niche outdoor/adventure communities. Responds to athlete endorsements.
-- **Ad hook example:** "You wouldn't hit the trail without sunscreen. But sport sunscreen wasn't built for your face. SPF 30 + hydration + repair. Engineered at 9,600 ft in Breckenridge."
+- **Ad hook example:** "You protect your skin from the sun. But what repairs it after? Niacinamide + Hyaluronic Acid + Copper Peptides. One step after your sunscreen. Engineered at 9,600 ft in Breckenridge."

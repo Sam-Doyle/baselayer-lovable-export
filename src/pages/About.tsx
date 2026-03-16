@@ -144,17 +144,22 @@ const About = () => {
           {/* Articles by author */}
           {articles && articles.length > 0 && (
             <section className="mt-16 pt-10 border-t border-border">
-              <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">Articles</h2>
-              <div className="space-y-4">
-                {articles.map((a) => (
+              <h2 className="font-heading text-2xl font-bold uppercase tracking-wide mb-8">Selected Journal Entries</h2>
+              <div className="space-y-6">
+                {articles.slice(0, 3).map((a) => (
                   <Link key={a._id} to={`/articles/${a.slug.current}`} className="block group">
-                    <h3 className="font-heading font-bold group-hover:underline underline-offset-4">{a.title}</h3>
-                    <div className="flex items-center gap-3 font-body text-xs text-muted-foreground mt-1">
+                    <h3 className="font-heading text-lg font-bold group-hover:underline underline-offset-4">{a.title}</h3>
+                    <div className="flex items-center gap-3 font-body text-xs text-muted-foreground mt-2">
                       {(a as any).publishDate && <span>{format(new Date((a as any).publishDate), "MMM d, yyyy")}</span>}
                       {a.author?.name && <span>By {a.author.name}</span>}
                     </div>
                   </Link>
                 ))}
+              </div>
+              <div className="mt-10">
+                <Link to="/articles" className="inline-flex items-center justify-center px-8 py-4 border border-[#1E201E]/20 text-[#1E201E] font-heading text-xs tracking-widest uppercase font-bold hover:bg-[#1E201E] hover:text-[#FFFFFF] transition-all duration-300">
+                  Read All Journal Entries
+                </Link>
               </div>
             </section>
           )}

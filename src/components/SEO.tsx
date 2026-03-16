@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const BASE_URL = "https://baselayerskin.co";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/images/baselayer-carton.jpeg`;
 
 // ── Canonical Tag ──────────────────────────────────────────────────
 
@@ -187,6 +187,11 @@ export const websiteSchema = {
   url: "https://baselayerskin.co",
   description: "Men's skincare engineered for active lifestyles.",
   publisher: { "@type": "Organization", name: "Base Layer" },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://baselayerskin.co/search?q={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export { BASE_URL, DEFAULT_OG_IMAGE };

@@ -62,10 +62,9 @@ Reference for AI content skills. All marketing claims are FDA/FTC compliant (see
 
 ## Ingredient Synergy: Protect + Correct + Hydrate
 
-The 6 ingredients (plus SPF 30) work as an integrated system, not isolated actives:
+The 6 ingredients work as an integrated system, not isolated actives:
 
-**PROTECT** -- Daily shield against the two primary causes of visible skin aging:
-- SPF 30 Broad Spectrum: UV defense (blocks 97% UVB)
+**PROTECT** -- Daily shield against environmental stressors:
 - Squalane: antioxidant singlet oxygen quencher
 - Centella Asiatica: antioxidant and calming protection
 
@@ -78,4 +77,4 @@ The 6 ingredients (plus SPF 30) work as an integrated system, not isolated activ
 - Squalane: barrier-sealing emollient, penetration enhancer for other actives
 - Panthenol: soothing humectant, barrier support
 
-This is why one product replaces a multi-step routine: moisturizer + serum + barrier cream + sunscreen.
+This is why one product replaces a multi-step routine: moisturizer + serum + barrier cream + eye cream.

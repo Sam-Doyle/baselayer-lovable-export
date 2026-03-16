@@ -5,7 +5,7 @@
 - US-based (primary), English-speaking markets
 - Income: $50-150K household
 - Education: College-educated
-- 52% of US men now use facial skincare; 68% of Gen Z men
+- 52% of US men now use facial skincare (Mintel, 2024); 68% of Gen Z men (Mintel, 2024)
 
 ## Psychographics
 - Values function over form, simplicity over luxury
@@ -14,7 +14,7 @@
 - Currently has 0-1 skincare products (or 5+ unused ones under the sink)
 - Aspiration: look sharper without thinking about it
 - Treats grooming as maintenance, not ritual — like going to the gym or getting an oil change
-- 42% prefer buying personal care products online to avoid embarrassment
+- 42% prefer buying personal care products online to avoid embarrassment (Mintel)
 
 ## Pain Points (ranked by research frequency)
 1. **Visible skin problem appears** — acne, dryness, post-shave irritation, sun damage. Men are problem-solvers who seek solutions only when something is visibly wrong.
@@ -27,9 +27,9 @@
 ## Motivations to Buy (ranked by research frequency)
 1. **Simplicity/ease** — "You don't need 10 products." Removing complexity is the single biggest motivator.
 2. **Performance/optimization** — Skincare framed as body maintenance, not beauty. Protein-for-your-face language.
-3. **Aging prevention** — "Think of skin care like investing in your future self." 51% of men 18-34 use products to prevent aging.
+3. **Aging prevention** — "Think of skin care like investing in your future self." 46% of men 18-34 prioritize anti-aging in their skincare (Mintel, 2024).
 4. **Confidence for outcomes** — Job interviews, dates, video calls. A tool for results, not appearance obsession.
-5. **Health/protection** — SPF as health protection gives rational permission to buy without feeling vain.
+5. **Health/protection** — Clinical ingredients (niacinamide, copper peptides) give rational, science-backed permission to buy without feeling vain.
 6. **Peer normalization** — "52% of men already use facial skincare" reduces stigma. Statistics are a secret weapon.
 7. **Dating/attraction** — 52% of young men use products to "look better." Must be subtle, not overt.
 
@@ -40,7 +40,7 @@
 4. **Permission-Seeking** — Looks for validation it's "normal" for men. Needs to see men like him using products.
 5. **Simplicity Filter** — Eliminates anything with multiple steps. Gravitates toward "one product" solutions. $20-40 sweet spot.
 6. **Low-Risk Purchase** — Buys a single product, often online (privacy). Prefers trial/founding deal.
-7. **Results Validation** — Needs to see/feel results within 2-4 weeks. 84% notice improvement in 4 weeks.
+7. **Results Validation** — Needs to see/feel results within 2-4 weeks. Most users see initial improvements within 4-6 weeks.
 8. **Habit or Abandonment** — Partner reinforcement and visible results are key to retention.
 
 ## What Resonates

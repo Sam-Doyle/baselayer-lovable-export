@@ -23,7 +23,11 @@ const ShopifyCartDrawer = () => {
       {isOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 transition-opacity" onClick={() => toggleCart(false)} />
       )}
-      <div className={`fixed top-0 right-0 h-full w-full max-w-[400px] bg-background z-50 shadow-2xl transform transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
+      <div 
+        className={`fixed top-0 right-0 h-full w-full max-w-[400px] bg-background z-50 shadow-2xl transform transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        aria-hidden={!isOpen}
+        {...(!isOpen ? { inert: "true" } : {})}
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <h2 className="font-heading text-sm font-bold uppercase tracking-[0.15em]">Your Cart ({totalItems})</h2>
           <button onClick={() => toggleCart(false)} className="p-1 hover:opacity-70 transition-opacity" aria-label="Close cart">

@@ -3,12 +3,11 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
-import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
+import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
 
 const PerformanceSpecsSection = lazy(() => import("@/components/PerformanceSpecsSection"));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
 const TheGearSection = lazy(() => import("@/components/TheGearSection"));
-const GuaranteeSection = lazy(() => import("@/components/GuaranteeSection"));
 const FAQSection = lazy(() => import("@/components/FAQSection"));
 const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
 const Footer = lazy(() => import("@/components/Footer"));
@@ -39,7 +38,7 @@ const REVIEW_SCHEMA = {
       author: { "@type": "Person", name: "Sean G." },
       reviewBody:
         "I used to blot my forehead before every afternoon meeting. One week on Base Layer and I stopped.",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5", worstRating: "1" },
       datePublished: "2025-12-01",
     },
     {
@@ -47,7 +46,7 @@ const REVIEW_SCHEMA = {
       author: { "@type": "Person", name: "Matt M." },
       reviewBody:
         "Everything I tried after shaving either stung or left a film. This absorbs fast and feels calm.",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5", worstRating: "1" },
       datePublished: "2025-12-15",
     },
     {
@@ -55,7 +54,7 @@ const REVIEW_SCHEMA = {
       author: { "@type": "Person", name: "Cooper S." },
       reviewBody:
         "Hotel air usually wrecks my skin. This is the one bottle I pack every trip.",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5", worstRating: "1" },
       datePublished: "2026-01-05",
     },
   ],
@@ -76,18 +75,13 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background overflow-x-hidden">
-      <JsonLd data={[REVIEW_SCHEMA, buildBreadcrumbSchema([{ name: "Home", path: "/" }])]} />
+      <JsonLd data={[REVIEW_SCHEMA]} />
       <ScrollDepthTracker />
       <SectionViewTracker />
       <Suspense fallback={null}>
         <ScrollProgressBar />
       </Suspense>
 
-      {/* Offer strip below navbar */}
-      <div className="bg-[#1B231D] text-[#E8EAE6] text-center py-2 font-body text-[11px] sm:text-[12px] tracking-[0.05em] uppercase fixed top-14 left-0 right-0 z-40 border-b border-[#2C3E2D]/50 flex items-center justify-center gap-2 px-4 shadow-sm">
-        <span className="text-yellow-500/90 hidden sm:inline-block">⚠️</span>
-        <span>Batch 01 (April 2026) is strictly limited to 500 bottles.</span>
-      </div>
       <Navbar />
 
       <HeroSection />
@@ -98,9 +92,6 @@ const Index = () => {
         <TestimonialsSection />
         <div className="content-auto">
           <TheGearSection />
-        </div>
-        <div className="content-auto">
-          <GuaranteeSection />
         </div>
         <div className="content-auto">
           <FAQSection />

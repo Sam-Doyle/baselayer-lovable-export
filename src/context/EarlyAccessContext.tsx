@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { useCartStore } from "@/stores/cartStore";
+import productShot from "@/assets/product-hero-rock.png";
 
 interface EarlyAccessContextType {
   isOpen: boolean;
@@ -13,6 +15,34 @@ export const EarlyAccessProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const openModal = useCallback((source?: string) => {
+    const hasCaptured = typeof window !== "undefined" && localStorage.getItem("bl_email_captured") === "true";
+    const isExitIntent = source === "exit_intent" || source === "exit_intent_mobile";
+
+    if (hasCaptured && !isExitIntent) {
+      const { addItem, toggleCart } = useCartStore.getState();
+      addItem({
+        product: {
+          node: {
+            id: "base-layer-face-cream",
+            title: "Base Layer Face Cream",
+            handle: "face-cream",
+            description: "",
+            images: { edges: [{ node: { url: productShot, altText: "Face Cream" } }] },
+            variants: { edges: [] },
+            options: [],
+            priceRange: { minVariantPrice: { amount: "38.00", currencyCode: "USD" } }
+          }
+        } as any,
+        variantId: "default-variant",
+        variantTitle: "50mL",
+        price: { amount: "38.00", currencyCode: "USD" },
+        quantity: 1,
+        selectedOptions: []
+      });
+      toggleCart(true);
+      return;
+    }
+
     setIsOpen(true);
     trackEvent("cta_click", {
       content_name: "Early Access Modal",

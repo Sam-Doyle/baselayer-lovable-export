@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 160" width="500" height="160">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800');
+      .brand-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 56px;
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#FFFFFF" rx="8"/>
+  <text x="50%" y="50%" text-anchor="middle" dy=".35em" class="brand-text" fill="#1A2F4C">BASE LAYER<tspan fill="#F95D1A">.</tspan></text>
+</svg>

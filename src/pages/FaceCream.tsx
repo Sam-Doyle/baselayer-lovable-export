@@ -130,12 +130,11 @@ const FaceCream = () => {
             <p className="font-heading text-2xl font-bold mb-1">$38</p>
             <p className="font-body text-xs text-muted-foreground mb-6">Pre-launch pricing. Shipping Spring 2026.</p>
             <Button
-              variant="hero"
               size="lg"
-              className="w-full sm:w-auto px-12 py-6 text-sm"
+              className="w-full sm:w-auto px-12 py-6 font-heading font-black tracking-widest text-[14px] uppercase bg-[#F95D1A] text-[#F4F4F0] hover:bg-[#FFFFFF] hover:text-[#F95D1A] border-none transition-all duration-300 rounded-none"
               onClick={() => openModal("face_cream_cta")}
             >
-              RESERVE NOW — $38
+              TRY IT RISK FREE — $38
             </Button>
             <div className="flex flex-wrap gap-4 mt-6 text-muted-foreground">
               <span className="flex items-center gap-1.5 font-body text-[10px] uppercase tracking-wider"><Mountain className="w-3.5 h-3.5" /> Breckenridge‑Formulated</span>
@@ -268,8 +267,8 @@ const FaceCream = () => {
           <h2 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-wide mb-4">ONE MOISTURIZER. VISIBLE RESULTS. NO GREASY FINISH.</h2>
           <p className="font-body text-muted-foreground mb-2 max-w-md mx-auto">Pre-launch pricing — $38.</p>
           <p className="font-body text-xs text-muted-foreground/60 mb-8 uppercase tracking-wider">Pre-launch — shipping Spring 2026</p>
-          <Button variant="hero" size="lg" className="px-12 py-6 text-sm" onClick={() => openModal("face_cream_bottom")}>
-            RESERVE NOW — $38
+          <Button size="lg" className="px-12 py-6 font-heading font-black tracking-widest text-[14px] uppercase bg-[#F95D1A] text-[#F4F4F0] hover:bg-[#FFFFFF] hover:text-[#F95D1A] border-none transition-all duration-300 rounded-none" onClick={() => openModal("face_cream_bottom")}>
+            TRY IT RISK FREE — $38
           </Button>
         </section>
       </main>

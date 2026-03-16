@@ -80,19 +80,35 @@ const Ingredients = () => {
                 <Link
                   key={ing._id}
                   to={`/ingredients/${ing.slug.current}`}
-                  className="group block bg-card p-6 rounded-lg hover:bg-muted transition-colors border border-border"
+                  className="group block bg-card p-0 rounded-lg hover:bg-muted transition-colors border border-border overflow-hidden flex flex-col h-full"
                 >
-                  <h2 className="font-heading text-lg font-bold group-hover:underline underline-offset-4">
-                    {ing.name}
-                  </h2>
-                  {(ing as any).tagline && (
-                    <p className="font-body text-xs text-muted-foreground mt-1 italic">{(ing as any).tagline}</p>
+                  {ing.heroImage?.asset?.url ? (
+                    <div className="w-full h-48 bg-muted relative overflow-hidden shrink-0 border-b border-border/50">
+                      <img
+                        src={ing.heroImage.asset.url}
+                        alt={ing.heroImage.alt || `${ing.name} microscopic or texture view`}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-48 bg-muted border-b border-border/50 flex items-center justify-center shrink-0">
+                      <span className="font-heading text-4xl text-foreground/10 uppercase font-black">{ing.name.charAt(0)}</span>
+                    </div>
                   )}
-                  {((ing as any).overview || ing.extractableSummary) && (
-                    <p className="font-body text-sm text-muted-foreground mt-3 line-clamp-3">
-                      {toPlainText((ing as any).overview) || ing.extractableSummary}
-                    </p>
-                  )}
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h2 className="font-heading text-lg font-bold group-hover:underline underline-offset-4">
+                      {ing.name}
+                    </h2>
+                    {(ing as any).tagline && (
+                      <p className="font-body text-xs text-muted-foreground mt-1 italic">{(ing as any).tagline}</p>
+                    )}
+                    {((ing as any).overview || ing.extractableSummary) && (
+                      <p className="font-body text-sm text-muted-foreground mt-3 line-clamp-3">
+                        {toPlainText((ing as any).overview) || ing.extractableSummary}
+                      </p>
+                    )}
+                  </div>
                 </Link>
               ))}
             </div>

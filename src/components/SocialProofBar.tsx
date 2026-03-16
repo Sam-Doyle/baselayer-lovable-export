@@ -38,14 +38,14 @@ const SocialProofBar = () => {
   return (
     <div
       ref={ref}
-      className="bg-[#121212] border-y border-[#2C3E2D]/50 py-5 overflow-hidden transition-all duration-700"
+      className="bg-[#1A2F4C] border-y border-[#1A2F4C]/50 py-5 overflow-hidden transition-all duration-700"
       style={{ opacity: visible ? 1 : 0, transform: `translateY(${visible ? "0" : "10px"})` }}
     >
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-center gap-6 md:gap-10 flex-wrap">
         {proofItems.map((item, i) => (
           <div key={i} className="flex items-center gap-2 shrink-0">
-            <item.icon className={`w-4 h-4 ${item.highlight ? "text-[#E8EAE6]" : "text-[#7A8077]"}`} />
-            <span className={`font-body text-xs uppercase tracking-wider ${item.highlight ? "text-[#E8EAE6] font-semibold" : "text-[#7A8077]"}`}>
+            <item.icon className={`w-4 h-4 text-[#FFFFFF]`} />
+            <span className={`font-body text-xs uppercase tracking-wider text-[#FFFFFF] ${item.highlight ? "font-semibold" : ""}`}>
               {item.text}
             </span>
           </div>

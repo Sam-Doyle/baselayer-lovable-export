@@ -88,7 +88,7 @@ Instagram ads → cold traffic → email capture funnel
 
 | Role | Family | Weights | Usage |
 |---|---|---|---|
-| **Headings** | DM Sans | 700, 800, 900 | All headings, brand name, CTAs |
+| **Headings** | Montserrat | 700, 800, 900 | All headings, brand name, CTAs |
 | **Body** | Inter | 400, 500, 600 | Body copy, labels, inputs, UI |
 
 ### Heading Style
@@ -127,22 +127,47 @@ BADGE:       font-body text-[11px] tracking-[0.25em] uppercase text-muted-foregr
 
 ## 5. Logo & Brand Mark
 
-### Wordmark
-The Base Layer logo is a typographic wordmark: **"Base Layer"** set in **DM Sans Bold**, uppercase, with tight tracking. It is enclosed between two horizontal rules (1px white lines above and below).
+### Wordmark (The Period Stop)
+The Base Layer logo is a purely typographic wordmark: **"BASE LAYER."** set in a clean, bold Montserrat sans-serif font. The text is always completely horizontal, with tight tracking. The defining characteristic is the prominently large, perfectly circular period (dot) at the end of the wordmark, acting as a definitive full stop.
 
 ```
-───────────────
-  BASE LAYER
-───────────────
+BASE LAYER.
 ```
 
 ### Logo Rules
-1. Always uppercase
-2. Always white on black (or black on white in light contexts)
-3. Horizontal rules above and below are part of the mark — don't separate them
-4. Minimum clear space: the height of the text on all sides
-5. No gradients, shadows, or embellishments on the wordmark
-6. Logo file: `src/assets/logo-white.png`
+1. Always uppercase.
+2. The period (.) is a mandatory part of the logo and should always be Ascent Orange (`#F95D1A`).
+3. The main text ("BASE LAYER") should traditionally be Alpine Navy (`#1A2F4C`) for light backgrounds, or Powder White (`#FFFFFF`) for dark backgrounds.
+4. The period is always Ascent Orange (`#F95D1A`), regardless of background color.
+5. In single-color applications, the period matches the rest of the text.
+6. Minimum clear space: the height of the text on all sides.
+7. No gradients, shadows, or embellishments on the wordmark.
+
+### Logo Pack Formats
+
+Below are the varied SVG logo formats to be used across applications:
+
+**Primary (Transparent Backgrounds)**
+*For placing on light surfaces:*
+![Primary Light Background](./logo_pack/logo_primary_light_bg.svg)
+
+*For placing on dark surfaces:*
+![Primary Dark Background](./logo_pack/logo_primary_dark_bg.svg)
+
+**Padded Marks (Solid Backgrounds)**
+*For social avatars or components requiring a hard bounding box:*
+![Padded White](./logo_pack/logo_padded_white.svg)
+
+![Padded Black](./logo_pack/logo_padded_black.svg)
+
+**Minimal Format**
+*For tight constraints that don't support the full wordmark (e.g., favicon):*
+![Logo Icon](./logo_pack/logo_icon.svg)
+
+**Single Color Usage**
+*For print & utility rendering (solid black & solid white):*
+![Single Color Black](./logo_pack/logo_single_color_black.svg)
+![Single Color White](./logo_pack/logo_single_color_white.svg)
 
 ---
 
@@ -345,8 +370,8 @@ $38 (founding batch) / $48 (post-launch)
 | Ingredient | Benefit |
 |---|---|
 | Niacinamide | Oil control, pore refinement |
-| Copper Peptide GHK-Cu | Anti-aging, collagen support |
-| Panthenol | Barrier repair, soothing |
+| Copper Peptide GHK-Cu | Firmer-looking skin |
+| Panthenol | Barrier support, soothing |
 | Centella Asiatica | Calms irritation, sensitive skin |
 | Squalane | Lightweight hydration |
 | Hyaluronic Acid | Deep moisture retention |
@@ -362,7 +387,7 @@ $38 (founding batch) / $48 (post-launch)
 ### Results Timeline
 - **Immediate:** Hydration
 - **1–2 weeks:** Oil control
-- **4–8 weeks:** Visible anti-aging improvements
+- **4–8 weeks:** Visible improvements in tone, texture, and fine lines to combat signs of aging
 
 ---
 

@@ -7,17 +7,16 @@ Reference for AI content skills. Add new SKUs as additional `## Product Name` se
 - **SKU:** BL-PDFC-50ML
 - **Size:** 50 mL
 - **Price:** $38 (founding batch) / $48 (post-launch retail)
-- **Category:** All-in-one daily moisturizer + SPF 30 Broad Spectrum
+- **Category:** All-in-one daily moisturizer
 - **Tagline:** "One step. Zero shine."
-- **Classification:** Cosmetic + OTC Drug (SPF triggers drug classification)
+- **Classification:** Cosmetic
 
 ### Key Benefits (ordered by importance)
 1. Absorbs in 15 seconds -- no greasy residue
-2. Replaces serum + moisturizer + eye cream + sunscreen
+2. Replaces serum + moisturizer + eye cream
 3. Matte finish, all-day shine control
-4. Broad Spectrum SPF 30 -- blocks 97% of UVB rays
-5. Fragrance-free
-6. One bottle lasts 6-8 weeks
+4. Fragrance-free
+5. One bottle lasts 6-8 weeks
 
 ### Key Ingredients
 
@@ -29,18 +28,17 @@ Reference for AI content skills. Add new SKUs as additional `## Product Name` se
 | Centella Asiatica | -- | Calms irritation, sensitive skin | "Calms and soothes even sensitive skin" |
 | Squalane | -- | Lightweight hydration, barrier reinforcement | "Biomimetic moisturizer that mirrors your skin's natural oils" |
 | Hyaluronic Acid | -- | Deep moisture retention | "Holds up to 1,000x its weight in water for lasting hydration" |
-| SPF 30 Broad Spectrum | -- | UV protection (UVA + UVB) | "Dermatologist-recommended daily broad spectrum sun protection" |
 
 ### Results Timeline
 - **Immediate:** Hydration, skin feels smoother, no greasy residue
 - **1-2 weeks:** Oil control, improved skin texture, reduced post-shave irritation
-- **4-8 weeks:** Visible improvements in tone evenness, pore refinement, fine lines
+- **4-8 weeks:** Visible improvements in tone, texture, and fine lines to combat signs of aging
 - **12+ weeks:** Cumulative brightening, sustained barrier health, texture improvement
 
 ### Pricing & Offers
 - **Founding price:** $38 (limited first production run)
 - **Post-launch retail:** $48
-- **Free shipping threshold:** TBD ($38+ expected)
+- **Free shipping threshold:** $50+
 - **Guarantee:** 30-day money-back, keep the bottle
 - **No subscriptions at launch**
 
@@ -51,7 +49,7 @@ Reference for AI content skills. Add new SKUs as additional `## Product Name` se
   "@type": "Product",
   "name": "Performance Daily Face Cream",
   "brand": { "@type": "Brand", "name": "Base Layer" },
-  "description": "All-in-one daily face cream with SPF 30 for men. Absorbs in 15 seconds. Replaces serum, moisturizer, and sunscreen.",
+  "description": "All-in-one daily face cream for men. Absorbs in 15 seconds. Replaces serum, moisturizer, and eye cream.",
   "sku": "BL-PDFC-50ML",
   "offers": {
     "@type": "Offer",

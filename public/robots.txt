@@ -24,4 +24,16 @@ Allow: /
 User-agent: Amazonbot
 Allow: /
 
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
 Sitemap: https://baselayerskin.co/sitemap.xml

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" width="150" height="100">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800');
+      .brand-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 56px;
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </defs>
+  <text x="50%" y="50%" text-anchor="middle" dy=".35em" class="brand-text" fill="#1A2F4C">BL<tspan fill="#F95D1A">.</tspan></text>
+</svg>
