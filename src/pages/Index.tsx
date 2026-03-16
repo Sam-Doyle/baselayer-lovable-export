@@ -9,6 +9,7 @@ const PerformanceSpecsSection = lazy(() => import("@/components/PerformanceSpecs
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
 const TheGearSection = lazy(() => import("@/components/TheGearSection"));
 const FAQSection = lazy(() => import("@/components/FAQSection"));
+const WhyMensSkinSection = lazy(() => import("@/components/WhyMensSkinSection"));
 const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
 const Footer = lazy(() => import("@/components/Footer"));
 const SocialProofBar = lazy(() => import("@/components/SocialProofBar"));
@@ -95,6 +96,9 @@ const Index = () => {
         </div>
         <div className="content-auto">
           <FAQSection />
+        </div>
+        <div className="content-auto">
+          <WhyMensSkinSection />
         </div>
         <div className="content-auto">
           <OurOriginSection />

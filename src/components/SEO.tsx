@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const BASE_URL = "https://baselayerskin.co";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/images/baselayer-carton.jpeg`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
 
 // ── Canonical Tag ──────────────────────────────────────────────────
 

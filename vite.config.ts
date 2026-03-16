@@ -29,25 +29,6 @@ const STATIC_PAGES: PageMeta[] = [
     description: "Men's face moisturizer with niacinamide, copper peptide & hyaluronic acid. One step, zero shine. Absorbs in 15 seconds. $38, no subscription.",
     changefreq: "weekly",
     priority: "1.0",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        name: "Base Layer",
-        url: BASE_URL,
-        logo: `${BASE_URL}/logo.png`,
-        description: "Advanced men's skincare engineered for active lifestyles. Formulated in Breckenridge, Colorado.",
-        sameAs: ["https://www.instagram.com/baselayerskin/"],
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "Base Layer",
-        url: BASE_URL,
-        description: "Men's skincare engineered for active lifestyles.",
-        publisher: { "@type": "Organization", name: "Base Layer" },
-      },
-    ],
   },
   {
     path: "/face-cream",
