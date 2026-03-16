@@ -74,7 +74,7 @@ interface JsonLdProps {
 }
 
 export function JsonLd({ data }: JsonLdProps) {
-  const items = Array.isArray(data) ? data : [data];
+  const items = (Array.isArray(data) ? data : [data]).filter(Boolean);
   return (
     <>
       {items.map((d, i) => (
@@ -116,18 +116,12 @@ export function buildBreadcrumbSchema(items: { name: string; path?: string }[]) 
   };
 }
 
-// ── FAQ Schema builder ──────────────────────────────────────────────
+// ── FAQ Schema builder (DISABLED) ───────────────────────────────────
+// FAQPage rich results restricted to gov/healthcare since Aug 2023.
+// Returns null — FAQ content still renders on-page for users and AI.
 
-export function buildFaqSchema(faqs: { question: string; answer: string }[]) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((f) => ({
-      "@type": "Question",
-      name: f.question,
-      acceptedAnswer: { "@type": "Answer", text: f.answer },
-    })),
-  };
+export function buildFaqSchema(_faqs: { question: string; answer: string }[]) {
+  return null;
 }
 
 // ── Article Schema builder ──────────────────────────────────────────

@@ -83,17 +83,7 @@ const STATIC_PAGES: PageMeta[] = [
           { "@type": "ListItem", position: 2, name: "Face Cream" },
         ],
       },
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: [
-          { "@type": "Question", name: "What skin type is this for?", acceptedAnswer: { "@type": "Answer", text: "All of them. Niacinamide controls oil for oily skin. Hyaluronic acid hydrates dry skin. Centella asiatica calms sensitive skin. One formula, calibrated for men's skin specifically." } },
-          { "@type": "Question", name: "How do I use it?", acceptedAnswer: { "@type": "Answer", text: "After cleansing (morning and/or night), pump once, apply to face and neck. 15 seconds to absorb. That's it." } },
-          { "@type": "Question", name: "When will I see results?", acceptedAnswer: { "@type": "Answer", text: "Hydration is immediate. Oil control kicks in at 1-2 weeks. Visible anti-aging improvements at 4-8 weeks with daily use." } },
-          { "@type": "Question", name: "Do I need other products too?", acceptedAnswer: { "@type": "Answer", text: "Just a cleanser and SPF. Base Layer replaces your serum, moisturizer, and eye cream in one step." } },
-          { "@type": "Question", name: "Why is there no subscription?", acceptedAnswer: { "@type": "Answer", text: "We don't believe in trapping you into recurring charges. Buy when you need it. One bottle lasts 6-8 weeks." } },
-        ],
-      },
+      // FAQPage schema removed — restricted to gov/healthcare since Aug 2023.
     ],
   },
   {

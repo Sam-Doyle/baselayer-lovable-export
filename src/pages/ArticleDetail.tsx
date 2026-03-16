@@ -75,6 +75,20 @@ const ArticleDetail = () => {
 
   useMetaTags({ title, description, type: "article", image: imageUrl });
 
+  // Apply noindex for articles flagged in Sanity CMS
+  useEffect(() => {
+    if (art?.seo?.noIndex) {
+      let meta = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "robots";
+        document.head.appendChild(meta);
+      }
+      meta.content = "noindex, nofollow";
+      return () => { meta?.remove(); };
+    }
+  }, [art?.seo?.noIndex]);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {article && (
