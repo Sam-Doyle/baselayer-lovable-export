@@ -97,7 +97,7 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-[#F4F4F0]/90 via-[#F4F4F0]/30 to-transparent h-[35%] bottom-0 mt-auto"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-12 pt-20">
+      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-12 pt-28 md:pt-20">
         <div className="max-w-xl xl:max-w-2xl">
 
           {/* Eyebrow Label */}
@@ -161,7 +161,7 @@ const HeroSection = () => {
 
           {/* Premium Gear Spec Badges (Technical SVG row) */}
           <div
-            className="mt-12 animate-fade-in-up flex items-center justify-between sm:justify-start gap-4 sm:gap-10 text-left border-t border-[#1E201E]/10 pt-6"
+            className="mt-8 mb-8 animate-fade-in-up flex items-center justify-between sm:justify-start gap-4 sm:gap-10 text-left border-t border-[#1E201E]/10 pt-6"
             style={{ animationDelay: "0.3s" }}
           >
             {/* Badge 1 */}

@@ -14,7 +14,7 @@ import { Shield, Mountain, Wind, BadgeCheck } from "lucide-react";
  */
 
 const proofItems = [
-  { icon: Shield, text: "Tested at 10,000 ft elevation", highlight: true },
+  { icon: Shield, text: "Tested at 10,000 ft elevation" },
   { icon: Wind, text: "Protects against wind, cold, and UV reflection" },
   { icon: Mountain, text: "Built in Colorado for harsh environments" },
   { icon: BadgeCheck, text: "30-day money-back guarantee" },
@@ -45,7 +45,7 @@ const SocialProofBar = () => {
         {proofItems.map((item, i) => (
           <div key={i} className="flex items-center gap-2 shrink-0">
             <item.icon className={`w-4 h-4 text-[#FFFFFF]`} />
-            <span className={`font-body text-xs uppercase tracking-wider text-[#FFFFFF] ${item.highlight ? "font-semibold" : ""}`}>
+            <span className="font-body text-xs uppercase tracking-wider text-[#FFFFFF]">
               {item.text}
             </span>
           </div>
