@@ -50,7 +50,7 @@
       --foreground: 0 0% 92%;
       --primary: 0 0% 92%;
       --primary-foreground: 0 0% 4%;
-      --font-heading: 'DM Sans', sans-serif;
+      --font-heading: 'Montserrat', sans-serif;
       --font-body: 'Inter', sans-serif
     }
 
@@ -184,6 +184,9 @@
       padding-bottom: .5rem
     }
   </style>
+
+  <!-- LCP hero image preload — must be early in <head> before CSS blocks rendering -->
+  <link rel="preload" as="image" type="image/webp" href="/images/hero-guy-orange-4k.webp" fetchpriority="high">
 
   <!-- Self-hosted font preloads — above-fold critical weights -->
   <link rel="preload" as="font" type="font/woff2" href="/fonts/inter-400.woff2" crossorigin>

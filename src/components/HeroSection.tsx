@@ -87,7 +87,7 @@ const HeroSection = () => {
             sizes="100vw"
             fetchPriority="high"
             loading="eager"
-            decoding="sync"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
           />
         </picture>

@@ -233,6 +233,15 @@ function prerenderPlugin(): Plugin {
 
       let baseHtml = fs.readFileSync(indexPath, "utf-8");
 
+      // ── LCP Optimization 0: Non-blocking CSS ──────────────────
+      // The <head> already has critical inline CSS for above-the-fold
+      // rendering, so the external stylesheet can load asynchronously.
+      // This prevents the 85KB CSS file from blocking FCP/LCP.
+      baseHtml = baseHtml.replace(
+        /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/,
+        '<link rel="preload" as="style" crossorigin href="$1">\n  <link rel="stylesheet" crossorigin href="$1" media="print" onload="this.media=\'all\'">\n  <noscript><link rel="stylesheet" crossorigin href="$1"></noscript>'
+      );
+
       // ── LCP Optimization 1: Per-page hero image preloads ───────
       // Scan built assets for hero image variants so each page gets
       // the correct preload (homepage vs face-cream vs none).
@@ -439,10 +448,16 @@ function prerenderPlugin(): Plugin {
       for (const page of allPages) {
         let html = injectMeta(baseHtml, page);
 
-        // Inject correct hero image preload for this page
+        // Inject correct hero image preload for this page — early in <head>
+        // so the browser discovers it before render-blocking CSS/JS.
+        // First, strip any generic hero preload from the source template.
+        html = html.replace(/\s*<link rel="preload" as="image"[^>]*hero-guy-orange[^>]*>\n?/g, "");
         const hPreload = heroPreloadForPage[page.path] || "";
         if (hPreload) {
-          html = html.replace("</head>", `  ${hPreload}\n  </head>`);
+          html = html.replace(
+            /<meta name="viewport"[^>]*>/,
+            (match) => `${match}\n  ${hPreload}`
+          );
         }
 
         // Inject page-specific above-the-fold skeleton
