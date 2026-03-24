@@ -282,6 +282,23 @@ const ComparisonDetail = () => {
                 </section>
               )}
 
+              {/* Related Articles */}
+              {comp.relatedArticles && comp.relatedArticles.length > 0 && (
+                <section className="mt-10 pt-10 border-t border-border">
+                  <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">Related Articles</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {comp.relatedArticles.map((article: any) => (
+                      <Link key={article.slug} to={`/articles/${article.slug}`} className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
+                        <h3 className="font-heading font-bold text-sm">{article.title}</h3>
+                        {article.excerpt && (
+                          <p className="font-body text-xs text-muted-foreground mt-1 line-clamp-2">{article.excerpt}</p>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
+
               {/* Related Skin Concerns */}
               <section className="mt-10 pt-10 border-t border-border">
                 <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">Related Skin Concerns</h2>

@@ -61,7 +61,7 @@ const WhyMenQuitSection = () => {
         style={{ opacity: isVisible ? 1 : 0 }}
       >
         <img
-          src="/images/weather-texture.png"
+          src="/images/weather-texture.webp"
           alt="Harsh elemental outdoor texture"
           className="absolute inset-0 w-full h-full object-cover grayscale opacity-90 mix-blend-multiply"
           loading="lazy"

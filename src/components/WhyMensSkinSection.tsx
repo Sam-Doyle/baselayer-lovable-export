@@ -78,6 +78,14 @@ const WhyMensSkinSection = () => {
                         <p className="font-body text-base md:text-lg text-[#FFFFFF]/70 leading-relaxed">
                             That environment became the proving ground. Every batch gets tested against dry mountain air, post-shave sensitivity, and long days outdoors before it ships. The result is a moisturizer that holds up in the real world, not just a lab.
                         </p>
+                        <div className="inline-block border border-[#F95D1A] bg-[#F95D1A]/10 px-3 py-1 self-start rounded-none mt-4">
+                            <span className="font-heading text-[10px] uppercase tracking-[0.2em] font-bold text-[#F95D1A]">
+                                [ BUILT FOR THESE GUYS ]
+                            </span>
+                        </div>
+                        <p className="font-body text-base md:text-lg text-[#FFFFFF]/90 leading-relaxed">
+                            Whether you're a construction foreman spending ten hours under direct sun, a trail runner logging miles at altitude, or a consultant living out of hotel rooms with recycled cabin air — Base Layer was formulated for the conditions you actually face. Outdoor workers dealing with windburn, UV exposure, and temperature swings throughout the day. Athletes whose post-workout skin needs fast-absorbing hydration without a greasy layer under a helmet or hat. Frequent travelers battling dry airplane cabins and hard hotel water. And any guy who wants a clean post-shave recovery step that calms razor irritation and redness without stinging or leaving residue. One product, engineered to perform across every scenario.
+                        </p>
                     </div>
 
                     {/* Column 3: Clinical-Dose Ingredients */}

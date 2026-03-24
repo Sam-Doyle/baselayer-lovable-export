@@ -165,6 +165,7 @@ export interface Comparison {
   body?: BlockContent;
   faqs?: FAQ[];
   seo?: SEO;
+  relatedArticles?: Array<{ title: string; slug: string; excerpt?: string }>;
 }
 
 export interface Article {
@@ -180,6 +181,12 @@ export interface Article {
   relatedIngredients?: Ingredient[];
   relatedConcerns?: SkinConcern[];
   relatedProducts?: Product[];
+  relatedArticles?: Array<{
+    title: string;
+    slug: string;
+    excerpt?: string;
+    heroImage?: string;
+  }>;
   faqs?: FAQ[];
   publishedAt?: string;
   updatedAt?: string;

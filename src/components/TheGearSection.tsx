@@ -74,7 +74,7 @@ const TheGearSection = () => {
             {/* Background Texture Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="/images/texture-light-stone.png"
+                    src="/images/texture-light-stone.webp"
                     alt="Light textured alpine stone"
                     width={640}
                     height={640}
@@ -142,7 +142,7 @@ const TheGearSection = () => {
                         {/* Merged CTA Block */}
                         <div className="mt-10 pt-8 border-t border-[#1E201E]/10 w-full">
                             <p className="font-heading text-[11px] uppercase tracking-[0.1em] font-black text-[#1E201E] mb-4">
-                                Reserve Batch 01 at $38 Prelaunch Price.
+                                Reserve Batch 01 at <span className="line-through opacity-40">$48</span> $38 Prelaunch Price.
                             </p>
 
                             {!submitted ? (
@@ -185,7 +185,7 @@ const TheGearSection = () => {
                     {/* Right Column: Product Image */}
                     <div className="relative min-h-[300px] h-full overflow-hidden bg-[#E8EAE6]">
                         <img
-                            src="/images/baselayer-carton.jpeg"
+                            src="/images/baselayer-carton.webp"
                             alt="Base Layer Carton"
                             width={640}
                             height={640}

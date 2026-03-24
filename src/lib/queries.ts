@@ -88,6 +88,12 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
         "slug": slug.current
       },
       ${faqsFragment},
+      "relatedArticles": *[_type == "article" && slug.current != ^.slug.current && defined(body)] | order(publishedAt desc) [0...4] {
+        title,
+        "slug": slug.current,
+        excerpt,
+        "heroImage": heroImage.asset->url
+      },
       "metaTitle": coalesce(seo.title, metaTitle),
       "metaDescription": coalesce(seo.description, metaDescription)
     }
@@ -175,7 +181,14 @@ export async function getIngredientBySlug(
         "slug": slug.current,
         tagline
       },
-      "relatedArticles": relatedArticles[]->{title, "slug": slug.current, excerpt}
+      "relatedArticles": select(
+        count(relatedArticles) > 0 => relatedArticles[]->{title, "slug": slug.current, excerpt},
+        *[_type == "article" && defined(body)] | order(publishedAt desc) [0...4] {
+          title,
+          "slug": slug.current,
+          excerpt
+        }
+      )
     }
   `,
     { slug }
@@ -233,7 +246,14 @@ export async function getSkinConcernBySlug(
       "metaDescription": coalesce(seo.description, metaDescription),
       heroImage{asset->{url}, alt},
       "recommendedIngredients": recommendedIngredients[]->{name, "slug": slug.current, tagline, overview},
-      "relatedArticles": relatedArticles[]->{title, "slug": slug.current, excerpt}
+      "relatedArticles": select(
+        count(relatedArticles) > 0 => relatedArticles[]->{title, "slug": slug.current, excerpt},
+        *[_type == "article" && defined(body)] | order(publishedAt desc) [0...4] {
+          title,
+          "slug": slug.current,
+          excerpt
+        }
+      )
     }
   `,
     { slug }
@@ -392,7 +412,12 @@ export async function getComparisonBySlug(
       ${faqsFragment},
       "metaTitle": coalesce(seo.title, metaTitle),
       "metaDescription": coalesce(seo.description, metaDescription),
-      heroImage{asset->{url}, alt}
+      heroImage{asset->{url}, alt},
+      "relatedArticles": *[_type == "article"] | order(publishedAt desc) [0...4] {
+        title,
+        "slug": slug.current,
+        excerpt
+      }
     }
   `,
     { slug }
