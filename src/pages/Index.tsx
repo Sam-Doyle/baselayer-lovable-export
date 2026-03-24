@@ -1,5 +1,4 @@
 import { lazy, Suspense } from "react";
-import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
@@ -14,30 +13,8 @@ const WhyMensSkinSection = lazy(() => import("@/components/WhyMensSkinSection"))
 const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
 const Footer = lazy(() => import("@/components/Footer"));
 const PressBanner = lazy(() => import("@/components/PressBanner"));
+const IngredientsShowcase = lazy(() => import("@/components/IngredientsShowcase"));
 const ScrollProgressBar = lazy(() => import("@/components/ScrollProgressBar"));
-
-const FEATURED_ARTICLES = [
-  {
-    title: "The 3-Step Skincare Routine for Active Men",
-    slug: "/articles/3-step-skincare-routine",
-    description: "A no-BS daily routine built around three products. Cleanse, treat, protect — in under two minutes.",
-  },
-  {
-    title: "Best Moisturizer for Oily Skin",
-    slug: "/articles/best-moisturizer-oily-skin-men",
-    description: "Why heavyweight creams make oily skin worse, and what to look for in a matte-finish moisturizer.",
-  },
-  {
-    title: "CeraVe vs Base Layer",
-    slug: "/comparisons/cerave-vs-base-layer",
-    description: "A head-to-head comparison of ingredients, texture, and performance between two popular moisturizers.",
-  },
-  {
-    title: "Best Moisturizer for Outdoor Workers",
-    slug: "/articles/best-moisturizer-outdoor-workers",
-    description: "Sun, wind, and dry air all day — here's what to look for in a face cream that can keep up.",
-  },
-];
 
 const REVIEW_SCHEMA = {
   "@context": "https://schema.org",
@@ -114,6 +91,7 @@ const Index = () => {
       <Suspense fallback={null}>
         <PressBanner />
         <WhyMensSkinSection />
+        <IngredientsShowcase />
         <PerformanceSpecsSection />
         <TestimonialsSection />
         <div className="content-auto">
@@ -122,32 +100,6 @@ const Index = () => {
         <div className="content-auto">
           <FAQSection />
         </div>
-        <section className="py-20 px-8 bg-background">
-          <div className="max-w-[1440px] mx-auto">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12">
-              THE INTEL.
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {FEATURED_ARTICLES.map((article) => (
-                <Link
-                  key={article.slug}
-                  to={article.slug}
-                  className="block bg-card/50 border border-border rounded-lg p-6 hover:bg-card transition-colors group"
-                >
-                  <h3 className="font-heading text-sm font-bold uppercase tracking-wide group-hover:text-primary transition-colors">
-                    {article.title}
-                  </h3>
-                  <p className="font-body text-xs text-muted-foreground mt-2">
-                    {article.description}
-                  </p>
-                  <span className="font-body text-xs text-primary mt-4 inline-block">
-                    Read →
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
         <div className="content-auto">
           <OurOriginSection />
         </div>
