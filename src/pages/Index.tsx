@@ -14,6 +14,7 @@ const WhyMensSkinSection = lazy(() => import("@/components/WhyMensSkinSection"))
 const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
 const Footer = lazy(() => import("@/components/Footer"));
 const SocialProofBar = lazy(() => import("@/components/SocialProofBar"));
+const PressBanner = lazy(() => import("@/components/PressBanner"));
 const ScrollProgressBar = lazy(() => import("@/components/ScrollProgressBar"));
 
 const FEATURED_ARTICLES = [
@@ -113,6 +114,7 @@ const Index = () => {
 
       <Suspense fallback={null}>
         <SocialProofBar />
+        <PressBanner />
         <WhyMensSkinSection />
         <PerformanceSpecsSection />
         <TestimonialsSection />
