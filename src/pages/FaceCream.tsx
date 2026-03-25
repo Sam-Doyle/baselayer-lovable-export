@@ -7,10 +7,12 @@ import { trackEvent } from "@/lib/analytics";
 import { useEffect, useState, useRef } from "react";
 import productShot from "@/assets/product-hero-rock.png";
 import textureSmearStone from "@/assets/generated-creatives/asset_texture_smear_stone_1772750541116.png";
-import { Mountain, Zap, Shield, Droplets, Timer, Leaf, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Mountain, Zap, Shield, Droplets, Timer, Leaf, ChevronLeft, ChevronRight, Check, Sun, Moon } from "lucide-react";
+import howToUseImage from "@/assets/generated-creatives/how-to-use-lifestyle.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import TestimonialsSection from "@/components/TestimonialsSection";
+import ComparisonTable from "@/components/ComparisonTable";
 
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
@@ -344,31 +346,26 @@ const FaceCream = () => {
 
         {/* 4. NEW SECTION: HOW TO USE */}
         <section className="bg-[#F7F8FA] py-[80px] px-6">
-          <div className="max-w-[1000px] mx-auto text-center">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-[#1A2F4C] mb-12">How To Use</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
-              <div className="flex flex-col items-center">
-                <div className="w-[48px] h-[48px] rounded-full border-2 border-[#1A2F4C] flex items-center justify-center font-heading font-bold text-[20px] text-[#1A2F4C] mb-6 shadow-sm bg-white">1</div>
-                <div className="text-[32px] mb-4 leading-none select-none">💧</div>
-                <h3 className="font-heading font-bold text-[16px] uppercase text-[#1A2F4C] mb-2">Wash</h3>
-                <p className="font-body text-[14px] text-[#4A5568]">Rinse with warm water</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-[48px] h-[48px] rounded-full border-2 border-[#1A2F4C] flex items-center justify-center font-heading font-bold text-[20px] text-[#1A2F4C] mb-6 shadow-sm bg-white">2</div>
-                <div className="text-[32px] mb-4 leading-none select-none">🧴</div>
-                <h3 className="font-heading font-bold text-[16px] uppercase text-[#1A2F4C] mb-2">One Pump</h3>
-                <p className="font-body text-[14px] text-[#4A5568]">Apply to face and neck</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="w-[48px] h-[48px] rounded-full border-2 border-[#1A2F4C] flex items-center justify-center font-heading font-bold text-[20px] text-[#1A2F4C] mb-6 shadow-sm bg-white">3</div>
-                <div className="text-[32px] mb-4 leading-none select-none font-bold text-[#1A2F4C]">✓</div>
-                <h3 className="font-heading font-bold text-[16px] uppercase text-[#1A2F4C] mb-2">Done</h3>
-                <p className="font-body text-[14px] text-[#4A5568]">15 seconds. That's the whole routine.</p>
+          <div className="max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {/* Left: Product Image */}
+            <div className="w-full relative aspect-[4/3] md:aspect-[4/3] bg-[#E2E8F0] rounded-[8px] overflow-hidden shadow-sm">
+              <img src={howToUseImage} alt="Base Layer Daily Face Cream in Bathroom" className="w-full h-full object-cover" />
+            </div>
+            {/* Right: Text and Instructions */}
+            <div className="flex flex-col text-left px-0 md:px-8">
+              <span className="font-heading font-semibold text-[13px] md:text-[14px] uppercase tracking-[0.05em] text-[#4A5568] mb-2">HOW TO USE</span>
+              <h2 className="font-heading text-[28px] md:text-3xl font-bold text-[#1A2F4C] mb-6">Daily protocol</h2>
+              <div className="flex items-start gap-4">
+                <div className="flex items-center gap-[6px] text-[#1A2F4C] mt-1 shrink-0">
+                  <Sun className="w-5 h-5 text-[#F35D1A]" />
+                  <span className="font-body text-[18px] font-light text-[#1A2F4C] leading-none">/</span>
+                  <Moon className="w-5 h-5 text-[#1A2F4C]" />
+                </div>
+                <p className="font-body text-[15px] text-[#4A5568] leading-[1.6]">
+                  Massage into clean, dry skin in the morning and evening. For best results, use daily.
+                </p>
               </div>
             </div>
-            <p className="font-body text-[15px] text-[#ABB3BB] italic mt-16 max-w-[400px] mx-auto leading-[1.6]">
-              That's it. No toner. No serum. No eye cream.
-            </p>
           </div>
         </section>
 
@@ -387,6 +384,8 @@ const FaceCream = () => {
         {/* 6. WHAT GUYS ACTUALLY NOTICE (Import from newly redesigned component) */}
         <TestimonialsSection />
 
+        <ComparisonTable />
+
         {/* 7. BEFORE YOU BUY (FAQ) */}
         <section className="px-6 py-20 bg-white">
           <div className="max-w-[720px] mx-auto">
@@ -402,57 +401,7 @@ const FaceCream = () => {
           </div>
         </section>
 
-        {/* 8. COMPARISON TABLE */}
-        <section className="px-6 py-16 bg-[#F7F8FA]">
-          <div className="max-w-[900px] mx-auto overflow-hidden">
-            <h2 className="font-heading text-xl md:text-2xl font-bold uppercase tracking-wide text-center mb-10 text-[#1A2F4C]">
-              See How We Compare
-            </h2>
-            <div className="overflow-x-auto pb-4 hide-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[600px] bg-white rounded-lg shadow-sm">
-                <thead>
-                  <tr>
-                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] uppercase text-[#1A2F4C] w-[28%] bg-white rounded-tl-lg">Features</th>
-                    <th className="p-4 border-b border-r border-[#E2E8F0] font-heading font-black text-[16px] text-[#1A2F4C] bg-[#E2E8F0]/30 w-[18%] text-center">Base Layer</th>
-                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] text-[#4A5568] w-[18%] text-center">CeraVe</th>
-                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] text-[#4A5568] w-[18%] text-center">Kiehl's</th>
-                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] text-[#4A5568] w-[18%] text-center rounded-tr-lg">Brickell</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">Price per oz</td>
-                    <td className="p-4 border-b border-r border-[#E2E8F0] font-body text-[14px] font-bold text-[#1A2F4C] bg-[#E2E8F0]/30 text-center">$22.35</td>
-                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] text-[#4A5568] text-center">$1.50</td>
-                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] text-[#4A5568] text-center">$27.00</td>
-                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] text-[#4A5568] text-center">$17.50</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">15-Second Matte Finish</td>
-                    <td className="p-4 border-b border-r border-[#E2E8F0] text-center bg-[#E2E8F0]/30"><Check className="w-5 h-5 text-[#2E7D32] mx-auto"/></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">Niacinamide (Oil Control)</td>
-                    <td className="p-4 border-b border-r border-[#E2E8F0] text-center bg-[#E2E8F0]/30"><Check className="w-5 h-5 text-[#2E7D32] mx-auto"/></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><Check className="w-5 h-5 text-[#2E7D32] mx-auto opacity-50"/></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">Copper Peptide (Firming)</td>
-                    <td className="p-4 border-b border-r border-[#E2E8F0] text-center bg-[#E2E8F0]/30 rounded-bl-none"><Check className="w-5 h-5 text-[#2E7D32] mx-auto"/></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
-                    <td className="p-4 border-b border-[#E2E8F0] text-center rounded-br-lg"><span className="text-[#E53E3E] font-bold">—</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+
 
         {/* 9. BOTTOM CTA */}
         <section className="px-6 py-[80px] text-center bg-[#1A2F4C] text-white">
