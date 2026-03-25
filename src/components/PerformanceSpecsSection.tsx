@@ -55,7 +55,7 @@ const PerformanceSpecsSection = () => {
                         </h2>
 
                         <p className="font-body text-base md:text-lg text-[#1E201E]/70 leading-relaxed mb-8 max-w-md">
-                            Your skin is an organ. Treat it like gear. Base Layer utilizes a highly-calibrated matrix of copper peptides, squalane, and hyaluronic acid to lock out hostile environments.
+                            Your skin is an organ. Treat it like gear. Copper peptides, squalane, and hyaluronic acid at real doses. Built to lock out whatever the day throws at you.
                         </p>
 
                         <button

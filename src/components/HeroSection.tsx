@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { trackEvent, setCapturedEmail } from "@/lib/analytics";
+import TrustpilotStars from "@/components/TrustpilotStars";
 
 const MOBILE_MQ = "(max-width: 767px)";
 
@@ -158,7 +159,7 @@ const HeroSection = () => {
                     disabled={loading}
                     className="w-full sm:w-[45%] px-0 py-[14px] bg-[#F35D1A] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 disabled:opacity-50 rounded-[4px] whitespace-nowrap"
                   >
-                    {loading ? "\u2026" : "GET STARTED \u2014 $38 \u2192"}
+                    {loading ? "\u2026" : "GRAB YOURS \u00b7 $38 \u2192"}
                   </button>
                 </form>
 
@@ -167,7 +168,7 @@ const HeroSection = () => {
                   Free shipping &middot; 30-day guarantee &middot; Cancel anytime
                 </p>
                 <div className="flex items-center mt-2 hidden sm:flex">
-                  <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+                  <TrustpilotStars size={14} />
                   <span className="font-body text-[12px] text-white opacity-70 ml-2">4.8/5 from 1,000+ men</span>
                 </div>
 
@@ -177,7 +178,7 @@ const HeroSection = () => {
                     Free shipping &middot; 30-day guarantee<br />Cancel anytime
                   </p>
                   <div className="flex items-center">
-                    <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+                    <TrustpilotStars size={14} />
                     <span className="font-body text-[12px] text-white opacity-70 ml-2">4.8/5 from 1,000+ men</span>
                   </div>
                 </div>
@@ -194,7 +195,7 @@ const HeroSection = () => {
 
           {/* Premium Gear Spec Badges (Technical SVG row) */}
           <div
-            className="animate-fade-in-up flex flex-wrap sm:flex-nowrap items-center justify-start gap-4 sm:gap-10 text-left border-t border-white/20 pt-6 mt-8 md:mt-12 max-w-[500px]"
+            className="animate-fade-in-up flex flex-wrap sm:flex-nowrap items-center justify-start gap-4 sm:gap-10 text-left border-t border-white/20 pt-6 pb-10 md:pb-14 mt-8 md:mt-12 max-w-[500px]"
             style={{ animationDelay: "0.3s" }}
           >
             {/* Badge 1 */}

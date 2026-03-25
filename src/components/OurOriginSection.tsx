@@ -62,13 +62,13 @@ const OurOriginSection = () => {
                         style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "40px"})` }}
                     >
                         <p className="font-body text-lg md:text-xl text-[#1E201E] leading-relaxed font-medium">
-                            We grew tired of "men's grooming" brands selling complex, clinical routines that felt like a chore. Out here, you don't have time for a 6-step process.
+                            Every "men's grooming" brand wants to sell you a 6-step routine. We made one product that replaces all of it.
                         </p>
                         <p className="font-body text-base md:text-lg text-[#1E201E]/70 leading-relaxed">
-                            Base Layer was formulated in the harsh climate of Colorado to solve a specific problem: environmental assault. Whether you're climbing a 14er, working a rig, or just navigating a freezing city commute, your skin needs armor, not perfume.
+                            Base Layer was built in Colorado to solve one problem: your face gets wrecked by the elements. Hiking, commuting, working outside. Your skin needs armor, not perfume.
                         </p>
                         <p className="font-body text-base md:text-lg text-[#1E201E]/70 leading-relaxed">
-                            We stripped away the fluff, doubled down on clinical-grade barrier repair (Copper Peptides, Squalane), and engineered a matte finish so you never look shiny or feel greasy.
+                            We stripped the fluff. Doubled down on barrier repair with copper peptides and squalane. Engineered a matte finish so you never look shiny or feel greasy.
                         </p>
                     </div>
 

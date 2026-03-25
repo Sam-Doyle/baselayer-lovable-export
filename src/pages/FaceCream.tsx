@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
+import TrustpilotStars from "@/components/TrustpilotStars";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEarlyAccess } from "@/context/EarlyAccessContext";
@@ -192,7 +193,7 @@ const FaceCream = () => {
           <div className="flex flex-col pt-4 md:pt-0">
             {/* 1. Star Rating */}
             <div className="flex items-center mb-3">
-              <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+              <TrustpilotStars size={14} />
               <a href="#testimonials" className="font-body text-[13px] text-[#ABB3BB] ml-2 hover:underline">4.8/5 (1,000+ reviews)</a>
             </div>
 
@@ -420,7 +421,7 @@ const FaceCream = () => {
             GET STARTED - ${selectedOption.price}
           </Button>
           <div className="flex items-center justify-center">
-            <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+            <TrustpilotStars size={14} />
             <span className="font-body text-[13px] text-[#ABB3BB] ml-2 leading-none">
               4.8/5 from 1,000+ men
             </span>

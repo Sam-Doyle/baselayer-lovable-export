@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import TrustpilotStars from "@/components/TrustpilotStars";
 
 const testimonials = [
   {
@@ -51,8 +52,8 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
       )}
 
       {/* Stars */}
-      <div className="text-[#00B67A] text-[14px] tracking-[2px] leading-none mb-4">
-        ★★★★★
+      <div className="mb-4">
+        <TrustpilotStars size={14} />
       </div>
 
       {/* Quote */}
@@ -130,7 +131,7 @@ const TestimonialsSection = () => {
         {/* Bottom CTA Block */}
         <div className="mt-[48px] text-center flex flex-col items-center">
           <div className="flex items-center justify-center mb-4">
-            <span className="text-[#00B67A] text-[16px] tracking-[2px] leading-none">★★★★★</span>
+            <TrustpilotStars size={16} />
             <span className="font-body text-[14px] text-[#ABB3BB] ml-2 leading-none">
               4.8/5 from 1,000+ men
             </span>

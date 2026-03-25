@@ -20,17 +20,21 @@ const Navbar = () => {
     <div className={`fixed top-0 left-0 right-0 z-50 flex flex-col transition-transform duration-300 ${isScrolled ? "-translate-y-[36px]" : "translate-y-0"}`}>
       {/* Universal Offer Banner */}
       <div className="bg-[#1A2F4C] text-[#FFFFFF] text-center h-[36px] font-body uppercase w-full flex items-center justify-center px-4 shadow-sm relative z-50">
-        <div className="flex items-center gap-1 text-[#00B67A] text-[14px]">
-          <span className="leading-none tracking-[1px]">★★★★</span>
-          <span className="relative inline-block text-[14px] leading-none text-[#00B67A]/30">
-            ★
-            <span className="absolute left-0 top-0 overflow-hidden w-[80%] text-[#00B67A]">★</span>
+        <div className="flex items-center gap-[3px]">
+          {[1,2,3,4].map(i => (
+            <span key={i} className="inline-block w-[16px] h-[16px] bg-[#00B67A] rounded-[2px] relative">
+              <svg viewBox="0 0 24 24" fill="white" className="absolute inset-0 w-full h-full p-[2.5px]"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </span>
+          ))}
+          <span className="inline-block w-[16px] h-[16px] bg-[#00B67A]/25 rounded-[2px] relative overflow-hidden">
+            <span className="absolute left-0 top-0 w-[80%] h-full bg-[#00B67A] rounded-[2px]" />
+            <svg viewBox="0 0 24 24" fill="white" className="absolute inset-0 w-full h-full p-[2.5px] z-10"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
           </span>
         </div>
         <span className="font-heading font-bold text-white ml-2 text-[12px] leading-none mt-[1px]">4.8/5</span>
-        <span className="mx-2 opacity-50 hidden sm:inline text-[12px]">—</span>
+        <span className="mx-2 opacity-30 hidden sm:inline text-[12px]">·</span>
         <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase hidden sm:inline leading-none mt-[1px]">TRUSTED BY 1,000+ MEN</span>
-        <span className="mx-2 opacity-50 sm:hidden text-[12px]">—</span>
+        <span className="mx-2 opacity-30 sm:hidden text-[12px]">·</span>
         <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase sm:hidden leading-none mt-[1px]">1,000+ MEN TRUST US</span>
       </div>
 
