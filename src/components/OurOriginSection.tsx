@@ -1,46 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { trackEvent, setCapturedEmail } from "@/lib/analytics";
-
-let _supabase: typeof import("@/integrations/supabase/client")["supabase"] | null = null;
-async function getSupabase() {
-  if (!_supabase) {
-    const mod = await import("@/integrations/supabase/client");
-    _supabase = mod.supabase;
-  }
-  return _supabase;
-}
 
 const OurOriginSection = () => {
     const sectionRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(false);
-    
-    const [email, setEmail] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email.trim() || loading) return;
-        setLoading(true);
-        try {
-            const sb = await getSupabase();
-            await sb.from("waitlist").insert({ email: email.trim(), source: "origin_inline" });
-            setCapturedEmail(email);
-            localStorage.setItem("bl_email_captured", "true");
-            trackEvent("email_signup", { source: "origin_inline", email: email.trim() });
-            sb.functions
-                .invoke("email-subscribe", { body: { email: email.trim(), source: "origin_inline" } })
-                .catch(() => { });
-            setSubmitted(true);
-            setEmail("");
-            setTimeout(() => setSubmitted(false), 4000);
-        } catch {
-            setSubmitted(true);
-            setTimeout(() => setSubmitted(false), 4000);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
         const ref = sectionRef.current;
@@ -108,35 +70,6 @@ const OurOriginSection = () => {
                         <p className="font-body text-base md:text-lg text-[#1E201E]/70 leading-relaxed">
                             We stripped away the fluff, doubled down on clinical-grade barrier repair (Copper Peptides, Squalane), and engineered a matte finish so you never look shiny or feel greasy.
                         </p>
-
-                        <div className="mt-4 w-full">
-                            {!submitted ? (
-                                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 w-full">
-                                    <input
-                                        type="email"
-                                        required
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="Enter email to reserve"
-                                        className="w-full sm:w-2/3 px-5 py-5 bg-[#F4F4F0] border-2 border-[#1E201E]/20 text-[#1E201E] text-base font-body placeholder:text-[#1E201E]/50 focus:outline-none focus:border-[#F95D1A] transition-all rounded-none"
-                                    />
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="w-full sm:w-1/3 px-0 py-5 bg-[#F95D1A] text-[#F4F4F0] font-heading font-black tracking-widest text-[14px] uppercase hover:bg-[#1E201E] transition-all duration-300 disabled:opacity-50 rounded-none whitespace-nowrap"
-                                    >
-                                        {loading ? "\u2026" : "BATCH 01 \u2192"}
-                                    </button>
-                                </form>
-                            ) : (
-                                <div className="flex border-2 border-[#F95D1A]/50 bg-[#F4F4F0] p-5 border-l-4 border-l-[#F95D1A] rounded-none">
-                                    <div className="flex flex-col">
-                                        <span className="font-heading text-base font-bold tracking-widest uppercase text-[#1E201E]">Allocation Secured.</span>
-                                        <span className="font-body text-sm text-[#1E201E]/80 mt-1">Check your inbox for Batch 01 details.</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
                     </div>
 
                 </div>

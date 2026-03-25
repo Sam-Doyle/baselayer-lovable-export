@@ -6,7 +6,7 @@ const testimonials = [
     image: "/images/testimonials/sean.webp",
     fallback: "/images/testimonials/sean.png",
     stars: 5,
-    quote: "I used to blot my forehead before every afternoon meeting. One week on Base Layer and I completely stopped. My skin looks matte all day without feeling dry.",
+    quote: "I used to blot my forehead before every afternoon meeting. After about a week on Base Layer, I just stopped. My skin stays matte all day and it doesn't feel dry or tight.",
     name: "Sean, 34",
     detail: "Oily skin · Denver, CO",
     tag: "BEST FOR OILY SKIN",
@@ -15,7 +15,7 @@ const testimonials = [
     image: "/images/testimonials/marcus.webp",
     fallback: "/images/testimonials/marcus.png",
     stars: 5,
-    quote: "My girlfriend kept asking what I changed — she said my skin looked clearer and healthier. I hadn't told her I was using anything new. That's when I knew it actually worked.",
+    quote: "My girlfriend kept saying my skin looked different, like clearer and healthier. I hadn't even told her I was trying anything new. That's when I figured it was actually working.",
     name: "Marcus, 28",
     detail: "Combination skin · Austin, TX",
     tag: "MOST NOTICED",
@@ -24,7 +24,7 @@ const testimonials = [
     image: "/images/testimonials/cooper.webp",
     fallback: "/images/testimonials/cooper.png",
     stars: 5,
-    quote: "Hotel air, airplane cabins, 14ers in January — everything used to wreck my skin. Now I pack one bottle and forget about it. Absorbs fast, no grease, done.",
+    quote: "Hotel air, airplane cabins, hiking in January. Everything used to wreck my skin. Now I throw one bottle in my bag and forget about it. Goes on fast, no grease, done.",
     name: "Cooper, 27",
     detail: "Dry skin · Boulder, CO",
     tag: "BEST FOR TRAVEL",
@@ -51,7 +51,7 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
       )}
 
       {/* Stars */}
-      <div className="text-[#F35D1A] text-[14px] tracking-[2px] leading-none mb-4">
+      <div className="text-[#00B67A] text-[14px] tracking-[2px] leading-none mb-4">
         ★★★★★
       </div>
 
@@ -130,7 +130,7 @@ const TestimonialsSection = () => {
         {/* Bottom CTA Block */}
         <div className="mt-[48px] text-center flex flex-col items-center">
           <div className="flex items-center justify-center mb-4">
-            <span className="text-[#F35D1A] text-[16px] tracking-[2px] leading-none">★★★★★</span>
+            <span className="text-[#00B67A] text-[16px] tracking-[2px] leading-none">★★★★★</span>
             <span className="font-body text-[14px] text-[#ABB3BB] ml-2 leading-none">
               4.8/5 from 1,000+ men
             </span>
@@ -140,7 +140,7 @@ const TestimonialsSection = () => {
             to="/face-cream"
             className="inline-flex items-center justify-center px-[36px] py-[14px] bg-[#F35D1A] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#E04F10] transition-colors duration-300 w-full sm:w-auto mt-2"
           >
-            GET STARTED — $38 →
+            GET STARTED · $38 →
           </Link>
         </div>
 

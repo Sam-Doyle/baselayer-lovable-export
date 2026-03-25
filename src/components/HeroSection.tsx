@@ -116,18 +116,18 @@ const HeroSection = () => {
           </div>
 
           {/* Primary Headline */}
-          <h1 className="animate-fade-in-up font-heading text-[clamp(36px,8vw,48px)] lg:text-[84px] font-black tracking-tighter text-white uppercase leading-[1.05] mb-6">
-            ONE CREAM<span className="text-[#F35D1A]">.</span><br />
-            15 SECONDS<span className="text-[#F35D1A]">.</span><br />
-            DONE<span className="text-[#F35D1A]">.</span>
+          <h1 className="animate-fade-in-up font-heading text-[clamp(36px,6vw,84px)] font-black tracking-tighter text-white uppercase leading-[1.05] mb-6">
+            ONE CREAM<span className="text-white/40">.</span><br />
+            15 SECONDS<span className="text-white/40">.</span><br />
+            DONE<span className="text-white/40">.</span>
           </h1>
 
           {/* Subheading */}
           <p
-            className="animate-fade-in-up font-body text-base sm:text-lg md:text-xl text-white/80 leading-relaxed mb-10 max-w-lg"
+            className="animate-fade-in-up font-body text-[17px] sm:text-lg md:text-xl text-white/90 leading-relaxed mb-10 max-w-lg"
             style={{ animationDelay: "0.1s" }}
           >
-            Your face takes a beating — sun, wind, dry air, bad sleep. Fix it in 15 seconds with one clinical-grade layer. No routines. Zero shine. Nobody knows you're wearing it.
+            Sun, wind, dry air, bad sleep. Your face takes a beating every day. One layer fixes it in 15 seconds flat. No routines. No shine. Nobody will know you're wearing it.
           </p>
 
           {/* Inline Email Capture (Industrial Styling) */}
@@ -167,7 +167,7 @@ const HeroSection = () => {
                   Free shipping &middot; 30-day guarantee &middot; Cancel anytime
                 </p>
                 <div className="flex items-center mt-2 hidden sm:flex">
-                  <span className="text-[#F35D1A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+                  <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
                   <span className="font-body text-[12px] text-white opacity-70 ml-2">4.8/5 from 1,000+ men</span>
                 </div>
 
@@ -177,7 +177,7 @@ const HeroSection = () => {
                     Free shipping &middot; 30-day guarantee<br />Cancel anytime
                   </p>
                   <div className="flex items-center">
-                    <span className="text-[#F35D1A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+                    <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
                     <span className="font-body text-[12px] text-white opacity-70 ml-2">4.8/5 from 1,000+ men</span>
                   </div>
                 </div>

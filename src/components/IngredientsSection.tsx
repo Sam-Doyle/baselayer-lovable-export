@@ -59,10 +59,10 @@ const IngredientsSection = () => {
             Breckenridge, Colorado. The UV is 35% stronger. The air holds half the moisture of sea level.
           </p>
           <p className="font-body text-sm md:text-base text-white/80 max-w-lg leading-relaxed mb-8">
-            We didn't formulate Base Layer in a coastal lab — we built it here because our own faces were wrecked. If it works at altitude, it works in your apartment.
+            We didn't formulate Base Layer in a coastal lab. We built it here because our own faces were wrecked. If it works at altitude, it works in your apartment.
           </p>
           <Button variant="hero" size="lg" className="w-full sm:w-auto px-8 sm:px-12 py-4 md:py-5 text-xs md:text-sm" onClick={() => openModal("ingredients")}>
-            RESERVE MINE — $38
+            RESERVE MINE · $38
           </Button>
         </div>
       </div>

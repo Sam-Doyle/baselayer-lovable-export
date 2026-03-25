@@ -20,7 +20,7 @@ const benefits = [
       "Reduces fine lines with consistent daily use",
     ],
     detail:
-      "Men's skin loses about 1% of collagen per year after 30. Most moisturizers ignore this entirely. Base Layer delivers Copper Peptide GHK-Cu — shown in peer-reviewed studies to increase collagen synthesis by up to 70%. Not a trace amount for the label. A clinical dose that rebuilds skin structure from the inside.",
+      "Men's skin loses about 1% of collagen per year after 30. Most moisturizers ignore this entirely. Base Layer delivers Copper Peptide GHK-Cu, shown in peer-reviewed studies to increase collagen synthesis by up to 70%. Not a trace amount for the label. A clinical dose that rebuilds skin structure from the inside.",
     link: { text: "See the formula", href: "/face-cream" },
   },
   {
@@ -33,7 +33,7 @@ const benefits = [
       "Niacinamide reduces redness and inflammation",
     ],
     detail:
-      "Razor burn, windburn, dry mountain air — your skin is constantly under assault. Centella Asiatica and Panthenol work together to calm inflammation and repair barrier damage in real-time. No stinging, no residue. Just fast, invisible relief that works under sunscreen, helmets, or nothing at all.",
+      "Razor burn, windburn, dry mountain air. Your skin is constantly under assault. Centella Asiatica and Panthenol work together to calm inflammation and repair barrier damage in real-time. No stinging, no residue. Just fast, invisible relief that works under sunscreen, helmets, or nothing at all.",
     link: { text: "Full ingredient breakdown", href: "/ingredients" },
   },
   {
@@ -43,10 +43,10 @@ const benefits = [
     bullets: [
       "Hyaluronic Acid pulls moisture deep into the skin",
       "Squalane locks in hydration without clogging pores",
-      "Absorbs in 15 seconds — zero shine, completely invisible",
+      "Absorbs in 15 seconds. Zero shine. Completely invisible",
     ],
     detail:
-      "Male skin produces 50% more sebum but still gets dehydrated — especially at altitude, in dry offices, or after a flight. Hyaluronic Acid binds 1,000x its weight in water. Squalane matches your skin's natural lipids so it absorbs instantly instead of sitting on top. The result: deep hydration with a matte, invisible finish.",
+      "Male skin produces 50% more sebum but still gets dehydrated, especially at altitude, in dry offices, or after a flight. Hyaluronic acid binds 1,000x its weight in water. Squalane matches your skin's natural lipids so it absorbs instantly instead of sitting on top. The result: deep hydration with a matte, invisible finish.",
     link: null,
   },
 ];

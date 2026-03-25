@@ -17,7 +17,7 @@ const proofItems = [
   { icon: Shield, text: "Tested at 10,000 ft elevation" },
   { icon: Wind, text: "Protects against wind, cold, and UV reflection" },
   { icon: Mountain, text: "Built in Colorado for harsh environments" },
-  { icon: BadgeCheck, text: "30-day money-back guarantee" },
+  { icon: BadgeCheck, text: "No subscription. No auto-ship." },
 ];
 
 const SocialProofBar = () => {

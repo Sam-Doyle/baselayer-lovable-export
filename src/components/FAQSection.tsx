@@ -19,6 +19,14 @@ const faqs = [
     answer: "No. This is made for men who want one product, not a full routine.",
   },
   {
+    question: "Is this a subscription?",
+    answer: "No. Base Layer is a one-time purchase. No auto-ship, no hidden charges, no 'cancel anytime' because there's nothing to cancel. Buy when you want.",
+  },
+  {
+    question: "What if it doesn't work for me?",
+    answer: "Full refund within 30 days. Keep the bottle. We don't want it back. No questions asked.",
+  },
+  {
     question: "How long does one bottle last?",
     answer: "About 6 to 8 weeks with daily use.",
   },

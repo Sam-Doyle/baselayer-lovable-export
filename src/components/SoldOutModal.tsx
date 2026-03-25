@@ -117,7 +117,7 @@ const SoldOutModal = ({ open, onClose, email: prefillEmail, checkoutData }: Sold
               FASTER THAN EXPECTED.
             </h2>
             <p className="font-body text-sm text-muted-foreground leading-relaxed mb-6">
-              You're clearly someone who knows what they want. Join the waitlist and be first in line when we restock — plus get 15% off your order.
+              You're clearly someone who knows what they want. Join the waitlist and be first in line when we restock. Plus get 15% off your order.
             </p>
             <form onSubmit={handleSubmit} className="space-y-3">
               <input
@@ -137,7 +137,7 @@ const SoldOutModal = ({ open, onClose, email: prefillEmail, checkoutData }: Sold
                 disabled={loading}
                 className="w-full py-5 text-xs bg-foreground text-background border-foreground hover:bg-foreground/90"
               >
-                {loading ? "Joining..." : "GET EARLY ACCESS — GET 15% OFF"}
+                {loading ? "Joining..." : "GET EARLY ACCESS + 15% OFF"}
               </Button>
             </form>
             <p className="font-body text-xs text-muted-foreground mt-4 uppercase tracking-wider">

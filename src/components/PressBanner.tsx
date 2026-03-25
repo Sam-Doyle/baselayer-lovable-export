@@ -25,23 +25,11 @@ const publications = [
   { name: "Esquire", wordmark: "ESQUIRE" },
 ];
 
-/** Renders each logo as a styled typographic wordmark */
+/** Renders each publication as a humble text mention */
 const LogoWordmark = ({ name, wordmark }: { name: string; wordmark: string }) => {
-  // Custom styling per publication to approximate their brand typography
-  const styles: Record<string, string> = {
-    "Men's Health": "font-bold tracking-tight text-[15px] md:text-[17px]",
-    "GQ": "font-bold italic tracking-[0.15em] text-[22px] md:text-[26px]",
-    "Forbes": "font-bold tracking-[0.08em] text-[16px] md:text-[18px]",
-    "Gear Patrol": "font-bold uppercase tracking-[0.2em] text-[11px] md:text-[13px]",
-    "Healthline": "font-bold tracking-tight text-[14px] md:text-[16px]",
-    "Cleveland Clinic": "font-bold tracking-tight text-[12px] md:text-[14px]",
-    "Men's Journal": "font-bold uppercase tracking-[0.15em] text-[12px] md:text-[14px]",
-    "Esquire": "font-bold italic tracking-[0.05em] text-[16px] md:text-[18px]",
-  };
-
   return (
     <span
-      className={`text-white/90 whitespace-nowrap select-none ${styles[name] || "font-bold text-sm"}`}
+      className="font-body font-semibold text-[12px] text-[#ABB3BB] whitespace-nowrap select-none tracking-[0.05em]"
       aria-label={name}
     >
       {wordmark}

@@ -17,7 +17,7 @@ const benefits = [
     number: "03",
     title: "ACTUALLY DOES SOMETHING",
     description:
-      "6 active ingredients at clinical concentrations. Niacinamide for oil control. Copper peptide for firmness. Panthenol for post-shave calm. Not filler — function.",
+      "6 active ingredients at clinical concentrations. Niacinamide for oil control. Copper peptide for firmness. Panthenol for post-shave calm. Not filler. Function.",
   },
 ];
 

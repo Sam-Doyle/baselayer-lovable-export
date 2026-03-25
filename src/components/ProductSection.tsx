@@ -68,7 +68,7 @@ const ProductSection = () => {
             className="w-full sm:w-auto px-10 py-6 text-[13px] bg-[#121212] hover:bg-[#2C3E2D] text-white font-heading font-bold uppercase tracking-widest rounded-sm transition-colors"
             onClick={() => openModal("product_benefits")}
           >
-            RESERVE BATCH 01 &mdash; $38
+            RESERVE BATCH 01 · $38
           </Button>
         </div>
       </div>

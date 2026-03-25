@@ -329,7 +329,7 @@ const EarlyAccessModal = () => {
                 onClick={handleFinish}
                 className="font-body text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors py-3 inline-block"
               >
-                Skip — I'm good for now
+                Skip, I'm good for now
               </button>
             )}
           </>

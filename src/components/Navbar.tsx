@@ -20,11 +20,11 @@ const Navbar = () => {
     <div className={`fixed top-0 left-0 right-0 z-50 flex flex-col transition-transform duration-300 ${isScrolled ? "-translate-y-[36px]" : "translate-y-0"}`}>
       {/* Universal Offer Banner */}
       <div className="bg-[#1A2F4C] text-[#FFFFFF] text-center h-[36px] font-body uppercase w-full flex items-center justify-center px-4 shadow-sm relative z-50">
-        <div className="flex items-center gap-1 text-[#F35D1A] text-[14px]">
+        <div className="flex items-center gap-1 text-[#00B67A] text-[14px]">
           <span className="leading-none tracking-[1px]">★★★★</span>
-          <span className="relative inline-block text-[14px] leading-none text-[#F35D1A]/30">
+          <span className="relative inline-block text-[14px] leading-none text-[#00B67A]/30">
             ★
-            <span className="absolute left-0 top-0 overflow-hidden w-[80%] text-[#F35D1A]">★</span>
+            <span className="absolute left-0 top-0 overflow-hidden w-[80%] text-[#00B67A]">★</span>
           </span>
         </div>
         <span className="font-heading font-bold text-white ml-2 text-[12px] leading-none mt-[1px]">4.8/5</span>

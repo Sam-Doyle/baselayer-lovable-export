@@ -34,8 +34,8 @@
 @layer base {
   :root {
     /* Daylight Alpine Light Mode */
-    --background: 60 14% 96%;
-    /* #f4f4f0 */
+    --background: 0 0% 98%;
+    /* #FAFAFA */
     --foreground: 120 5% 12%;
     /* #1d1e1d */
 
@@ -188,10 +188,6 @@
     border-color: rgba(44, 62, 45, 0.2);
     box-shadow: 0 0 0 0 rgba(44, 62, 45, 0);
   }
-}
-
-input[type="email"]:not(:focus) {
-  animation: premium-border-pulse 3s infinite ease-in-out;
 }
 
 input[type="email"]:focus {

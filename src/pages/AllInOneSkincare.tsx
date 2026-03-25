@@ -15,7 +15,7 @@ import routineGraphic from "@/assets/generated-creatives/content_visual_routine_
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Product",
-  name: "Base Layer Performance Daily Face Cream — All-in-One Skincare for Men",
+  name: "Base Layer Performance Daily Face Cream | All-in-One Skincare for Men",
   description:
     "All-in-one men's skincare product with 6 active ingredients. Replaces moisturizer, serum, and eye cream. Niacinamide 5%, copper peptide, squalane, hyaluronic acid. $38.",
   brand: { "@type": "Brand", name: "Base Layer" },
@@ -38,12 +38,12 @@ const faqs = [
   {
     question: "Can one product really replace a serum, moisturizer, and eye cream?",
     answer:
-      "Yes — if the formula is concentrated enough. Base Layer uses 6 active ingredients at clinical concentrations: niacinamide at 5% (matches standalone serums), copper peptide GHK-Cu at 1% (matches dedicated anti-aging serums), hyaluronic acid for hydration, squalane for moisture locking, panthenol for barrier repair, and centella asiatica for anti-inflammatory protection. Each ingredient pulls double or triple duty. The result is one product that delivers the benefits of 3-4 separate products.",
+      "Yes, if the formula is concentrated enough. Base Layer uses 6 active ingredients at clinical concentrations: niacinamide at 5% (matches standalone serums), copper peptide GHK-Cu at 1% (matches dedicated anti-aging serums), hyaluronic acid for hydration, squalane for moisture locking, panthenol for barrier repair, and centella asiatica for anti-inflammatory protection. Each ingredient pulls double or triple duty. The result is one product that delivers the benefits of 3-4 separate products.",
   },
   {
     question: "Why do other brands sell 5 separate products?",
     answer:
-      "Money. A serum at $40, a moisturizer at $35, and an eye cream at $45 is $120 in revenue per customer. Selling one product at $38 is less profitable per customer — but we think it's more honest. Modern formulation science can combine these functions without compromising efficacy. Most brands just choose not to because separate products mean higher cart values.",
+      "Money. A serum at $40, a moisturizer at $35, and an eye cream at $45 is $120 in revenue per customer. Selling one product at $38 is less profitable per customer, but we think it's more honest. Modern formulation science can combine these functions without compromising efficacy. Most brands just choose not to because separate products mean higher cart values.",
   },
   {
     question: "Is this really formulated differently for men's skin?",

@@ -25,7 +25,7 @@ const StickyCartBar = () => {
           <span className="font-heading text-sm font-bold text-background uppercase tracking-wide">
             Base Layer Face Cream
           </span>
-          <span className="font-body text-sm text-background/60">$38 (21% off) · Ships Spring 2026</span>
+          <span className="font-body text-sm text-background/60"><span className="line-through opacity-40">$48</span> $38 (21% off) · Ships Spring 2026</span>
         </div>
         <Button
           variant="hero"
@@ -33,7 +33,7 @@ const StickyCartBar = () => {
           className="md:px-8 px-6 py-2 text-xs border-background text-background before:bg-background hover:text-foreground w-full md:w-auto font-bold tracking-wider"
           onClick={() => openModal("sticky_bar")}
         >
-          SAVE MY SPOT — $38
+          SAVE MY SPOT · <span className="line-through opacity-40">$48</span> $38
         </Button>
       </div>
     </div>

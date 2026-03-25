@@ -63,16 +63,16 @@ const About = () => {
               <strong className="text-foreground">Base Layer started with a simple problem: most moisturizers either felt greasy, did nothing, or demanded a full routine to earn their keep.</strong>
             </p>
             <p>
-              I lived in Breckenridge, Colorado — 9,600 feet, UV 60% stronger than sea level, humidity around 15%. After a day of skiing, my skin was cracked and raw. I'd put on whatever moisturizer was available. The ones that actually hydrated left my face greasy under my goggles. The lightweight ones didn't do anything noticeable. And nothing on the shelf seemed to account for the fact that men's skin is different — thicker, oilier, constantly irritated by shaving.
+              I lived in Breckenridge, Colorado. 9,600 feet, UV 60% stronger than sea level, humidity around 15%. After a day of skiing, my skin was cracked and raw. I'd put on whatever moisturizer was available. The ones that actually hydrated left my face greasy under my goggles. The lightweight ones didn't do anything noticeable. And nothing on the shelf seemed to account for the fact that men's skin is different. Thicker, oilier, constantly irritated by shaving.
             </p>
             <p>
               That's what made the problem obvious. At altitude, with dry air and intense UV, you find out fast whether a product actually works or just feels like it does. Most didn't survive a morning.
             </p>
             <p>
-              So I started reading the research — not marketing copy, the actual dermatology studies. Men's skin is about 25% thicker than women's, produces significantly more sebum, and takes daily damage from shaving. But almost nothing on the market is formulated for that biology. It's either a women's formula in a darker bottle, or a basic moisturizer with nothing active in it.
+              So I started reading the research. Not marketing copy, the actual dermatology studies. Men's skin is about 25% thicker than women's, produces significantly more sebum, and takes daily damage from shaving. But almost nothing on the market is formulated for that biology. It's either a women's formula in a darker bottle, or a basic moisturizer with nothing active in it.
             </p>
             <p>
-              Base Layer is the result: six active ingredients at the concentrations where clinical studies showed measurable results. Niacinamide at 5% to control oil. Copper peptide at 1% to rebuild collagen. Squalane that absorbs in seconds. No fragrance — because fragrance is the number one cause of skincare irritation and does nothing functional.
+              Base Layer is the result: six active ingredients at the concentrations where clinical studies showed measurable results. Niacinamide at 5% to control oil. Copper peptide at 1% to rebuild collagen. Squalane that absorbs in seconds. No fragrance. Because fragrance is the number one cause of skincare irritation and does nothing functional.
             </p>
             <p>
               What the brand refuses to do: add fragrance for marketing appeal, dilute actives to cut costs, create unnecessary products to upsell, or lock anyone into a subscription. One product. It either works for you or you get your money back.
@@ -98,7 +98,7 @@ const About = () => {
                 Every ingredient in Base Layer is chosen for one reason: peer-reviewed clinical evidence that it works at the concentration we use. We don't add ingredients for label appeal or marketing narratives.
               </p>
               <p>
-                Our formulation process starts with the dermatological literature. We identify the active compounds with the strongest evidence for men's specific skin concerns — oil control, barrier repair, collagen support, hydration — then build a stable delivery system around them at clinically effective doses.
+                Our formulation process starts with the dermatological literature. We identify the active compounds with the strongest evidence for men's specific skin concerns: oil control, barrier repair, collagen support, hydration. Then we build a stable delivery system around them at clinically effective doses.
               </p>
               <p>
                 The result is a single product that replaces a multi-step routine without compromising on any individual function. Fewer products, fewer irritants, better outcomes.
@@ -111,7 +111,7 @@ const About = () => {
             <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-6">Ingredient Sourcing</h2>
             <div className="space-y-5 font-body text-muted-foreground leading-relaxed">
               <p>
-                We source pharmaceutical-grade raw materials and validate purity before formulation. Each active — from our GHK-Cu copper peptide to plant-derived squalane — is selected for bioavailability and stability, not just marketing claims.
+                We source pharmaceutical-grade raw materials and validate purity before formulation. Each active, from our GHK-Cu copper peptide to plant-derived squalane, is selected for bioavailability and stability, not just marketing claims.
               </p>
               <p>
                 Base Layer is manufactured in the United States under GMP (Good Manufacturing Practice) standards. Every batch is tested for consistency, potency, and microbiological safety before it ships.

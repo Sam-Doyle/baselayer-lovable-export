@@ -79,7 +79,7 @@ const PayoffSection = () => {
           </div>
 
           <Button variant="hero" size="lg" className="w-full sm:w-auto px-8 sm:px-14 py-4 md:py-5 text-xs md:text-sm" onClick={() => openModal("payoff_section")}>
-            GET MY BOTTLE — $38
+            GET MY BOTTLE · $38
           </Button>
         </div>
       </div>

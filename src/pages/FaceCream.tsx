@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import ExitIntentPopup from "@/components/ExitIntentPopup";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEarlyAccess } from "@/context/EarlyAccessContext";
@@ -37,9 +38,9 @@ const ingredients = [
   { name: "Niacinamide (5%)", slug: "niacinamide", desc: "That oily forehead by noon? Niacinamide turns down oil production at the source. Most guys see noticeably less shine within a week." },
   { name: "Copper Peptide GHK-Cu (1%)", slug: "copper-peptide", desc: "The tired-looking skin around your eyes? Copper peptide stimulates collagen underneath. Firmer, smoother texture in 4-8 weeks." },
   { name: "Panthenol (2%)", slug: "panthenol", desc: "You shave, your skin burns, you put on moisturizer and it stings. Panthenol breaks that cycle. Calms razor burn within 24 hours without leaving a film." },
-  { name: "Centella Asiatica", slug: "centella-asiatica", desc: "Dry office air, wind, long flights — all of it damages your moisture barrier. Centella rebuilds it over 2-4 weeks so your skin stops overreacting." },
+  { name: "Centella Asiatica", slug: "centella-asiatica", desc: "Dry office air, wind, long flights. All of it damages your moisture barrier. Centella rebuilds it over 2-4 weeks so your skin stops overreacting." },
   { name: "Squalane", slug: "squalane", desc: "Your skin already produces squalane naturally, which is why it absorbs in seconds instead of sitting on top. No residue on your phone." },
-  { name: "Hyaluronic Acid", slug: "hyaluronic-acid", desc: "Pulls moisture into deeper skin layers to plump fine lines from underneath. The hydration happens below the surface — what you feel on top is matte." },
+  { name: "Hyaluronic Acid", slug: "hyaluronic-acid", desc: "Pulls moisture into deeper skin layers to plump fine lines from underneath. The hydration happens below the surface, and what you feel on top is matte." },
 ];
 
 const concerns = [
@@ -55,7 +56,7 @@ const concerns = [
 const faqs = [
   { question: "Will this leave my face greasy?", answer: "No. Squalane mirrors your skin's own lipids, so the formula absorbs in seconds rather than sitting on top." },
   { question: "Can I put this on right after shaving?", answer: "That's exactly when it works best. Panthenol at 2% calms razor burn and micro-irritation within 24 hours." },
-  { question: "Will this break me out?", answer: "Every ingredient is non-comedogenic. Squalane has a comedogenicity rating of 0 — the lowest possible." },
+  { question: "Will this break me out?", answer: "Every ingredient is non-comedogenic. Squalane has a comedogenicity rating of 0, the lowest possible." },
   { question: "How is this different from CeraVe or Nivea?", answer: "Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 1% stimulates collagen synthesis." },
   { question: "Why no subscription option?", answer: "Because subscriptions benefit the brand, not you. Navigate checkout once, and when you run out, just reorder confidently." },
 ];
@@ -87,7 +88,7 @@ const FaceCream = () => {
 
   useCanonical();
   useMetaTags({
-    title: "Best Men's Face Moisturizer — Base Layer Performance Daily Face Cream | $38",
+    title: "Best Men's Face Moisturizer - Base Layer Performance Daily Face Cream | $38",
     description: "The one-step daily face cream for men. Absorbs in 15 seconds. Replaces serum, moisturizer, and eye cream. Niacinamide 5% + Copper Peptides. $38 with free shipping and 30-day guarantee.",
     type: "product",
     image: "https://baselayerskin.co/og-face-cream.jpg",
@@ -127,11 +128,11 @@ const FaceCream = () => {
           
           {/* LEFT COLUMN: IMAGE GALLERY */}
           <div className="w-full flex-col gap-4 hidden md:flex">
-            <div className="relative aspect-[4/5] w-full rounded-lg overflow-hidden bg-[#E2E8F0]">
+            <div className="relative aspect-[4/5] w-full rounded-[2px] overflow-hidden bg-[#E2E8F0]">
               {GALLERY.map((img, idx) => (
                 <div key={idx} className={`absolute inset-0 transition-opacity duration-300 ${activeImage === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
                   {img.type === "image" ? (
-                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover bg-[#E2E8F0]" />
+                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover bg-[#E2E8F0]" {...(idx === 0 ? { loading: "eager" as const, fetchPriority: "high" as const } : { loading: "lazy" as const })} width={1024} height={1024} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] p-4 text-center text-[#ABB3BB] text-sm">
                       [Placeholder: {img.alt}]
@@ -151,7 +152,7 @@ const FaceCream = () => {
               {GALLERY.map((img, idx) => (
                 <button key={idx} onClick={() => setActiveImage(idx)} className={`relative w-[60px] h-[60px] rounded overflow-hidden flex-shrink-0 bg-[#E2E8F0] ${activeImage === idx ? "border-2 border-[#1A2F4C]" : "border border-transparent"}`}>
                   {img.type === "image" ? (
-                    <img src={img.src} alt="" className="w-full h-full object-cover" />
+                    <img src={img.src} alt="" className="w-full h-full object-cover" loading="lazy" width={60} height={60} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[10px] text-[#ABB3BB]">Img {idx + 1}</div>
                   )}
@@ -161,7 +162,7 @@ const FaceCream = () => {
           </div>
 
           {/* MOBILE SWIPEABLE CAROUSEL */}
-          <div className="md:hidden relative w-full aspect-[4/5] bg-[#E2E8F0] overflow-hidden -mx-6 px-6 sm:mx-0 sm:px-0 sm:rounded-lg">
+          <div className="md:hidden relative w-full aspect-[4/5] bg-[#E2E8F0] overflow-hidden -mx-6 px-6 sm:mx-0 sm:px-0 sm:rounded-[2px]">
             <div className="flex w-full h-full overflow-x-auto snap-x snap-mandatory hide-scrollbar"
                  onScroll={(e) => {
                    const scrollLeft = e.currentTarget.scrollLeft;
@@ -171,7 +172,7 @@ const FaceCream = () => {
               {GALLERY.map((img, idx) => (
                 <div key={idx} className="w-full h-full flex-shrink-0 snap-center relative">
                   {img.type === "image" ? (
-                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover" />
+                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover" {...(idx === 0 ? { loading: "eager" as const, fetchPriority: "high" as const } : { loading: "lazy" as const })} width={1024} height={1024} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] p-4 text-center text-[#ABB3BB]">
                       [Placeholder: {img.alt}]
@@ -191,7 +192,7 @@ const FaceCream = () => {
           <div className="flex flex-col pt-4 md:pt-0">
             {/* 1. Star Rating */}
             <div className="flex items-center mb-3">
-              <span className="text-[#F35D1A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+              <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
               <a href="#testimonials" className="font-body text-[13px] text-[#ABB3BB] ml-2 hover:underline">4.8/5 (1,000+ reviews)</a>
             </div>
 
@@ -218,7 +219,7 @@ const FaceCream = () => {
             <div className="flex flex-col gap-2 mb-[24px]">
               <div className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-[#2E7D32] mt-1 shrink-0" />
-                <span className="font-body text-[14px] text-[#2D3748] leading-[1.6]">Absorbs in 15 seconds — zero shine, completely invisible</span>
+                <span className="font-body text-[14px] text-[#2D3748] leading-[1.6]">Absorbs in 15 seconds. Zero shine, completely invisible</span>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-[#2E7D32] mt-1 shrink-0" />
@@ -236,7 +237,7 @@ const FaceCream = () => {
                 <div 
                   key={opt.id}
                   onClick={() => setQuantity(opt.id)}
-                  className={`flex-1 p-[20px_16px] max-[380px]:p-[16px_12px] rounded-lg text-center relative cursor-pointer outline-none transition-all duration-200 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
+                  className={`flex-1 p-[20px_16px] max-[380px]:p-[16px_12px] rounded-[2px] text-center relative cursor-pointer outline-none transition-all duration-200 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
                 >
                   {opt.badge && (
                     <div className={`absolute -top-[10px] left-1/2 -translate-x-1/2 ${opt.badgeColor} text-white font-heading font-semibold text-[9px] tracking-[0.12em] uppercase px-[10px] py-[4px] rounded-[10px] whitespace-nowrap`}>
@@ -259,10 +260,10 @@ const FaceCream = () => {
             {/* 7. CTA Button */}
             <button 
               ref={ctaRef}
-              className="w-full bg-[#F35D1A] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[6px] hover:bg-[#E04F10] active:scale-[0.98] transition-all mb-[12px]"
+              className="w-full bg-[#F35D1A] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#E04F10] active:scale-[0.98] transition-all mb-[12px]"
               onClick={() => openModal("buy_box")}
             >
-              ADD TO CART — ${selectedOption.price}
+              ADD TO CART - ${selectedOption.price}
             </button>
 
             {/* 8. Trust Micro-Copy */}
@@ -294,10 +295,10 @@ const FaceCream = () => {
             <span className="font-body text-[11px] text-[#ABB3BB] mt-1">Founding Price</span>
           </div>
           <button 
-            className="bg-[#F35D1A] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[12px] rounded-[4px]"
+            className="bg-[#F35D1A] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px]"
             onClick={() => openModal("sticky_mobile_cta")}
           >
-            ADD TO CART
+            ADD TO CART - ${selectedOption.price}
           </button>
         </div>
 
@@ -309,7 +310,7 @@ const FaceCream = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
             {[
               { icon: Timer, title: "Absorbs Fast", desc: "Squalane mirrors your skin's own oils, so it sinks in instead of sitting on top. No waiting. No residue on your phone screen or pillowcase." },
-              { icon: Droplets, title: "Stays Matte", desc: "Niacinamide at 5% reduces how much oil your skin produces — not just blotting it. Most guys notice the difference within a week." },
+              { icon: Droplets, title: "Stays Matte", desc: "Niacinamide at 5% reduces how much oil your skin produces, not just blotting it. Most guys notice the difference within a week." },
               { icon: Leaf, title: "Shaving Fixed", desc: "Panthenol calms razor burn and micro-irritation within 24 hours. Centella rebuilds the moisture barrier that shaving strips away." },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="text-center px-4">
@@ -327,7 +328,7 @@ const FaceCream = () => {
           style={{ backgroundImage: `url(${textureSmearStone})` }}
         />
         <div className="w-full md:hidden">
-          <img src={textureSmearStone} alt="Texture close-up" className="w-full h-auto object-cover" />
+          <img src={textureSmearStone} alt="Texture close-up" className="w-full h-auto object-cover" loading="lazy" width={1200} height={800} />
         </div>
 
         {/* 3. WHAT'S INSIDE */}
@@ -352,12 +353,12 @@ const FaceCream = () => {
           <div className="max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             {/* Left: Product Image */}
             <div className="w-full relative aspect-[4/3] md:aspect-[4/3] bg-[#E2E8F0] rounded-[8px] overflow-hidden shadow-sm">
-              <img src={howToUseImage} alt="Base Layer Daily Face Cream in Bathroom" className="w-full h-full object-cover" />
+              <img src={howToUseImage} alt="Base Layer Daily Face Cream in Bathroom" className="w-full h-full object-cover" loading="lazy" width={500} height={375} />
             </div>
             {/* Right: Text and Instructions */}
             <div className="flex flex-col text-left px-0 md:px-8">
               <span className="font-heading font-semibold text-[13px] md:text-[14px] uppercase tracking-[0.05em] text-[#4A5568] mb-2">HOW TO USE</span>
-              <h2 className="font-heading text-[28px] md:text-3xl font-bold text-[#1A2F4C] mb-6">Daily protocol</h2>
+              <h2 className="font-heading text-[28px] md:text-3xl font-bold text-[#1A2F4C] mb-6">Simple routine</h2>
               <div className="flex items-start gap-4">
                 <div className="flex items-center gap-[6px] text-[#1A2F4C] mt-1 shrink-0">
                   <Sun className="w-5 h-5 text-[#F35D1A]" />
@@ -365,7 +366,7 @@ const FaceCream = () => {
                   <Moon className="w-5 h-5 text-[#1A2F4C]" />
                 </div>
                 <p className="font-body text-[15px] text-[#4A5568] leading-[1.6]">
-                  Massage into clean, dry skin in the morning and evening. For best results, use daily.
+                  Morning. Night. Clean face. One pump. Done.
                 </p>
               </div>
             </div>
@@ -377,7 +378,7 @@ const FaceCream = () => {
           <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12 text-[#1A2F4C]">Who This Is For</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {concerns.map((c) => (
-              <Link key={c.slug} to={`/skin-concerns/${c.slug}`} className="bg-white p-5 rounded-lg border border-[#E2E8F0] hover:border-[#1A2F4C] transition-colors text-center shadow-sm">
+              <Link key={c.slug} to={`/skin-concerns/${c.slug}`} className="bg-white p-5 rounded-[2px] border border-[#E2E8F0] hover:border-[#1A2F4C] transition-colors text-center shadow-sm">
                 <h3 className="font-heading font-semibold text-[13px] text-[#1A2F4C]">{c.name}</h3>
               </Link>
             ))}
@@ -416,10 +417,10 @@ const FaceCream = () => {
             className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#F35D1A] text-white hover:bg-[#E04F10] border-none transition-all duration-300 rounded-[4px] mb-4" 
             onClick={() => openModal("face_cream_bottom")}
           >
-            GET STARTED — $38 →
+            GET STARTED - ${selectedOption.price}
           </Button>
           <div className="flex items-center justify-center">
-            <span className="text-[#F35D1A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+            <span className="text-[#00B67A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
             <span className="font-body text-[13px] text-[#ABB3BB] ml-2 leading-none">
               4.8/5 from 1,000+ men
             </span>
@@ -428,6 +429,7 @@ const FaceCream = () => {
 
       </main>
       <Footer />
+      <ExitIntentPopup />
     </div>
   );
 };

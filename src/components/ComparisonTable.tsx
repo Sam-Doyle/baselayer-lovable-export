@@ -210,7 +210,7 @@ const ComparisonTable = () => {
                document.querySelector('.buy-box-container')?.scrollIntoView({ behavior: 'smooth' });
             }}
           >
-            GET STARTED — $38 →
+            GET STARTED · $38 →
           </Button>
           <div className="font-body text-[10px] text-white/25 mt-[24px]">
             Ingredient data via INCIDecoder.com and official product pages. March 2026.
