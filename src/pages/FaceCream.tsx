@@ -1,18 +1,16 @@
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { useEarlyAccess } from "@/context/EarlyAccessContext";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import productShot from "@/assets/product-hero-rock.png";
-import productShot480w from "@/assets/product-hero-rock-480w.webp";
-import productShot768w from "@/assets/product-hero-rock-768w.webp";
-import productShot1200w from "@/assets/product-hero-rock-1200w.webp";
 import textureSmearStone from "@/assets/generated-creatives/asset_texture_smear_stone_1772750541116.png";
-import { Mountain, Zap, Shield, Droplets, Timer, Leaf, Star } from "lucide-react";
+import { Mountain, Zap, Shield, Droplets, Timer, Leaf, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import TestimonialsSection from "@/components/TestimonialsSection";
 
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
@@ -28,15 +26,6 @@ const PRODUCT_SCHEMA = {
     url: "https://baselayerskin.co/face-cream",
     priceValidUntil: "2026-12-31",
   },
-  image: "https://baselayerskin.co/og-face-cream.jpg",
-  url: "https://baselayerskin.co/face-cream",
-  sku: "BL-PDFC-50ML",
-  aggregateRating: { "@type": "AggregateRating", ratingValue: "5", reviewCount: "3", bestRating: "5" },
-  review: [
-    { "@type": "Review", author: { "@type": "Person", name: "Sean G." }, reviewBody: "My forehead used to look shiny by 11 AM. After a week of Base Layer, it just doesn't happen anymore.", reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" }, datePublished: "2025-12-01" },
-    { "@type": "Review", author: { "@type": "Person", name: "Matt M." }, reviewBody: "I hit the gym at 6 AM and need something that doesn't sweat off. This absorbs immediately and my skin still feels good at end of day.", reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" }, datePublished: "2025-12-15" },
-    { "@type": "Review", author: { "@type": "Person", name: "Cooper S." }, reviewBody: "I shave daily for work. Every moisturizer I tried either stung or left a greasy film. Base Layer does neither.", reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" }, datePublished: "2026-01-05" },
-  ],
 };
 
 const ingredients = [
@@ -44,8 +33,8 @@ const ingredients = [
   { name: "Copper Peptide GHK-Cu (1%)", slug: "copper-peptide", desc: "The tired-looking skin around your eyes? Copper peptide stimulates collagen underneath. Firmer, smoother texture in 4-8 weeks." },
   { name: "Panthenol (2%)", slug: "panthenol", desc: "You shave, your skin burns, you put on moisturizer and it stings. Panthenol breaks that cycle. Calms razor burn within 24 hours without leaving a film." },
   { name: "Centella Asiatica", slug: "centella-asiatica", desc: "Dry office air, wind, long flights — all of it damages your moisture barrier. Centella rebuilds it over 2-4 weeks so your skin stops overreacting." },
-  { name: "Squalane", slug: "squalane", desc: "Your skin already produces squalane naturally, which is why it absorbs in seconds instead of sitting on top. No residue on your phone, your pillowcase, or your face." },
-  { name: "Hyaluronic Acid", slug: "hyaluronic-acid", desc: "Pulls moisture into deeper skin layers to plump fine lines from underneath. The hydration happens below the surface — what you feel on top is matte, not sticky." },
+  { name: "Squalane", slug: "squalane", desc: "Your skin already produces squalane naturally, which is why it absorbs in seconds instead of sitting on top. No residue on your phone." },
+  { name: "Hyaluronic Acid", slug: "hyaluronic-acid", desc: "Pulls moisture into deeper skin layers to plump fine lines from underneath. The hydration happens below the surface — what you feel on top is matte." },
 ];
 
 const concerns = [
@@ -59,25 +48,42 @@ const concerns = [
 ];
 
 const faqs = [
-  { question: "Will this leave my face greasy?", answer: "No. Squalane mirrors your skin's own lipids, so the formula absorbs in seconds rather than sitting on top. Touch your face a minute later and it feels like bare skin. No film on your phone screen, no shine under office lights, no residue on your pillowcase." },
-  { question: "Can I put this on right after shaving?", answer: "That's exactly when it works best. Panthenol at 2% calms razor burn and micro-irritation within 24 hours. Centella repairs the moisture barrier that shaving strips away. And because there's zero fragrance, there's no stinging on freshly shaved skin. Most aftershave products are loaded with alcohol and fragrance that make irritation worse." },
-  { question: "Will this break me out?", answer: "Every ingredient is non-comedogenic. Squalane has a comedogenicity rating of 0 — the lowest possible. There are no silicones, no coconut oil, no petroleum, and no fragrance. Niacinamide actually reduces the inflammation that leads to breakouts. If moisturizers have broken you out before, it was almost certainly the base formula, not the concept of moisturizing." },
-  { question: "I have oily skin. Why would I add more moisture?", answer: "When your skin is dehydrated, it overproduces oil to compensate. That's why your forehead gets shiny by noon even though it felt tight after washing. Niacinamide at 5% reduces sebum production at the source. Hyaluronic acid delivers hydration beneath the surface so your skin stops overcompensating. Most guys with oily skin see noticeably less shine within a week." },
-  { question: "How is this different from CeraVe or Nivea?", answer: "Those are basic moisturizers — they hydrate, and that's about it. Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 1% stimulates collagen synthesis — something no drugstore moisturizer does. Panthenol repairs your skin barrier after shaving. You won't notice CeraVe doing anything because it isn't doing much beyond basic moisture. Base Layer is built so you see real changes: less oil in week one, firmer-looking skin by week six. Read our full CeraVe vs Base Layer comparison for the detailed breakdown." },
-  { question: "Do I need a whole routine with this?", answer: "A cleanser — any basic one you already own — and SPF in the morning. That's it. Base Layer handles moisturizer, serum, and eye cream in one step. Three total products, about 60 seconds. No layering, no waiting between steps." },
-  { question: "When will I actually see a difference?", answer: "Day one: your skin feels hydrated without residue. Week one: noticeably less shine, especially across your forehead and nose. Weeks four to eight: smoother texture and firmer-looking skin as copper peptide builds collagen underneath." },
-  { question: "I travel a lot. Is this TSA-friendly?", answer: "Yes. The bottle is 50 mL (1.7 fl oz) — well under the 3.4 oz limit. It replaces your moisturizer, serum, and eye cream, so you're packing one product instead of three. Your entire skincare routine fits in a Dopp kit pocket." },
-  { question: "I work out every day. Will this hold up?", answer: "The squalane base absorbs fully, so it doesn't sweat off during a workout. Apply it after you wash your face in the morning, hit the gym, and it's still working when you get to the office. Layer SPF on top without pilling." },
-  { question: "Why no subscription option?", answer: "Because subscriptions benefit the brand, not you. One bottle lasts 6-8 weeks. When you run out, reorder. If you don't want more, you're not stuck canceling through a dark-pattern checkout flow." },
+  { question: "Will this leave my face greasy?", answer: "No. Squalane mirrors your skin's own lipids, so the formula absorbs in seconds rather than sitting on top." },
+  { question: "Can I put this on right after shaving?", answer: "That's exactly when it works best. Panthenol at 2% calms razor burn and micro-irritation within 24 hours." },
+  { question: "Will this break me out?", answer: "Every ingredient is non-comedogenic. Squalane has a comedogenicity rating of 0 — the lowest possible." },
+  { question: "How is this different from CeraVe or Nivea?", answer: "Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 1% stimulates collagen synthesis." },
+  { question: "Why no subscription option?", answer: "Because subscriptions benefit the brand, not you. Navigate checkout once, and when you run out, just reorder confidently." },
+];
+
+const GALLERY = [
+  { id: 1, type: "placeholder", alt: "Clean product shot on white/light background", src: "" },
+  { id: 2, type: "image", src: productShot, alt: "Product on granite stone with mountain backdrop" },
+  { id: 3, type: "placeholder", alt: "Product in-hand showing scale", src: "" },
+  { id: 4, type: "image", src: textureSmearStone, alt: "Cream texture close-up on stone" },
+  { id: 5, type: "placeholder", alt: "Ingredient flat-lay", src: "" },
+  { id: 6, type: "image", src: "/images/benefits-face-closeup.png", alt: "Face close-up portrait" },
+];
+
+const BUY_OPTIONS = [
+  { id: 1, bottles: 1, duration: "6 weeks", price: 38, badge: null, savings: 0 },
+  { id: 2, bottles: 2, duration: "12 weeks", price: 68, badge: "MOST POPULAR", badgeColor: "bg-[#1A2F4C]", savings: 8 },
+  { id: 3, bottles: 3, duration: "18 weeks", price: 89, badge: "BEST VALUE", badgeColor: "bg-[#F35D1A]", savings: 25 },
 ];
 
 const FaceCream = () => {
   const { openModal } = useEarlyAccess();
+  const [activeImage, setActiveImage] = useState(0);
+  const [quantity, setQuantity] = useState(2);
+  const [showStickyBottom, setShowStickyBottom] = useState(false);
+  const ctaRef = useRef<HTMLButtonElement>(null);
+
+  const selectedOption = BUY_OPTIONS.find(o => o.id === quantity) || BUY_OPTIONS[1];
+  const msrp = 48 * selectedOption.bottles;
 
   useCanonical();
   useMetaTags({
-    title: "Base Layer Face Cream | Lightweight Daily Moisturizer for Men",
-    description: "A daily moisturizer for men with niacinamide, copper peptide, panthenol, centella, squalane, and hyaluronic acid. Built for shine control, barrier support, and fast absorption.",
+    title: "Best Men's Face Moisturizer — Base Layer Performance Daily Face Cream | $38",
+    description: "The one-step daily face cream for men. Absorbs in 15 seconds. Replaces serum, moisturizer, and eye cream. Niacinamide 5% + Copper Peptides. $38 with free shipping and 30-day guarantee.",
     type: "product",
     image: "https://baselayerskin.co/og-face-cream.jpg",
   });
@@ -89,188 +95,385 @@ const FaceCream = () => {
       value: 38.00,
       currency: "USD",
     });
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
+        setShowStickyBottom(true);
+      } else {
+        setShowStickyBottom(false);
+      }
+    });
+    if (ctaRef.current) observer.observe(ctaRef.current);
+    return () => observer.disconnect();
   }, []);
 
+  const nextImage = () => setActiveImage((c) => (c + 1) % GALLERY.length);
+  const prevImage = () => setActiveImage((c) => (c - 1 + GALLERY.length) % GALLERY.length);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <JsonLd data={[PRODUCT_SCHEMA, buildBreadcrumbSchema([
-        { name: "Home", path: "/" },
-        { name: "Face Cream" },
-      ]), buildFaqSchema(faqs)]} />
+    <div className="min-h-screen bg-white text-[#1A2F4C]">
+      <JsonLd data={[PRODUCT_SCHEMA, buildBreadcrumbSchema([{ name: "Home", path: "/" }, { name: "Face Cream" }]), buildFaqSchema(faqs)]} />
       <Navbar />
-      <main className="pt-24 pb-20">
-        {/* Hero */}
-        <section className="grid md:grid-cols-2 gap-0 items-stretch">
-          <div className="relative min-h-[400px] md:min-h-0">
-            <picture>
-              <source
-                type="image/webp"
-                srcSet={`${productShot480w} 480w, ${productShot768w} 768w, ${productShot1200w} 1200w`}
-                sizes="(max-width: 767px) 100vw, 50vw"
-              />
-              <img src={productShot} alt="Base Layer face cream — lightweight daily moisturizer for men" className="absolute inset-0 w-full h-full object-cover" width={400} height={600} loading="eager" decoding="async" fetchPriority="high" />
-            </picture>
-          </div>
-          <div className="flex flex-col justify-center px-6 md:px-16 lg:px-24 py-12 md:py-24">
-            <nav className="flex items-center gap-2 font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-8">
-              <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
-              <span>/</span>
-              <span className="text-foreground">Face Cream</span>
-            </nav>
-            <p className="font-body text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3">Base Layer</p>
-            <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-black uppercase leading-[0.9] tracking-tight mb-6">
-              Best Men's Face Moisturizer — Hydrate in 15 Seconds
-            </h1>
-            <p className="font-body text-base text-muted-foreground leading-relaxed mb-4 max-w-md">
-              One bottle for hydration, oil control, post-shave recovery, and smoother-looking skin. Absorbs fast, leaves a matte finish, and doesn't require a second step.
-            </p>
-            <p className="font-body text-sm text-muted-foreground leading-relaxed mb-6 max-w-md">
-              Fragrance-free. Non-comedogenic. Formulated for men's thicker, oilier skin. 50 mL / 1.7 fl oz.
-            </p>
-            <p className="font-heading text-2xl font-bold mb-1">$38</p>
-            <p className="font-body text-xs text-muted-foreground mb-6">Pre-launch pricing. Shipping Spring 2026.</p>
-            <Button
-              size="lg"
-              className="w-full sm:w-auto px-12 py-6 font-heading font-black tracking-widest text-[14px] uppercase bg-[#F95D1A] text-[#F4F4F0] hover:bg-[#FFFFFF] hover:text-[#F95D1A] border-none transition-all duration-300 rounded-none"
-              onClick={() => openModal("face_cream_cta")}
-            >
-              TRY IT RISK FREE — $38
-            </Button>
-            <div className="flex flex-wrap gap-4 mt-6 text-muted-foreground">
-              <span className="flex items-center gap-1.5 font-body text-[10px] uppercase tracking-wider"><Mountain className="w-3.5 h-3.5" /> Breckenridge‑Formulated</span>
-              <span className="flex items-center gap-1.5 font-body text-[10px] uppercase tracking-wider"><Zap className="w-3.5 h-3.5" /> Clean Ingredients</span>
-              <span className="flex items-center gap-1.5 font-body text-[10px] uppercase tracking-wider"><Shield className="w-3.5 h-3.5" /> Cruelty-Free</span>
+      
+      <main className="pt-24 pb-0">
+        
+        {/* ABOVE THE FOLD — TWO COLUMN LAYOUT */}
+        <section className="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-[55%_45%] lg:grid-cols-2 gap-[32px] lg:gap-[48px] py-8">
+          
+          {/* LEFT COLUMN: IMAGE GALLERY */}
+          <div className="w-full flex-col gap-4 hidden md:flex">
+            <div className="relative aspect-[4/5] w-full rounded-lg overflow-hidden bg-[#E2E8F0]">
+              {GALLERY.map((img, idx) => (
+                <div key={idx} className={`absolute inset-0 transition-opacity duration-300 ${activeImage === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                  {img.type === "image" ? (
+                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover bg-[#E2E8F0]" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] p-4 text-center text-[#ABB3BB] text-sm">
+                      [Placeholder: {img.alt}]
+                    </div>
+                  )}
+                </div>
+              ))}
+              <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow" aria-label="Previous">
+                <ChevronLeft className="w-5 h-5"/>
+              </button>
+              <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow" aria-label="Next">
+                <ChevronRight className="w-5 h-5"/>
+              </button>
             </div>
-          </div>
-        </section>
-
-        {/* Key Features */}
-        <section className="px-6 py-20 max-w-[1200px] mx-auto">
-          <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12">What It Actually Does</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { icon: Timer, title: "Absorbs Before You Grab Your Keys", desc: "Squalane mirrors your skin's own oils, so it sinks in instead of sitting on top. No waiting. No residue on your phone screen or pillowcase." },
-              { icon: Droplets, title: "Your Face Stays Matte Through Dinner", desc: "Niacinamide at 5% reduces how much oil your skin produces — not just blotting it. Most guys notice the difference within a week." },
-              { icon: Leaf, title: "Shaving Stops Being a Problem", desc: "Panthenol calms razor burn and micro-irritation within 24 hours. Centella rebuilds the moisture barrier that shaving strips away. No fragrance to sting freshly shaved skin." },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="text-center p-6">
-                <Icon className="w-8 h-8 mx-auto mb-4 text-primary" />
-                <h3 className="font-heading text-lg font-bold uppercase mb-2">{title}</h3>
-                <p className="font-body text-sm text-muted-foreground">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Texture on stone — visual break */}
-        <div className="max-w-[900px] mx-auto px-6 py-10">
-          <div className="rounded-lg overflow-hidden border border-border">
-            <img src={textureSmearStone} alt="Base Layer cream texture on natural stone — lightweight, fast-absorbing formula" className="w-full" loading="lazy" decoding="async" />
-          </div>
-        </div>
-
-        {/* Ingredients */}
-        <section className="px-6 py-20 bg-card">
-          <div className="max-w-[1200px] mx-auto">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12">What's Inside</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ingredients.map((ing) => (
-                <Link key={ing.slug} to={`/ingredients/${ing.slug}`} className="group block bg-background p-6 rounded-lg border border-border hover:bg-muted transition-colors">
-                  <h3 className="font-heading font-bold group-hover:underline underline-offset-4">{ing.name}</h3>
-                  <p className="font-body text-sm text-muted-foreground mt-2">{ing.desc}</p>
-                </Link>
+            {/* Thumbnail Strip */}
+            <div className="flex gap-3 mt-4">
+              {GALLERY.map((img, idx) => (
+                <button key={idx} onClick={() => setActiveImage(idx)} className={`relative w-[60px] h-[60px] rounded overflow-hidden flex-shrink-0 bg-[#E2E8F0] ${activeImage === idx ? "border-2 border-[#1A2F4C]" : "border border-transparent"}`}>
+                  {img.type === "image" ? (
+                    <img src={img.src} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[10px] text-[#ABB3BB]">Img {idx + 1}</div>
+                  )}
+                </button>
               ))}
             </div>
           </div>
-        </section>
 
-        {/* Skin Concerns */}
-        <section className="px-6 py-20 max-w-[1200px] mx-auto">
-          <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12">Who This Is For</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {concerns.map((c) => (
-              <Link key={c.slug} to={`/skin-concerns/${c.slug}`} className="bg-card p-5 rounded-lg border border-border hover:bg-muted transition-colors text-center">
-                <h3 className="font-heading font-bold text-sm">{c.name}</h3>
-              </Link>
-            ))}
+          {/* MOBILE SWIPEABLE CAROUSEL */}
+          <div className="md:hidden relative w-full aspect-[4/5] bg-[#E2E8F0] overflow-hidden -mx-6 px-6 sm:mx-0 sm:px-0 sm:rounded-lg">
+            <div className="flex w-full h-full overflow-x-auto snap-x snap-mandatory hide-scrollbar"
+                 onScroll={(e) => {
+                   const scrollLeft = e.currentTarget.scrollLeft;
+                   const width = e.currentTarget.clientWidth;
+                   setActiveImage(Math.round(scrollLeft / width));
+                 }}>
+              {GALLERY.map((img, idx) => (
+                <div key={idx} className="w-full h-full flex-shrink-0 snap-center relative">
+                  {img.type === "image" ? (
+                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] p-4 text-center text-[#ABB3BB]">
+                      [Placeholder: {img.alt}]
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
+              {GALLERY.map((_, idx) => (
+                <div key={idx} className={`w-2 h-2 rounded-full ${activeImage === idx ? "bg-[#1A2F4C]" : "bg-white/60"}`} />
+              ))}
+            </div>
           </div>
-        </section>
 
-        {/* Testimonials */}
-        <section className="px-6 py-20 bg-card">
-          <div className="max-w-[1200px] mx-auto">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12">What Guys Actually Notice</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* RIGHT COLUMN: BUY BOX */}
+          <div className="flex flex-col pt-4 md:pt-0">
+            {/* 1. Star Rating */}
+            <div className="flex items-center mb-3">
+              <span className="text-[#F35D1A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+              <a href="#testimonials" className="font-body text-[13px] text-[#ABB3BB] ml-2 hover:underline">4.8/5 (1,000+ reviews)</a>
+            </div>
+
+            {/* 2. Title & H1 SEO */}
+            <h1 className="font-heading text-[24px] md:text-[28px] font-bold text-[#1A2F4C] leading-[1.2] mb-1">
+              Performance Daily Face Cream
+            </h1>
+
+            {/* 3. Short Desc */}
+            <p className="font-body text-[15px] text-[#4A5568] mb-4">
+              The one-step daily moisturizer for men.
+            </p>
+
+            {/* 4. Price Block */}
+            <div className="flex items-center mb-5">
+              <span className="font-body text-[16px] text-[#ABB3BB] line-through mr-2">${msrp}</span>
+              <span className="font-heading text-[32px] font-bold text-[#1A2F4C] leading-none">${selectedOption.price}</span>
+              <span className="bg-[#E8F5E9] text-[#2E7D32] font-heading font-semibold text-[11px] px-2 py-1 rounded-[4px] ml-2">
+                SAVE {Math.round(((msrp - selectedOption.price) / msrp) * 100)}%
+              </span>
+            </div>
+
+            {/* 5. Benefit Checkmarks */}
+            <div className="flex flex-col gap-2 mb-[24px]">
+              <div className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-[#2E7D32] mt-1 shrink-0" />
+                <span className="font-body text-[14px] text-[#2D3748] leading-[1.6]">Absorbs in 15 seconds — zero shine, completely invisible</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-[#2E7D32] mt-1 shrink-0" />
+                <span className="font-body text-[14px] text-[#2D3748] leading-[1.6]">Replaces your serum, moisturizer, and eye cream</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-[#2E7D32] mt-1 shrink-0" />
+                <span className="font-body text-[14px] text-[#2D3748] leading-[1.6]">Fragrance-free. Built for men's skin.</span>
+              </div>
+            </div>
+
+            {/* 6. Quantity Selector */}
+            <div className="flex flex-row gap-[12px] mb-[20px] max-[380px]:flex-col">
+              {BUY_OPTIONS.map((opt) => (
+                <div 
+                  key={opt.id}
+                  onClick={() => setQuantity(opt.id)}
+                  className={`flex-1 p-[20px_16px] max-[380px]:p-[16px_12px] rounded-lg text-center relative cursor-pointer outline-none transition-all duration-200 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
+                >
+                  {opt.badge && (
+                    <div className={`absolute -top-[10px] left-1/2 -translate-x-1/2 ${opt.badgeColor} text-white font-heading font-semibold text-[9px] tracking-[0.12em] uppercase px-[10px] py-[4px] rounded-[10px] whitespace-nowrap`}>
+                      {opt.badge}
+                    </div>
+                  )}
+                  <div className="font-heading font-bold text-[16px] text-[#1A2F4C] uppercase">{opt.bottles} {opt.bottles === 1 ? 'Bottle' : 'Bottles'}</div>
+                  <div className="font-body font-medium text-[13px] text-[#ABB3BB]">{opt.duration}</div>
+                  <div className="font-heading font-extrabold text-[24px] text-[#1A2F4C] mt-[12px]">${opt.price}</div>
+                  {opt.savings > 0 ? (
+                    <div className="font-body font-semibold text-[12px] text-[#2E7D32]">save ${opt.savings}</div>
+                  ) : (
+                    <div className="h-[18px]"></div> 
+                  )}
+                  <div className="font-body text-[11px] text-[#ABB3BB] mt-1">${(opt.price / opt.bottles).toFixed(2).replace(/\.00$/, '')}/bottle</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 7. CTA Button */}
+            <button 
+              ref={ctaRef}
+              className="w-full bg-[#F35D1A] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[6px] hover:bg-[#E04F10] active:scale-[0.98] transition-all mb-[12px]"
+              onClick={() => openModal("buy_box")}
+            >
+              ADD TO CART — ${selectedOption.price}
+            </button>
+
+            {/* 8. Trust Micro-Copy */}
+            <p className="text-center font-body text-[12px] text-[#ABB3BB]">
+              Free shipping &middot; 30-day money-back guarantee &middot; Ships Spring 2026
+            </p>
+
+            {/* 9. Trust Badges Row */}
+            <div className="flex items-start justify-between border-t border-[#E2E8F0] pt-4 mt-6">
               {[
-                { name: "Sean G.", age: 31, skinType: "Oily", quote: "I work in an open office with bright overhead lights. My forehead used to look visibly shiny by 11 AM. After a week of Base Layer, it just doesn't happen anymore." },
-                { name: "Matt M.", age: 28, skinType: "Combination", quote: "I hit the gym at 6 AM and need something that doesn't sweat off or clog pores. This absorbs immediately and my skin still feels good at the end of the day." },
-                { name: "Cooper S.", age: 35, skinType: "Sensitive", quote: "I shave daily for work. Every moisturizer I've tried either stung or left a greasy film under my collar. Base Layer does neither. Just calm skin." },
-              ].map((t) => (
-                <div key={t.name} className="bg-background p-6 rounded-lg border border-border">
-                  <div className="flex gap-0.5 mb-4">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="font-body text-sm text-muted-foreground leading-relaxed mb-4">"{t.quote}"</p>
-                  <div className="flex items-center justify-between">
-                    <span className="font-heading font-bold text-sm">{t.name}, {t.age}</span>
-                    <span className="font-body text-[10px] uppercase tracking-wider text-muted-foreground bg-muted px-2 py-1 rounded">{t.skinType}</span>
-                  </div>
+                {icon: Mountain, label: "Breckenridge-Formulated"}, 
+                {icon: Zap, label: "Lab Tested"}, 
+                {icon: Shield, label: "Cruelty-Free"}, 
+                {icon: Leaf, label: "Clean Ingredients"}
+              ].map((b, i) => (
+                <div key={i} className={`flex flex-col items-center flex-1 px-1 ${i !== 0 ? 'border-l border-[#E2E8F0]' : ''}`}>
+                  <b.icon className="w-4 h-4 text-[#ABB3BB] mb-1" />
+                  <span className="font-body text-[10px] sm:text-[11px] text-[#ABB3BB] text-center leading-[1.2]">{b.label}</span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="px-6 py-20">
-          <div className="max-w-[720px] mx-auto">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12">Before You Buy</h2>
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.map((faq, i) => (
-                <AccordionItem key={i} value={`faq-${i}`}>
-                  <AccordionTrigger className="font-body text-left">{faq.question}</AccordionTrigger>
-                  <AccordionContent className="font-body text-muted-foreground">{faq.answer}</AccordionContent>
+        {/* STICKY MOBILE CTA BAR */}
+        <div className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E8F0] p-[12px_16px] flex items-center justify-between transition-transform duration-300 ${showStickyBottom ? 'translate-y-0 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]' : 'translate-y-full'}`}>
+          <div className="flex flex-col">
+            <span className="font-heading font-bold text-[20px] text-[#1A2F4C] leading-none">${selectedOption.price}</span>
+            <span className="font-body text-[11px] text-[#ABB3BB] mt-1">Founding Price</span>
+          </div>
+          <button 
+            className="bg-[#F35D1A] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[12px] rounded-[4px]"
+            onClick={() => openModal("sticky_mobile_cta")}
+          >
+            ADD TO CART
+          </button>
+        </div>
+
+        {/* BELOW THE FOLD */}
+        
+        {/* 1. What It Actually Does */}
+        <section className="px-6 py-20 bg-white max-w-[1200px] mx-auto border-t border-[#E2E8F0] mt-16">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12 text-[#1A2F4C]">What It Actually Does</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+            {[
+              { icon: Timer, title: "Absorbs Fast", desc: "Squalane mirrors your skin's own oils, so it sinks in instead of sitting on top. No waiting. No residue on your phone screen or pillowcase." },
+              { icon: Droplets, title: "Stays Matte", desc: "Niacinamide at 5% reduces how much oil your skin produces — not just blotting it. Most guys notice the difference within a week." },
+              { icon: Leaf, title: "Shaving Fixed", desc: "Panthenol calms razor burn and micro-irritation within 24 hours. Centella rebuilds the moisture barrier that shaving strips away." },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="text-center px-4">
+                <Icon className="w-10 h-10 mx-auto mb-4 text-[#F35D1A]" />
+                <h3 className="font-heading text-lg font-bold uppercase mb-3 text-[#1A2F4C]">{title}</h3>
+                <p className="font-body text-[15px] text-[#4A5568] leading-[1.6]">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 2. TEXTURE IMAGE (Parallax) */}
+        <div 
+          className="w-full h-[400px] md:h-[500px] bg-fixed bg-cover bg-center hidden md:block" 
+          style={{ backgroundImage: `url(${textureSmearStone})` }}
+        />
+        <div className="w-full md:hidden">
+          <img src={textureSmearStone} alt="Texture close-up" className="w-full h-auto object-cover" />
+        </div>
+
+        {/* 3. WHAT'S INSIDE */}
+        <section className="px-6 py-20 bg-white border-b border-[#E2E8F0]">
+          <div className="max-w-[800px] mx-auto">
+            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12 text-[#1A2F4C]">What's Inside</h2>
+            <Accordion type="single" collapsible defaultValue="ing-1" className="w-full">
+              {ingredients.map((ing, i) => (
+                <AccordionItem key={i} value={`ing-${i}`}>
+                  <AccordionTrigger className="font-heading font-bold text-[16px] text-[#1A2F4C]">{ing.name}</AccordionTrigger>
+                  <AccordionContent className="font-body text-[15px] text-[#4A5568] leading-[1.6]">
+                    {ing.desc}
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
           </div>
         </section>
 
-        {/* Related Comparisons & Guides */}
-        <section className="px-6 py-16 bg-card">
-          <div className="max-w-[1200px] mx-auto">
-            <h2 className="font-heading text-xl font-bold uppercase tracking-wide text-center mb-8">
+        {/* 4. NEW SECTION: HOW TO USE */}
+        <section className="bg-[#F7F8FA] py-[80px] px-6">
+          <div className="max-w-[1000px] mx-auto text-center">
+            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-[#1A2F4C] mb-12">How To Use</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+              <div className="flex flex-col items-center">
+                <div className="w-[48px] h-[48px] rounded-full border-2 border-[#1A2F4C] flex items-center justify-center font-heading font-bold text-[20px] text-[#1A2F4C] mb-6 shadow-sm bg-white">1</div>
+                <div className="text-[32px] mb-4 leading-none select-none">💧</div>
+                <h3 className="font-heading font-bold text-[16px] uppercase text-[#1A2F4C] mb-2">Wash</h3>
+                <p className="font-body text-[14px] text-[#4A5568]">Rinse with warm water</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-[48px] h-[48px] rounded-full border-2 border-[#1A2F4C] flex items-center justify-center font-heading font-bold text-[20px] text-[#1A2F4C] mb-6 shadow-sm bg-white">2</div>
+                <div className="text-[32px] mb-4 leading-none select-none">🧴</div>
+                <h3 className="font-heading font-bold text-[16px] uppercase text-[#1A2F4C] mb-2">One Pump</h3>
+                <p className="font-body text-[14px] text-[#4A5568]">Apply to face and neck</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-[48px] h-[48px] rounded-full border-2 border-[#1A2F4C] flex items-center justify-center font-heading font-bold text-[20px] text-[#1A2F4C] mb-6 shadow-sm bg-white">3</div>
+                <div className="text-[32px] mb-4 leading-none select-none font-bold text-[#1A2F4C]">✓</div>
+                <h3 className="font-heading font-bold text-[16px] uppercase text-[#1A2F4C] mb-2">Done</h3>
+                <p className="font-body text-[14px] text-[#4A5568]">15 seconds. That's the whole routine.</p>
+              </div>
+            </div>
+            <p className="font-body text-[15px] text-[#ABB3BB] italic mt-16 max-w-[400px] mx-auto leading-[1.6]">
+              That's it. No toner. No serum. No eye cream.
+            </p>
+          </div>
+        </section>
+
+        {/* 5. WHO THIS IS FOR */}
+        <section className="px-6 py-20 max-w-[1200px] mx-auto">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12 text-[#1A2F4C]">Who This Is For</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {concerns.map((c) => (
+              <Link key={c.slug} to={`/skin-concerns/${c.slug}`} className="bg-white p-5 rounded-lg border border-[#E2E8F0] hover:border-[#1A2F4C] transition-colors text-center shadow-sm">
+                <h3 className="font-heading font-semibold text-[13px] text-[#1A2F4C]">{c.name}</h3>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* 6. WHAT GUYS ACTUALLY NOTICE (Import from newly redesigned component) */}
+        <TestimonialsSection />
+
+        {/* 7. BEFORE YOU BUY (FAQ) */}
+        <section className="px-6 py-20 bg-white">
+          <div className="max-w-[720px] mx-auto">
+            <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-12 text-[#1A2F4C]">Before You Buy</h2>
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, i) => (
+                <AccordionItem key={i} value={`faq-${i}`}>
+                  <AccordionTrigger className="font-body font-semibold text-left text-[#1A2F4C] hover:text-[#F35D1A]">{faq.question}</AccordionTrigger>
+                  <AccordionContent className="font-body text-[#4A5568] leading-[1.6]">{faq.answer}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+
+        {/* 8. COMPARISON TABLE */}
+        <section className="px-6 py-16 bg-[#F7F8FA]">
+          <div className="max-w-[900px] mx-auto overflow-hidden">
+            <h2 className="font-heading text-xl md:text-2xl font-bold uppercase tracking-wide text-center mb-10 text-[#1A2F4C]">
               See How We Compare
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: "Best Men's Moisturizers Compared", path: "/comparisons/best-mens-face-moisturizers-compared" },
-                { label: "CeraVe vs Base Layer", path: "/comparisons/cerave-vs-base-layer" },
-                { label: "All Comparisons", path: "/comparisons" },
-                { label: "All Articles", path: "/articles" },
-              ].map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className="bg-background p-4 rounded-lg border border-border hover:bg-muted transition-colors text-center"
-                >
-                  <span className="font-heading font-bold text-sm">{link.label}</span>
-                </Link>
-              ))}
+            <div className="overflow-x-auto pb-4 hide-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[600px] bg-white rounded-lg shadow-sm">
+                <thead>
+                  <tr>
+                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] uppercase text-[#1A2F4C] w-[28%] bg-white rounded-tl-lg">Features</th>
+                    <th className="p-4 border-b border-r border-[#E2E8F0] font-heading font-black text-[16px] text-[#1A2F4C] bg-[#E2E8F0]/30 w-[18%] text-center">Base Layer</th>
+                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] text-[#4A5568] w-[18%] text-center">CeraVe</th>
+                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] text-[#4A5568] w-[18%] text-center">Kiehl's</th>
+                    <th className="p-4 border-b border-[#E2E8F0] font-heading font-bold text-[14px] text-[#4A5568] w-[18%] text-center rounded-tr-lg">Brickell</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">Price per oz</td>
+                    <td className="p-4 border-b border-r border-[#E2E8F0] font-body text-[14px] font-bold text-[#1A2F4C] bg-[#E2E8F0]/30 text-center">$22.35</td>
+                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] text-[#4A5568] text-center">$1.50</td>
+                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] text-[#4A5568] text-center">$27.00</td>
+                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] text-[#4A5568] text-center">$17.50</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">15-Second Matte Finish</td>
+                    <td className="p-4 border-b border-r border-[#E2E8F0] text-center bg-[#E2E8F0]/30"><Check className="w-5 h-5 text-[#2E7D32] mx-auto"/></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">Niacinamide (Oil Control)</td>
+                    <td className="p-4 border-b border-r border-[#E2E8F0] text-center bg-[#E2E8F0]/30"><Check className="w-5 h-5 text-[#2E7D32] mx-auto"/></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><Check className="w-5 h-5 text-[#2E7D32] mx-auto opacity-50"/></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 border-b border-[#E2E8F0] font-body text-[14px] font-semibold text-[#1A2F4C]">Copper Peptide (Firming)</td>
+                    <td className="p-4 border-b border-r border-[#E2E8F0] text-center bg-[#E2E8F0]/30 rounded-bl-none"><Check className="w-5 h-5 text-[#2E7D32] mx-auto"/></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center"><span className="text-[#E53E3E] font-bold">—</span></td>
+                    <td className="p-4 border-b border-[#E2E8F0] text-center rounded-br-lg"><span className="text-[#E53E3E] font-bold">—</span></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
 
-        <section className="px-6 py-20 text-center">
-          <h2 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-wide mb-4">ONE MOISTURIZER. VISIBLE RESULTS. NO GREASY FINISH.</h2>
-          <p className="font-body text-muted-foreground mb-2 max-w-md mx-auto">Pre-launch pricing — $38.</p>
-          <p className="font-body text-xs text-muted-foreground/60 mb-8 uppercase tracking-wider">Pre-launch — shipping Spring 2026</p>
-          <Button size="lg" className="px-12 py-6 font-heading font-black tracking-widest text-[14px] uppercase bg-[#F95D1A] text-[#F4F4F0] hover:bg-[#FFFFFF] hover:text-[#F95D1A] border-none transition-all duration-300 rounded-none" onClick={() => openModal("face_cream_bottom")}>
-            TRY IT RISK FREE — $38
+        {/* 9. BOTTOM CTA */}
+        <section className="px-6 py-[80px] text-center bg-[#1A2F4C] text-white">
+          <h2 className="font-heading text-[28px] md:text-4xl font-bold uppercase tracking-wide mb-8">
+            ONE MOISTURIZER.<br className="md:hidden" /> VISIBLE RESULTS.<br className="md:hidden" /> NO GREASY FINISH.
+          </h2>
+          <Button 
+            size="lg" 
+            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#F35D1A] text-white hover:bg-[#E04F10] border-none transition-all duration-300 rounded-[4px] mb-4" 
+            onClick={() => openModal("face_cream_bottom")}
+          >
+            GET STARTED — $38 →
           </Button>
+          <div className="flex items-center justify-center">
+            <span className="text-[#F35D1A] text-[14px] tracking-[2px] leading-none">★★★★★</span>
+            <span className="font-body text-[13px] text-[#ABB3BB] ml-2 leading-none">
+              4.8/5 from 1,000+ men
+            </span>
+          </div>
         </section>
+
       </main>
       <Footer />
     </div>
