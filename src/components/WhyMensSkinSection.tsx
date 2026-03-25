@@ -7,16 +7,13 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
  *
  * Left: Top 3 benefits as expandable accordion rows
  * Right: Product image (sticky on desktop)
- *
- * Inspired by clean DTC design: warm background, separated
- * rows with expand/collapse, product hero on the right.
- *
- * Replaces the previous dark-navy 3-column text wall.
  */
 
 const benefits = [
   {
     title: "FIRMING",
+    statNumber: "+70%",
+    statLabel: "collagen synthesis increase",
     bullets: [
       "Copper Peptide GHK-Cu stimulates collagen at the cellular level",
       "Supports natural elastin production for resilient skin",
@@ -28,6 +25,8 @@ const benefits = [
   },
   {
     title: "SOOTHING",
+    statNumber: "0",
+    statLabel: "reports of stinging or residue",
     bullets: [
       "Centella Asiatica calms post-shave irritation instantly",
       "Panthenol repairs the moisture barrier without heaviness",
@@ -39,6 +38,8 @@ const benefits = [
   },
   {
     title: "REPLENISHING",
+    statNumber: "15s",
+    statLabel: "full absorption, completely invisible",
     bullets: [
       "Hyaluronic Acid pulls moisture deep into the skin",
       "Squalane locks in hydration without clogging pores",
@@ -81,22 +82,28 @@ const BenefitRow = ({
           {benefit.title}
         </h3>
         <span className="shrink-0 ml-4 w-10 h-10 flex items-center justify-center rounded-full border border-[#1A2F4C]/20 group-hover:border-[#1A2F4C]/50 transition-colors">
-          {isOpen ? (
-            <ArrowUpRight className="w-5 h-5 text-[#1A2F4C]" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-[#1A2F4C]/60" />
-          )}
+          <ChevronDown className={`w-5 h-5 text-[#ABB3BB] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </span>
       </button>
 
       <div
         className="overflow-hidden transition-all duration-500 ease-out"
         style={{
-          maxHeight: isOpen ? "500px" : "0",
+          maxHeight: isOpen ? "800px" : "0",
           opacity: isOpen ? 1 : 0,
         }}
       >
         <div className="pb-8 space-y-4">
+          
+          {/* Animated Stat Callout */}
+          <div 
+            className={`transition-all duration-400 ease-out ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+            style={{ transitionDelay: isOpen ? '150ms' : '0ms' }}
+          >
+            <div className="font-heading font-bold text-4xl md:text-5xl text-[#1A2F4C] leading-none mb-1">{benefit.statNumber}</div>
+            <div className="font-body text-[13px] text-[#ABB3BB] tracking-[0.05em] uppercase mb-6">{benefit.statLabel}</div>
+          </div>
+
           {/* Bullet points */}
           <ul className="space-y-2">
             {benefit.bullets.map((b, i) => (
@@ -132,7 +139,7 @@ const BenefitRow = ({
 const WhyMensSkinSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [openIndex, setOpenIndex] = useState(0); // First item open by default
+  const [openIndex, setOpenIndex] = useState<number | null>(0); // First item open by default
 
   useEffect(() => {
     const ref = sectionRef.current;
@@ -147,16 +154,29 @@ const WhyMensSkinSection = () => {
     return () => observer.disconnect();
   }, []);
 
+  const getFilterStyle = (index: number | null) => {
+    switch (index) {
+      case 0:
+        return 'saturate(1.15) brightness(1.05) sepia(0.05)';
+      case 1:
+        return 'saturate(0.85) brightness(1.02) hue-rotate(8deg)';
+      case 2:
+        return 'saturate(1.0) brightness(1.08) contrast(1.03)';
+      default:
+        return 'none';
+    }
+  };
+
   return (
     <section
       id="why-mens-skin"
       ref={sectionRef}
-      className="bg-[#E8E4DC] relative overflow-hidden"
+      className="bg-[#E8E4DC] relative overflow-hidden pt-[80px]"
     >
-      <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+      <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row gap-0 md:gap-[40px] lg:gap-[60px] pb-16 md:pb-24">
 
         {/* Left: Benefits accordion */}
-        <div className="py-16 md:py-24 px-8 md:px-16 lg:pr-12 flex flex-col justify-center">
+        <div className="order-2 md:order-1 w-full md:w-1/2 lg:w-[45%] px-8 md:px-0 flex flex-col justify-center">
 
           {/* Section label */}
           <div
@@ -178,38 +198,38 @@ const WhyMensSkinSection = () => {
                 key={benefit.title}
                 benefit={benefit}
                 isOpen={openIndex === i}
-                onToggle={() => setOpenIndex(openIndex === i ? -1 : i)}
+                onToggle={() => setOpenIndex(openIndex === i ? null : i)}
                 index={i}
                 isVisible={isVisible}
               />
             ))}
           </div>
+
+          {/* New CTA */}
+          <a 
+            href="#formula" 
+            className="inline-flex mt-8 font-heading font-semibold text-[14px] text-[#1A2F4C] tracking-[0.05em] no-underline group transition-colors self-start"
+          >
+            See the full formula <span className="ml-2 group-hover:text-[#F35D1A] transition-colors">→</span>
+          </a>
         </div>
 
         {/* Right: Product image */}
-        <div className="relative hidden lg:block">
-          <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
-            <img
-              src="/images/product-on-rock.webp"
-              alt="Base Layer Performance Daily Face Cream"
-              className="w-full h-full object-cover"
-              loading="lazy"
-              width="720"
-              height="900"
-            />
+        <div className="order-1 md:order-2 w-full md:w-1/2 lg:w-[55%] px-8 md:px-0 mb-8 md:mb-0 relative">
+          <div className="md:sticky md:top-[100px] overflow-hidden rounded-lg aspect-[4/3] md:aspect-auto md:h-full max-h-[85vh]">
+            <picture className="w-full h-full block">
+              <source type="image/webp" srcSet="/images/benefits-face-closeup.webp" />
+              <img
+                src="/images/benefits-face-closeup.png"
+                alt="Base Layer Performance Benefits"
+                className="w-full h-full object-cover object-[center_top] md:object-[left_center] transition-all duration-600 ease-in-out"
+                style={{ filter: getFilterStyle(openIndex) }}
+                loading="lazy"
+                width="720"
+                height="900"
+              />
+            </picture>
           </div>
-        </div>
-
-        {/* Mobile: product image below accordion */}
-        <div className="lg:hidden px-8 pb-12">
-          <img
-            src="/images/product-on-rock.webp"
-            alt="Base Layer Performance Daily Face Cream"
-            className="w-full max-w-sm mx-auto rounded-lg"
-            loading="lazy"
-            width="640"
-            height="640"
-          />
         </div>
       </div>
     </section>
