@@ -6,9 +6,7 @@ import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
 
-const PerformanceSpecsSection = lazy(() => import("@/components/PerformanceSpecsSection"));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
-const TheGearSection = lazy(() => import("@/components/TheGearSection"));
 const FAQSection = lazy(() => import("@/components/FAQSection"));
 const WhyMensSkinSection = lazy(() => import("@/components/WhyMensSkinSection"));
 const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
@@ -93,11 +91,7 @@ const Index = () => {
         <PressBanner />
         <WhyMensSkinSection />
         <IngredientsShowcase />
-        <PerformanceSpecsSection />
         <TestimonialsSection />
-        <div className="content-auto">
-          <TheGearSection />
-        </div>
         <div className="content-auto">
           <FAQSection />
         </div>
