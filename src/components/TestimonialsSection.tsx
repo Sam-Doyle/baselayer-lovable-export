@@ -65,7 +65,7 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
       <div className="flex items-center mt-auto">
         <picture className="w-[48px] h-[48px] rounded-[50%] overflow-hidden border-[2px] border-[rgba(255,255,255,0.15)] shrink-0 mr-4">
           <source type="image/webp" srcSet={t.image} />
-          <img src={t.fallback} alt={t.name} className="w-full h-full object-cover object-[center_top]" />
+          <img src={t.fallback} alt={t.name} loading="lazy" width={48} height={48} className="w-full h-full object-cover object-[center_top]" />
         </picture>
         <div className="flex flex-col">
           <span className="font-heading font-semibold text-[14px] text-white leading-tight mb-[2px]">

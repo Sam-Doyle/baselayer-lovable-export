@@ -83,6 +83,9 @@ const IngredientCard = ({
         <img
           src={ingredient.image}
           alt={ingredient.name}
+          loading="lazy"
+          width={500}
+          height={500}
           className="w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-300 pointer-events-none"
         />
       </div>

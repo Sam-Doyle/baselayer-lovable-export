@@ -30,6 +30,7 @@ const IngredientsSection = () => {
         src={skierBg}
         alt="Male skier holding Base Layer moisturizer on a Colorado mountain"
         className="absolute inset-0 w-full h-full object-cover"
+          loading="lazy"
         width={600}
         height={400}
         loading="lazy"
