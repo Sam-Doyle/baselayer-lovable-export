@@ -107,7 +107,7 @@ const HeroSection = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-12 pt-[80px] md:pt-[120px]">
-        <div className="max-w-[500px]">
+        <div className="max-w-[500px] min-h-[420px] md:min-h-[480px] lg:min-h-[520px]">
 
           {/* Eyebrow Label */}
           <div className="animate-fade-in-up mb-4">
@@ -152,12 +152,13 @@ const HeroSection = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Your email"
+                    aria-label="Email address"
                     className="w-full sm:w-[55%] px-5 py-[14px] bg-[#F4F4F0]/80 backdrop-blur-md border border-transparent text-[#1E201E] text-base font-body placeholder:text-[#1E201E]/50 focus:outline-none focus:ring-2 focus:ring-[#F35D1A] transition-all rounded-[4px]"
                   />
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full sm:w-[45%] px-0 py-[14px] bg-[#F35D1A] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 disabled:opacity-50 rounded-[4px] whitespace-nowrap"
+                    className="w-full sm:w-[45%] px-0 py-[14px] bg-[#D94E12] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 disabled:opacity-50 rounded-[4px] whitespace-nowrap"
                   >
                     {loading ? "\u2026" : "GRAB YOURS \u00b7 $38 \u2192"}
                   </button>

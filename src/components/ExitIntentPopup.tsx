@@ -39,7 +39,7 @@ export default function ExitIntentPopup() {
       onClick={() => setDismissed(true)}>
       <div className="bg-white max-w-md mx-4 p-8 relative" onClick={e => e.stopPropagation()}>
         <button onClick={() => setDismissed(true)}
-          className="absolute top-3 right-4 text-[#ABB3BB] hover:text-[#1A2F4C] text-2xl leading-none">&times;</button>
+          className="absolute top-3 right-4 text-[#6B7280] hover:text-[#1A2F4C] text-2xl leading-none" aria-label="Close">&times;</button>
         {!submitted ? (
           <>
             <h3 className="font-heading font-bold text-2xl text-[#1A2F4C] uppercase tracking-wide mb-2">
@@ -51,9 +51,10 @@ export default function ExitIntentPopup() {
             <form onSubmit={handleSubmit} className="flex gap-2">
               <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="Your email"
+                aria-label="Email address"
                 className="flex-1 border border-[#E2E8F0] px-4 py-3 text-sm font-body focus:outline-none focus:border-[#1A2F4C] bg-white" />
               <button type="submit"
-                className="bg-[#F35D1A] text-white font-heading font-bold text-xs tracking-wider uppercase px-6 py-3 hover:bg-[#E04F10] whitespace-nowrap">
+                className="bg-[#D94E12] text-white font-heading font-bold text-xs tracking-wider uppercase px-6 py-3 hover:bg-[#C04510] whitespace-nowrap">
                 NOTIFY ME
               </button>
             </form>
@@ -62,7 +63,7 @@ export default function ExitIntentPopup() {
           <div className="text-center py-4">
             <div className="text-3xl mb-2">✓</div>
             <p className="font-heading font-bold text-lg text-[#1A2F4C]">You're on the list.</p>
-            <p className="font-body text-sm text-[#ABB3BB] mt-1">We'll reach out when it's time.</p>
+            <p className="font-body text-sm text-[#6B7280] mt-1">We'll reach out when it's time.</p>
           </div>
         )}
       </div>

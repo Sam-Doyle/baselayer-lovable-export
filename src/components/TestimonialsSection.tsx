@@ -139,7 +139,7 @@ const TestimonialsSection = () => {
 
           <Link
             to="/face-cream"
-            className="inline-flex items-center justify-center px-[36px] py-[14px] bg-[#F35D1A] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#E04F10] transition-colors duration-300 w-full sm:w-auto mt-2"
+            className="inline-flex items-center justify-center px-[36px] py-[14px] bg-[#D94E12] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#C04510] transition-colors duration-300 w-full sm:w-auto mt-2"
           >
             GET STARTED · $38 →
           </Link>

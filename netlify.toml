@@ -28,7 +28,18 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Images
+# Images — subdirectory assets (immutable, 1 year)
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/lovable-uploads/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Images — root-level (OG images, logo etc.)
 [[headers]]
   for = "/*.jpg"
   [headers.values]

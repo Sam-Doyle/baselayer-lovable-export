@@ -161,6 +161,7 @@ const EarlyAccessModal = () => {
         <button
           onClick={handleClose}
           className="absolute top-2 right-2 p-2 text-muted-foreground hover:text-foreground transition-colors z-10"
+          aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>
@@ -186,6 +187,7 @@ const EarlyAccessModal = () => {
                 placeholder="you@domain.com"
                 inputMode="email"
                 autoComplete="email"
+                aria-label="Email address"
                 className="w-full px-4 py-3 bg-transparent border border-border text-sm font-body placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground transition-colors"
               />
               <Button

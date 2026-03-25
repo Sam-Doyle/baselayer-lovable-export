@@ -60,17 +60,20 @@ const WhyMenQuitSection = () => {
         className="relative h-[30vh] lg:h-full overflow-hidden order-1 lg:order-2 transition-opacity duration-700 ease-out"
         style={{ opacity: isVisible ? 1 : 0 }}
       >
-        <img
-          src="/images/weather-texture.webp"
-          alt="Harsh elemental outdoor texture"
-          className="absolute inset-0 w-full h-full object-cover grayscale opacity-90 mix-blend-multiply"
-          loading="lazy"
-          decoding="async"
-          fetchPriority="low"
-          width={600}
-          height={572}
-          sizes="(max-width: 1023px) 100vw, 50vw"
-        />
+        <picture>
+          <source type="image/webp" srcSet="/images/weather-texture.webp" />
+          <img
+            src="/images/weather-texture.png"
+            alt="Harsh elemental outdoor texture"
+            className="absolute inset-0 w-full h-full object-cover grayscale opacity-90 mix-blend-multiply"
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            width={600}
+            height={572}
+            sizes="(max-width: 1023px) 100vw, 50vw"
+          />
+        </picture>
       </div>
     </section>
   );

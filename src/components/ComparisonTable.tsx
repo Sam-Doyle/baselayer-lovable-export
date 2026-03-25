@@ -205,7 +205,7 @@ const ComparisonTable = () => {
             Six clinical actives. One product. <span className="text-[#F35D1A]">$38.</span>
           </div>
           <Button 
-            className="bg-[#F35D1A] hover:bg-[#E04F10] text-white font-heading font-bold text-[13px] tracking-[0.05em] px-[36px] py-[14px] h-auto rounded-[4px] w-full sm:w-auto"
+            className="bg-[#D94E12] hover:bg-[#C04510] text-white font-heading font-bold text-[13px] tracking-[0.05em] px-[36px] py-[14px] h-auto rounded-[4px] w-full sm:w-auto"
             onClick={() => {
                document.querySelector('.buy-box-container')?.scrollIntoView({ behavior: 'smooth' });
             }}

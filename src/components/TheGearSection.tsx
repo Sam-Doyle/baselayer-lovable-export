@@ -22,15 +22,18 @@ const TheGearSection = () => {
         <section id="gear" ref={sectionRef} className="relative py-32 overflow-hidden bg-[#F4F4F0]">
             {/* Background Texture Overlay */}
             <div className="absolute inset-0 z-0">
-                <img
-                    src="/images/texture-light-stone.webp"
-                    alt="Light textured alpine stone"
-                    width={640}
-                    height={640}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover opacity-40 mix-blend-multiply"
-                />
+                <picture>
+                    <source type="image/webp" srcSet="/images/texture-light-stone.webp" />
+                    <img
+                        src="/images/texture-light-stone.png"
+                        alt="Light textured alpine stone"
+                        width={640}
+                        height={640}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover opacity-40 mix-blend-multiply"
+                    />
+                </picture>
                 <div className="absolute inset-0 bg-gradient-to-b from-[#F4F4F0] via-transparent to-[#F4F4F0]"></div>
             </div>
 
@@ -92,15 +95,19 @@ const TheGearSection = () => {
 
                     {/* Right Column: Product Image */}
                     <div className="relative min-h-[300px] h-full overflow-hidden bg-[#E8EAE6]">
-                        <img
-                            src="/images/baselayer-carton.webp"
-                            alt="Base Layer Carton"
-                            width={640}
-                            height={640}
-                            loading="lazy"
-                            decoding="async"
-                            className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-all duration-700"
-                        />
+                        <picture>
+                            <source type="image/webp" srcSet="/images/baselayer-carton.webp" />
+                            <img
+                                src="/images/baselayer-carton.jpeg"
+                                alt="Base Layer Carton"
+                                width={640}
+                                height={640}
+                                loading="lazy"
+                                decoding="async"
+                                sizes="(max-width: 768px) 100vw, 50vw"
+                                className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-all duration-700"
+                            />
+                        </picture>
                     </div>
 
                 </div>

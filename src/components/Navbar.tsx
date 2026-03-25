@@ -70,7 +70,7 @@ const Navbar = () => {
           <div className="flex items-center gap-4 md:gap-6">
             <button
               onClick={() => openModal("navbar")}
-              className="hidden md:flex items-center justify-center px-[24px] py-[10px] bg-[#F35D1A] text-white font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none hover:bg-[#1A2F4C] transition-colors duration-300"
+              className="hidden md:flex items-center justify-center px-[24px] py-[10px] bg-[#D94E12] text-white font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none hover:bg-[#1A2F4C] transition-colors duration-300"
             >
               GET STARTED
             </button>
@@ -80,6 +80,7 @@ const Navbar = () => {
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden text-[#1E201E] w-11 h-11 flex items-center justify-center"
               aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -106,7 +107,7 @@ const Navbar = () => {
                 openModal("navbar_mobile");
                 setMobileOpen(false);
               }}
-              className="w-full mt-4 flex items-center justify-center px-6 py-[10px] bg-[#F35D1A] text-white hover:bg-[#1A2F4C] transition-colors font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none"
+              className="w-full mt-4 flex items-center justify-center px-6 py-[10px] bg-[#D94E12] text-white hover:bg-[#1A2F4C] transition-colors font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none"
             >
               GET STARTED
             </button>

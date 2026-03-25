@@ -74,7 +74,7 @@ const GALLERY = [
 const BUY_OPTIONS = [
   { id: 1, bottles: 1, duration: "6 weeks", price: 38, badge: null, savings: 0 },
   { id: 2, bottles: 2, duration: "12 weeks", price: 68, badge: "MOST POPULAR", badgeColor: "bg-[#1A2F4C]", savings: 8 },
-  { id: 3, bottles: 3, duration: "18 weeks", price: 89, badge: "BEST VALUE", badgeColor: "bg-[#F35D1A]", savings: 25 },
+  { id: 3, bottles: 3, duration: "18 weeks", price: 89, badge: "BEST VALUE", badgeColor: "bg-[#D94E12]", savings: 25 },
 ];
 
 const FaceCream = () => {
@@ -151,7 +151,7 @@ const FaceCream = () => {
             {/* Thumbnail Strip */}
             <div className="flex gap-3 mt-4">
               {GALLERY.map((img, idx) => (
-                <button key={idx} onClick={() => setActiveImage(idx)} className={`relative w-[60px] h-[60px] rounded overflow-hidden flex-shrink-0 bg-[#E2E8F0] ${activeImage === idx ? "border-2 border-[#1A2F4C]" : "border border-transparent"}`}>
+                <button key={idx} onClick={() => setActiveImage(idx)} aria-label={`View product image ${idx + 1}`} className={`relative w-[60px] h-[60px] rounded overflow-hidden flex-shrink-0 bg-[#E2E8F0] ${activeImage === idx ? "border-2 border-[#1A2F4C]" : "border border-transparent"}`}>
                   {img.type === "image" ? (
                     <img src={img.src} alt="" className="w-full h-full object-cover" loading="lazy" width={60} height={60} />
                   ) : (
@@ -190,11 +190,11 @@ const FaceCream = () => {
           </div>
 
           {/* RIGHT COLUMN: BUY BOX */}
-          <div className="flex flex-col pt-4 md:pt-0">
+          <div className="flex flex-col pt-4 md:pt-0 min-h-[500px] md:min-h-[600px]">
             {/* 1. Star Rating */}
             <div className="flex items-center mb-3">
               <TrustpilotStars size={14} />
-              <a href="#testimonials" className="font-body text-[13px] text-[#ABB3BB] ml-2 hover:underline">4.8/5 (1,000+ reviews)</a>
+              <a href="#testimonials" className="font-body text-[13px] text-[#6B7280] ml-2 hover:underline">4.8/5 (1,000+ reviews)</a>
             </div>
 
             {/* 2. Title & H1 SEO */}
@@ -209,7 +209,7 @@ const FaceCream = () => {
 
             {/* 4. Price Block */}
             <div className="flex items-center mb-5">
-              <span className="font-body text-[16px] text-[#ABB3BB] line-through mr-2">${msrp}</span>
+              <span className="font-body text-[16px] text-[#6B7280] line-through mr-2">${msrp}</span>
               <span className="font-heading text-[32px] font-bold text-[#1A2F4C] leading-none">${selectedOption.price}</span>
               <span className="bg-[#E8F5E9] text-[#2E7D32] font-heading font-semibold text-[11px] px-2 py-1 rounded-[4px] ml-2">
                 SAVE {Math.round(((msrp - selectedOption.price) / msrp) * 100)}%
@@ -246,14 +246,14 @@ const FaceCream = () => {
                     </div>
                   )}
                   <div className="font-heading font-bold text-[16px] text-[#1A2F4C] uppercase">{opt.bottles} {opt.bottles === 1 ? 'Bottle' : 'Bottles'}</div>
-                  <div className="font-body font-medium text-[13px] text-[#ABB3BB]">{opt.duration}</div>
+                  <div className="font-body font-medium text-[13px] text-[#6B7280]">{opt.duration}</div>
                   <div className="font-heading font-extrabold text-[24px] text-[#1A2F4C] mt-[12px]">${opt.price}</div>
                   {opt.savings > 0 ? (
                     <div className="font-body font-semibold text-[12px] text-[#2E7D32]">save ${opt.savings}</div>
                   ) : (
                     <div className="h-[18px]"></div> 
                   )}
-                  <div className="font-body text-[11px] text-[#ABB3BB] mt-1">${(opt.price / opt.bottles).toFixed(2).replace(/\.00$/, '')}/bottle</div>
+                  <div className="font-body text-[11px] text-[#6B7280] mt-1">${(opt.price / opt.bottles).toFixed(2).replace(/\.00$/, '')}/bottle</div>
                 </div>
               ))}
             </div>
@@ -261,14 +261,14 @@ const FaceCream = () => {
             {/* 7. CTA Button */}
             <button 
               ref={ctaRef}
-              className="w-full bg-[#F35D1A] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#E04F10] active:scale-[0.98] transition-all mb-[12px]"
+              className="w-full bg-[#D94E12] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#C04510] active:scale-[0.98] transition-all mb-[12px]"
               onClick={() => openModal("buy_box")}
             >
               ADD TO CART - ${selectedOption.price}
             </button>
 
             {/* 8. Trust Micro-Copy */}
-            <p className="text-center font-body text-[12px] text-[#ABB3BB]">
+            <p className="text-center font-body text-[12px] text-[#6B7280]">
               Free shipping &middot; 30-day money-back guarantee &middot; Ships Spring 2026
             </p>
 
@@ -296,7 +296,7 @@ const FaceCream = () => {
             <span className="font-body text-[11px] text-[#ABB3BB] mt-1">Founding Price</span>
           </div>
           <button 
-            className="bg-[#F35D1A] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px]"
+            className="bg-[#D94E12] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px]"
             onClick={() => openModal("sticky_mobile_cta")}
           >
             ADD TO CART - ${selectedOption.price}
@@ -415,7 +415,7 @@ const FaceCream = () => {
           </h2>
           <Button 
             size="lg" 
-            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#F35D1A] text-white hover:bg-[#E04F10] border-none transition-all duration-300 rounded-[4px] mb-4" 
+            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] mb-4" 
             onClick={() => openModal("face_cream_bottom")}
           >
             GET STARTED - ${selectedOption.price}

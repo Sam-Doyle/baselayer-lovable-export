@@ -45,13 +45,22 @@ const OurOriginSection = () => {
                             style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "40px"})` }}
                         >
                             <div className="aspect-[3/4] overflow-hidden bg-[#F4F4F0]">
-                                <img src="/images/guy-skiing.webp" alt="Alpine skier" width={636} height={569} loading="lazy" decoding="async" className="w-full h-full object-cover grayscale opacity-90 hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-700" />
+                                <picture>
+                                    <source type="image/webp" srcSet="/images/guy-skiing.webp" />
+                                    <img src="/images/guy-skiing.png" alt="Alpine skier" width={636} height={569} loading="lazy" decoding="async" sizes="(max-width: 768px) 33vw, 25vw" className="w-full h-full object-cover grayscale opacity-90 hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-700" />
+                                </picture>
                             </div>
                             <div className="aspect-[3/4] overflow-hidden bg-[#F4F4F0] mt-8">
-                                <img src="/images/texture-pine.webp" alt="Misty pine forest texture" width={640} height={640} loading="lazy" decoding="async" className="w-full h-full object-cover grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-700" />
+                                <picture>
+                                    <source type="image/webp" srcSet="/images/texture-pine.webp" />
+                                    <img src="/images/texture-pine.png" alt="Misty pine forest texture" width={640} height={640} loading="lazy" decoding="async" sizes="(max-width: 768px) 33vw, 25vw" className="w-full h-full object-cover grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-700" />
+                                </picture>
                             </div>
                             <div className="aspect-[3/4] overflow-hidden bg-[#F4F4F0] mt-16">
-                                <img src="/images/texture-granite.webp" alt="Dark mossy granite texture" width={640} height={640} loading="lazy" decoding="async" className="w-full h-full object-cover grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-700" />
+                                <picture>
+                                    <source type="image/webp" srcSet="/images/texture-granite.webp" />
+                                    <img src="/images/texture-granite.png" alt="Dark mossy granite texture" width={640} height={640} loading="lazy" decoding="async" sizes="(max-width: 768px) 33vw, 25vw" className="w-full h-full object-cover grayscale opacity-90 hover:grayscale-0 hover:opacity-100 transition-all duration-700" />
+                                </picture>
                             </div>
                         </div>
                     </div>

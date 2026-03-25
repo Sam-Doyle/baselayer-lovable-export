@@ -101,7 +101,7 @@ const BenefitRow = ({
             style={{ transitionDelay: isOpen ? '150ms' : '0ms' }}
           >
             <div className="font-heading font-bold text-4xl md:text-5xl text-[#1A2F4C] leading-none mb-1">{benefit.statNumber}</div>
-            <div className="font-body text-[13px] text-[#ABB3BB] tracking-[0.05em] uppercase mb-6">{benefit.statLabel}</div>
+            <div className="font-body text-[13px] text-[#6B7280] tracking-[0.05em] uppercase mb-6">{benefit.statLabel}</div>
           </div>
 
           {/* Bullet points */}
@@ -227,6 +227,7 @@ const WhyMensSkinSection = () => {
                 loading="lazy"
                 width="720"
                 height="900"
+                sizes="(max-width: 768px) 100vw, 55vw"
               />
             </picture>
           </div>
