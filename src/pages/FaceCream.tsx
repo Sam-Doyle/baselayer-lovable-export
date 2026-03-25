@@ -5,8 +5,11 @@ import { useEarlyAccess } from "@/context/EarlyAccessContext";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect, useState, useRef } from "react";
-import productShot from "@/assets/product-hero-rock.png";
 import textureSmearStone from "@/assets/generated-creatives/asset_texture_smear_stone_1772750541116.png";
+import productBoxBottle from "@/assets/generated-creatives/product-box-bottle.jpg";
+import productInHand from "@/assets/generated-creatives/product-in-hand.jpg";
+import productMacroText from "@/assets/generated-creatives/product-macro-text.jpg";
+import productBathroom from "@/assets/generated-creatives/product-bathroom-counter.jpg";
 import { Mountain, Zap, Shield, Droplets, Timer, Leaf, ChevronLeft, ChevronRight, Check, Sun, Moon } from "lucide-react";
 import howToUseImage from "@/assets/generated-creatives/how-to-use-lifestyle.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -58,11 +61,11 @@ const faqs = [
 ];
 
 const GALLERY = [
-  { id: 1, type: "placeholder", alt: "Clean product shot on white/light background", src: "" },
-  { id: 2, type: "image", src: productShot, alt: "Product on granite stone with mountain backdrop" },
-  { id: 3, type: "placeholder", alt: "Product in-hand showing scale", src: "" },
-  { id: 4, type: "image", src: textureSmearStone, alt: "Cream texture close-up on stone" },
-  { id: 5, type: "placeholder", alt: "Ingredient flat-lay", src: "" },
+  { id: 1, type: "image", src: productBoxBottle, alt: "Base Layer Daily Face Cream with Box" },
+  { id: 2, type: "image", src: productBathroom, alt: "Base Layer Daily Face Cream in Bathroom" },
+  { id: 3, type: "image", src: productInHand, alt: "Base Layer Product in-hand showing scale" },
+  { id: 4, type: "image", src: productMacroText, alt: "Base Layer Bottle Macro Texture details" },
+  { id: 5, type: "image", src: textureSmearStone, alt: "Cream texture close-up on stone" },
   { id: 6, type: "image", src: "/images/benefits-face-closeup.png", alt: "Face close-up portrait" },
 ];
 
