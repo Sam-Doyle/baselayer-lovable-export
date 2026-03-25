@@ -10,23 +10,33 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 100);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex flex-col">
+    <div className={`fixed top-0 left-0 right-0 z-50 flex flex-col transition-transform duration-300 ${isScrolled ? "-translate-y-[36px]" : "translate-y-0"}`}>
       {/* Universal Offer Banner */}
-      <div className="bg-[#1A2F4C] text-[#FFFFFF] text-center py-2.5 font-body text-[11px] sm:text-[12px] tracking-[0.05em] uppercase w-full flex items-center justify-center gap-2 px-4 shadow-sm">
-        <span className="text-[#F95D1A] hidden sm:inline-block">▲</span>
-        <span>Batch 01 (June 2026) is strictly limited to 500 bottles.</span>
+      <div className="bg-[#1A2F4C] text-[#FFFFFF] text-center h-[36px] font-body uppercase w-full flex items-center justify-center px-4 shadow-sm relative z-50">
+        <div className="flex items-center gap-1 text-[#F35D1A] text-[14px]">
+          <span className="leading-none tracking-[1px]">★★★★</span>
+          <span className="relative inline-block text-[14px] leading-none text-[#F35D1A]/30">
+            ★
+            <span className="absolute left-0 top-0 overflow-hidden w-[80%] text-[#F35D1A]">★</span>
+          </span>
+        </div>
+        <span className="font-heading font-bold text-white ml-2 text-[12px] leading-none mt-[1px]">4.8/5</span>
+        <span className="mx-2 opacity-50 hidden sm:inline text-[12px]">—</span>
+        <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase hidden sm:inline leading-none mt-[1px]">TRUSTED BY 1,000+ MEN</span>
+        <span className="mx-2 opacity-50 sm:hidden text-[12px]">—</span>
+        <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase sm:hidden leading-none mt-[1px]">1,000+ MEN TRUST US</span>
       </div>
 
       <nav
         className={`w-full transition-all duration-300 border-b ${isScrolled
-          ? "bg-[#F4F4F0]/90 backdrop-blur-xl border-[#1E201E]/10 py-3"
+          ? "bg-white/95 backdrop-blur-[8px] shadow-[0_1px_3px_rgba(0,0,0,0.08)] border-transparent py-3"
           : "bg-transparent border-transparent py-5"
           }`}
       >
@@ -35,19 +45,19 @@ const Navbar = () => {
           {/* LOGO: Industrial Typography + Alpine Accent Dot */}
           <Link to="/" className="flex items-center gap-0 group">
             <span className="font-heading text-[#1A2F4C] text-[22px] md:text-[26px] font-black tracking-normal uppercase leading-none">
-              BASE LAYER<span className="text-[#F95D1A]">.</span>
+              BASE LAYER<span className="text-[#F35D1A]">.</span>
             </span>
           </Link>
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-10 font-body text-[12px] lg:text-[13px] tracking-[0.2em] font-bold uppercase text-[#1E201E]/70">
-            <Link to="/face-cream" className="hover:text-[#F95D1A] transition-colors duration-300">
+            <Link to="/face-cream" className="hover:text-[#F35D1A] transition-colors duration-300">
               The Gear
             </Link>
-            <Link to="/ingredients" className="hover:text-[#F95D1A] transition-colors duration-300">
+            <Link to="/ingredients" className="hover:text-[#F35D1A] transition-colors duration-300">
               Specs
             </Link>
-            <Link to="/about" className="hover:text-[#F95D1A] transition-colors duration-300">
+            <Link to="/about" className="hover:text-[#F35D1A] transition-colors duration-300">
               Origin
             </Link>
           </div>
@@ -56,9 +66,9 @@ const Navbar = () => {
           <div className="flex items-center gap-4 md:gap-6">
             <button
               onClick={() => openModal("navbar")}
-              className="hidden md:flex items-center justify-center px-6 py-3 border border-[#1E201E]/20 text-[#1A2F4C] font-heading text-[12px] tracking-widest uppercase font-bold rounded-none hover:bg-[#F95D1A] hover:text-[#F4F4F0] hover:border-[#F95D1A] transition-all duration-300"
+              className="hidden md:flex items-center justify-center px-[24px] py-[10px] bg-[#F35D1A] text-white font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none hover:bg-[#1A2F4C] transition-colors duration-300"
             >
-              Reserve Batch 01
+              GET STARTED
             </button>
 
             {/* Hamburger (Sharp industrial styling, 44x44 touch target) */}
@@ -78,13 +88,13 @@ const Navbar = () => {
             }`}
         >
           <div className="px-6 py-6 flex flex-col gap-6 font-body text-[14px] tracking-[0.2em] font-bold uppercase text-[#1E201E]/70">
-            <Link to="/face-cream" onClick={() => setMobileOpen(false)} className="hover:text-[#F95D1A] transition-colors py-1">
+            <Link to="/face-cream" onClick={() => setMobileOpen(false)} className="hover:text-[#F35D1A] transition-colors py-1">
               The Gear
             </Link>
-            <Link to="/ingredients" onClick={() => setMobileOpen(false)} className="hover:text-[#F95D1A] transition-colors py-1">
+            <Link to="/ingredients" onClick={() => setMobileOpen(false)} className="hover:text-[#F35D1A] transition-colors py-1">
               Specs
             </Link>
-            <Link to="/about" onClick={() => setMobileOpen(false)} className="hover:text-[#F95D1A] transition-colors py-1">
+            <Link to="/about" onClick={() => setMobileOpen(false)} className="hover:text-[#F35D1A] transition-colors py-1">
               Origin
             </Link>
             <button
@@ -92,9 +102,9 @@ const Navbar = () => {
                 openModal("navbar_mobile");
                 setMobileOpen(false);
               }}
-              className="w-full mt-4 flex items-center justify-center px-6 py-5 bg-[#F95D1A] text-[#F4F4F0] hover:bg-[#1A2F4C] transition-colors font-heading text-[14px] tracking-widest uppercase font-black rounded-none"
+              className="w-full mt-4 flex items-center justify-center px-6 py-[10px] bg-[#F35D1A] text-white hover:bg-[#1A2F4C] transition-colors font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none"
             >
-              Reserve Batch 01
+              GET STARTED
             </button>
           </div>
         </div>
