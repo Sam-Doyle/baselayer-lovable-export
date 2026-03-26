@@ -303,7 +303,7 @@ const MatteMoisturizer = () => {
                 },
                 {
                   icon: FlaskConical,
-                  name: "Copper Peptide GHK-Cu (1%)",
+                  name: "Copper Peptide GHK-Cu (0.03%)",
                   slug: "copper-peptide",
                   benefit: "Stimulates collagen, firms skin, reduces fine lines",
                   matteRole: "Strengthens skin structure without adding oil",

@@ -378,7 +378,7 @@ const NonGreasyMoisturizer = () => {
                 },
                 {
                   icon: FlaskConical,
-                  name: "Copper Peptide GHK-Cu (1%)",
+                  name: "Copper Peptide GHK-Cu (0.03%)",
                   slug: "copper-peptide",
                   desc: "Stimulates collagen synthesis. Firmer, younger-looking skin in 4-8 weeks.",
                 },

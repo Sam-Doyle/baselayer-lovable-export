@@ -23,7 +23,7 @@ const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Product",
   name: "Base Layer Men's Performance Daily Face Cream",
-  description: "Men's face moisturizer with niacinamide 5%, copper peptide GHK-Cu 1%, panthenol, centella asiatica, squalane, and hyaluronic acid. Absorbs in 15 seconds. Fragrance-free. 50mL.",
+  description: "Men's face moisturizer with niacinamide 5%, copper peptide GHK-Cu 0.03%, panthenol, centella asiatica, squalane, and hyaluronic acid. Absorbs in 15 seconds. Fragrance-free. 50mL.",
   brand: { "@type": "Brand", name: "Base Layer" },
   offers: {
     "@type": "Offer",
@@ -37,7 +37,7 @@ const PRODUCT_SCHEMA = {
 
 const ingredients = [
   { name: "Niacinamide (5%)", slug: "niacinamide", desc: "That oily forehead by noon? Niacinamide turns down oil production at the source. Most guys see noticeably less shine within a week." },
-  { name: "Copper Peptide GHK-Cu (1%)", slug: "copper-peptide", desc: "The tired-looking skin around your eyes? Copper peptide stimulates collagen underneath. Firmer, smoother texture in 4-8 weeks." },
+  { name: "Copper Peptide GHK-Cu (0.03%)", slug: "copper-peptide", desc: "The tired-looking skin around your eyes? Copper peptide stimulates collagen underneath. Firmer, smoother texture in 4-8 weeks." },
   { name: "Panthenol (2%)", slug: "panthenol", desc: "You shave, your skin burns, you put on moisturizer and it stings. Panthenol breaks that cycle. Calms razor burn within 24 hours without leaving a film." },
   { name: "Centella Asiatica", slug: "centella-asiatica", desc: "Dry office air, wind, long flights. All of it damages your moisture barrier. Centella rebuilds it over 2-4 weeks so your skin stops overreacting." },
   { name: "Squalane", slug: "squalane", desc: "Your skin already produces squalane naturally, which is why it absorbs in seconds instead of sitting on top. No residue on your phone." },

@@ -1,26 +1,35 @@
 /**
  * Trustpilot-style green square stars.
- * Renders 5 filled squares with white star SVG inside.
- * The 5th star is partially filled to represent 4.8.
+ *
+ * full=true: All 5 stars fully filled (for individual 5-star reviews)
+ * full=false (default): 4 full + 5th at 80% fill (represents 4.8 aggregate)
  */
-const TrustpilotStars = ({ size = 14, className = "" }: { size?: number; className?: string }) => {
+const TrustpilotStars = ({ size = 14, full = false, className = "" }: { size?: number; full?: boolean; className?: string }) => {
   const s = `${size}px`;
   const pad = `${size * 0.16}px`;
+  const star = (
+    <svg viewBox="0 0 24 24" fill="white" className="absolute inset-0 w-full h-full" style={{ padding: pad }}>
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
+
+  const fullCount = full ? 5 : 4;
+
   return (
     <span className={`inline-flex items-center gap-[2px] ${className}`}>
-      {[1, 2, 3, 4].map(i => (
+      {Array.from({ length: fullCount }, (_, i) => (
         <span key={i} className="inline-block rounded-[2px] bg-[#00B67A] relative" style={{ width: s, height: s }}>
-          <svg viewBox="0 0 24 24" fill="white" className="absolute inset-0 w-full h-full" style={{ padding: pad }}>
+          {star}
+        </span>
+      ))}
+      {!full && (
+        <span className="inline-block rounded-[2px] bg-[#00B67A]/25 relative overflow-hidden" style={{ width: s, height: s }}>
+          <span className="absolute left-0 top-0 w-[80%] h-full bg-[#00B67A] rounded-[2px]" />
+          <svg viewBox="0 0 24 24" fill="white" className="absolute inset-0 w-full h-full z-10" style={{ padding: pad }}>
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
         </span>
-      ))}
-      <span className="inline-block rounded-[2px] bg-[#00B67A]/25 relative overflow-hidden" style={{ width: s, height: s }}>
-        <span className="absolute left-0 top-0 w-[80%] h-full bg-[#00B67A] rounded-[2px]" />
-        <svg viewBox="0 0 24 24" fill="white" className="absolute inset-0 w-full h-full z-10" style={{ padding: pad }}>
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-        </svg>
-      </span>
+      )}
     </span>
   );
 };

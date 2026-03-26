@@ -51,9 +51,9 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
         </div>
       )}
 
-      {/* Stars */}
+      {/* Stars - full 5/5 for individual reviews */}
       <div className="mb-4">
-        <TrustpilotStars size={14} />
+        <TrustpilotStars size={14} full />
       </div>
 
       {/* Quote */}

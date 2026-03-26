@@ -111,22 +111,26 @@ const ComparisonTable = () => {
               <div className="font-heading font-bold text-[13px] md:text-[15px] text-[#1A2F4C]">
                 BASE LAYER<span className="text-[#F35D1A]">.</span>
               </div>
+              <div className="font-body text-[9px] md:text-[10px] text-[#1A2F4C]/50 mt-0.5 leading-tight italic">Daily Face Cream</div>
               <div className="font-body text-[11px] md:text-[12px] text-[#6B7280] mt-1">
                 $38 / 1.7 oz
               </div>
             </div>
 
-            {/* Competitor Headers */}
+            {/* Competitor Headers — specific products verified via INCIDecoder March 2026 */}
             <div className={`col-start-3 py-4 px-2 text-center border-b border-[#E2E8F0] opacity-0 ${isVisible ? 'opacity-100' : ''}`} style={{ transition: 'opacity 500ms 200ms' }}>
               <div className="font-body font-semibold text-[12px] md:text-[13px] text-[#ABB3BB]">Caldera Lab</div>
+              <div className="font-body text-[9px] md:text-[10px] text-[#ABB3BB]/70 mt-0.5 leading-tight italic">The Good Serum</div>
               <div className="font-body text-[10px] md:text-[11px] text-[#ABB3BB] mt-1">$89 / 1 oz</div>
             </div>
             <div className={`col-start-4 py-4 px-2 text-center border-b border-[#E2E8F0] opacity-0 ${isVisible ? 'opacity-100' : ''}`} style={{ transition: 'opacity 500ms 200ms' }}>
               <div className="font-body font-semibold text-[12px] md:text-[13px] text-[#ABB3BB]">Kiehl's</div>
+              <div className="font-body text-[9px] md:text-[10px] text-[#ABB3BB]/70 mt-0.5 leading-tight italic">Age Defender Cream</div>
               <div className="font-body text-[10px] md:text-[11px] text-[#ABB3BB] mt-1">$63 / 2.5 oz</div>
             </div>
             <div className={`col-start-5 py-4 px-2 text-center border-b border-[#E2E8F0] opacity-0 ${isVisible ? 'opacity-100' : ''}`} style={{ transition: 'opacity 500ms 200ms' }}>
               <div className="font-body font-semibold text-[12px] md:text-[13px] text-[#ABB3BB]">Brickell</div>
+              <div className="font-body text-[9px] md:text-[10px] text-[#ABB3BB]/70 mt-0.5 leading-tight italic">Revitalizing Anti-Aging</div>
               <div className="font-body text-[10px] md:text-[11px] text-[#ABB3BB] mt-1">$40 / 2 oz</div>
             </div>
 

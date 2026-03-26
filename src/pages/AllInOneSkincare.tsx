@@ -38,7 +38,7 @@ const faqs = [
   {
     question: "Can one product really replace a serum, moisturizer, and eye cream?",
     answer:
-      "Yes, if the formula is concentrated enough. Base Layer uses 6 active ingredients at clinical concentrations: niacinamide at 5% (matches standalone serums), copper peptide GHK-Cu at 1% (matches dedicated anti-aging serums), hyaluronic acid for hydration, squalane for moisture locking, panthenol for barrier repair, and centella asiatica for anti-inflammatory protection. Each ingredient pulls double or triple duty. The result is one product that delivers the benefits of 3-4 separate products.",
+      "Yes, if the formula is concentrated enough. Base Layer uses 6 active ingredients at clinical concentrations: niacinamide at 5% (matches standalone serums), copper peptide GHK-Cu at 0.03% (matches dedicated anti-aging serums), hyaluronic acid for hydration, squalane for moisture locking, panthenol for barrier repair, and centella asiatica for anti-inflammatory protection. Each ingredient pulls double or triple duty. The result is one product that delivers the benefits of 3-4 separate products.",
   },
   {
     question: "Why do other brands sell 5 separate products?",
@@ -291,7 +291,7 @@ const AllInOneSkincare = () => {
                 </div>
                 <p className="font-body text-sm text-muted-foreground leading-relaxed mb-4">
                   <Link to="/ingredients/copper-peptide" className="text-primary hover:underline">
-                    Copper peptide GHK-Cu at 1%
+                    Copper peptide GHK-Cu at 0.03%
                   </Link>{" "}
                   stimulates collagen around the eyes — reducing fine lines and crow's feet in 4-8
                   weeks. Hyaluronic acid plumps the delicate under-eye area. Niacinamide improves
@@ -352,7 +352,7 @@ const AllInOneSkincare = () => {
                 <div className="space-y-4">
                   {[
                     { ingredient: "Niacinamide 5%", role: "Oil control + brightening (serum replacement)" },
-                    { ingredient: "Copper Peptide GHK-Cu 1%", role: "Anti-aging + collagen (eye cream replacement)" },
+                    { ingredient: "Copper Peptide GHK-Cu 0.03%", role: "Anti-aging + collagen (eye cream replacement)" },
                     { ingredient: "Squalane + HA", role: "Hydration + moisture lock (moisturizer replacement)" },
                     { ingredient: "Panthenol 2% + Centella", role: "Barrier repair + anti-inflammatory (bonus)" },
                   ].map((item) => (
@@ -404,7 +404,7 @@ const AllInOneSkincare = () => {
                 },
                 {
                   icon: FlaskConical,
-                  name: "Copper Peptide GHK-Cu (1%)",
+                  name: "Copper Peptide GHK-Cu (0.03%)",
                   slug: "copper-peptide",
                   functions: ["Collagen synthesis", "Fine line reduction", "Wound healing", "Skin firmness"],
                   replaces: "Anti-aging serum + eye cream",

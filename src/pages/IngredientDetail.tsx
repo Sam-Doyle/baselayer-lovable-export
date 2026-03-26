@@ -48,8 +48,8 @@ const generalTextureImages = {
 const ingredientMetaDescriptions: Record<string, string> = {
   "niacinamide": "Niacinamide at 5% controls oil, shrinks pores, and evens skin tone for men. See the clinical research and how Base Layer uses it.",
   "squalane": "Squalane absorbs in 15 seconds and locks in moisture without greasiness. Learn why Base Layer chose it as the formula base.",
-  "copper-peptide": "Copper peptide GHK-Cu at 1% stimulates collagen and firms skin. Discover the anti-aging science behind Base Layer's key active.",
-  "copper-peptide-ghk-cu": "Copper peptide GHK-Cu at 1% stimulates collagen and firms skin. Discover the anti-aging science behind Base Layer's key active.",
+  "copper-peptide": "Copper peptide GHK-Cu at 0.03% stimulates collagen and firms skin. Discover the anti-aging science behind Base Layer's key active.",
+  "copper-peptide-ghk-cu": "Copper peptide GHK-Cu at 0.03% stimulates collagen and firms skin. Discover the anti-aging science behind Base Layer's key active.",
   "hyaluronic-acid": "Hyaluronic acid holds 1,000x its weight in water for deep hydration without surface shine. See how Base Layer delivers it.",
   "panthenol": "Panthenol at 2% calms post-shave irritation and repairs your skin barrier fast. Learn why Base Layer includes it for men.",
   "centella-asiatica": "Centella asiatica reduces redness and rebuilds your moisture barrier. See the research behind this Base Layer ingredient.",
