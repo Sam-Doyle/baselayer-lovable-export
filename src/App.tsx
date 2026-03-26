@@ -32,6 +32,7 @@ const AllInOneSkincare = lazy(() => import("./pages/AllInOneSkincare"));
 const About = lazy(() => import("./pages/About"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Listicle = lazy(() => import("./pages/Listicle"));
 
 // ── Deferred QueryClientProvider ──────────────────────────────────
 // Dynamically imports @tanstack/react-query so the 36KB chunk is NOT
@@ -290,6 +291,7 @@ const App = () => {
                 <Route path="/comparisons/:slug" element={<Wrap><ComparisonDetail /></Wrap>} />
                 <Route path="/product/:handle" element={<Wrap><ProductDetail /></Wrap>} />
                 <Route path="/lp" element={<Wrap><LandingPage /></Wrap>} />
+                <Route path="/article/5-reasons" element={<Wrap><Listicle /></Wrap>} />
                 <Route path="*" element={<Wrap><NotFound /></Wrap>} />
               </Routes>
             </BrowserRouter>
