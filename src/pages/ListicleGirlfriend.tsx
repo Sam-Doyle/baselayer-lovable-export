@@ -7,9 +7,11 @@ import { CheckCircle2, ChevronRight, Star } from "lucide-react";
 
 import mirrorGuyImg from "@/assets/generated-creatives/step2-mirror-cream.jpg";
 import productInHand from "@/assets/generated-creatives/product-in-hand.jpg";
-import faceCloseup from "@/assets/images/benefits-face-closeup.png"; // or use imported webp if preferred
+import faceCloseup from "@/assets/images/benefits-face-closeup.png"; 
 import howToUseImg from "@/assets/generated-creatives/how-to-use-lifestyle.png";
 import productBoxBottle from "@/assets/generated-creatives/product-box-bottle.jpg";
+import productBathroom from "@/assets/generated-creatives/product-bathroom-counter.jpg";
+import textureSmear from "@/assets/generated-creatives/asset_texture_smear_stone_1772750541116.png";
 
 const LISTICLE_SCHEMA = {
   "@context": "https://schema.org",
@@ -40,6 +42,23 @@ const ListicleGirlfriend = () => {
   }, []);
 
   const handleCTAClick = () => trackEvent('listicle_cta_click', { action: 'navigate_to_product' });
+
+  const Point = ({ num, title, text, img, reverse = false }: { num: string, title: string, text: string, img: string, reverse?: boolean }) => (
+    <div className={`flex flex-col ${reverse ? 'sm:flex-row-reverse' : 'sm:flex-row'} gap-6 items-center`}>
+      <div className="w-full sm:w-1/2 rounded-lg overflow-hidden shadow-sm aspect-[4/3] sm:aspect-square relative">
+        <img src={img} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+      </div>
+      <div className="w-full sm:w-1/2">
+        <h4 className="font-heading font-bold text-lg text-[#D94E12] flex items-start gap-3 mb-3 leading-tight">
+          <span className="bg-[#D94E12] text-white w-6 h-6 rounded-full flex items-center justify-center text-[12px] shrink-0 mt-0.5">{num}</span>
+          {title}
+        </h4>
+        <p className="text-[15px] sm:text-[16px] m-0 text-gray-700 leading-relaxed font-body">
+          {text}
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-white min-h-screen font-body selection:bg-[#F35D1A] selection:text-white pb-24 md:pb-0">
@@ -136,56 +155,42 @@ const ListicleGirlfriend = () => {
               The 5 Reasons This Actually Worked For Me
             </h3>
             
-            <div className="space-y-8">
-              <div>
-                <h4 className="font-heading font-bold text-lg text-[#D94E12] flex items-center gap-2 mb-2">
-                  <span className="bg-[#D94E12] text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                  It Takes Exactly 60 Seconds
-                </h4>
-                <p className="text-[16px] m-0 text-gray-700">
-                  This is built for guys who want to get in and out of the bathroom. Wash in the shower, moisturize immediately after. It adds exactly one minute to your morning routine. Zero complications.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-heading font-bold text-lg text-[#D94E12] flex items-center gap-2 mb-2">
-                  <span className="bg-[#D94E12] text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-                  Built Strictly for the Male Epidermis
-                </h4>
-                <p className="text-[16px] m-0 text-gray-700">
-                  This isn't repurposed women's skincare. Base Layer is engineered specifically for thicker, oilier male skin to clear out pores deep down without drying your face out like a desert.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-heading font-bold text-lg text-[#D94E12] flex items-center gap-2 mb-2">
-                  <span className="bg-[#D94E12] text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
-                  Zero 'Greasy' Feeling
-                </h4>
-                <p className="text-[16px] m-0 text-gray-700">
-                  The absolute biggest dealbreaker for me was the feeling of heavy, wet lotion. Base Layer's moisturizer absorbs completely in about 10 seconds. Your face feels hydrated and totally matte—never shiny, never sticky.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-heading font-bold text-lg text-[#D94E12] flex items-center gap-2 mb-2">
-                  <span className="bg-[#D94E12] text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">4</span>
-                  Ultimate Defense Against the Elements
-                </h4>
-                <p className="text-[16px] m-0 text-gray-700">
-                  Whether you are skiing, putting in miles on the pavement, or just dealing with harsh winter wind, it acts as a literal "base layer" of armor for your face, repairing the barrier that the elements tear down every single day.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-heading font-bold text-lg text-[#D94E12] flex items-center gap-2 mb-2">
-                  <span className="bg-[#D94E12] text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">5</span>
-                  The Undeniable Results
-                </h4>
-                <p className="text-[16px] m-0 text-gray-700">
-                  Within two weeks, the redness on my cheeks was gone, the tight feeling after a shower disappeared, and the dark bags under my eyes faded drastically. Most importantly? My girlfriend noticed immediately.
-                </p>
-              </div>
+            <div className="space-y-12">
+              <Point
+                num="1"
+                title="It Takes Exactly 60 Seconds"
+                text="This is built for guys who want to get in and out of the bathroom. Wash in the shower, moisturize immediately after. It adds exactly one minute to your morning routine. Zero complications."
+                img={howToUseImg}
+                reverse={false}
+              />
+              <Point
+                num="2"
+                title="Built Strictly for the Male Epidermis"
+                text="This isn't repurposed women's skincare. Base Layer is engineered specifically for thicker, oilier male skin to clear out pores deep down without drying your face out like a desert."
+                img={productBoxBottle}
+                reverse={true}
+              />
+              <Point
+                num="3"
+                title="Zero 'Greasy' Feeling"
+                text="The absolute biggest dealbreaker for me was the feeling of heavy, wet lotion. Base Layer's moisturizer absorbs completely in about 10 seconds. Your face feels hydrated and totally matte—never shiny, never sticky."
+                img={textureSmear}
+                reverse={false}
+              />
+              <Point
+                num="4"
+                title="Ultimate Defense Against the Elements"
+                text="Whether you are skiing, putting in miles on the pavement, or just dealing with harsh winter wind, it acts as a literal 'base layer' of armor for your face, repairing the barrier that the elements tear down every single day."
+                img={productBathroom}
+                reverse={true}
+              />
+              <Point
+                num="5"
+                title="The Undeniable Results"
+                text="Within two weeks, the redness on my cheeks was gone, the tight feeling after a shower disappeared, and the dark bags under my eyes faded drastically. Most importantly? My girlfriend noticed immediately."
+                img={faceCloseup}
+                reverse={false}
+              />
             </div>
             
             <div className="mt-10 text-center">
