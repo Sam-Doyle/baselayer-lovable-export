@@ -7,7 +7,6 @@ import { CheckCircle2, ChevronRight, Star } from "lucide-react";
 
 import mirrorGuyImg from "@/assets/generated-creatives/step2-mirror-cream.jpg";
 import productInHand from "@/assets/generated-creatives/product-in-hand.jpg";
-import faceCloseup from "@/assets/images/benefits-face-closeup.png"; 
 import howToUseImg from "@/assets/generated-creatives/how-to-use-lifestyle.png";
 import productBoxBottle from "@/assets/generated-creatives/product-box-bottle.jpg";
 import productBathroom from "@/assets/generated-creatives/product-bathroom-counter.jpg";
@@ -188,7 +187,7 @@ const ListicleGirlfriend = () => {
                 num="5"
                 title="The Undeniable Results"
                 text="Within two weeks, the redness on my cheeks was gone, the tight feeling after a shower disappeared, and the dark bags under my eyes faded drastically. Most importantly? My girlfriend noticed immediately."
-                img={faceCloseup}
+                img="/images/benefits-face-closeup.png"
                 reverse={false}
               />
             </div>
