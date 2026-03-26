@@ -199,7 +199,7 @@ export async function getIngredientBySlug(
 
 export async function getSkinConcerns(): Promise<SkinConcern[]> {
   return sanityClient.fetch(`
-    *[_type == "skinConcern"] | order(coalesce(title, name) asc) {
+    *[_type == "skinConcern" && defined(overview)] | order(coalesce(title, name) asc) {
       _id,
       "name": coalesce(title, name),
       "slug": slug,
@@ -351,7 +351,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 
 export async function getComparisons(): Promise<Comparison[]> {
   return sanityClient.fetch(`
-    *[_type == "comparison"] | order(title asc) {
+    *[_type == "comparison" && defined(body)] | order(title asc) {
       _id,
       title,
       slug,

@@ -11,43 +11,43 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 const benefits = [
   {
-    title: "FIRMING",
-    statNumber: "+70%",
-    statLabel: "collagen synthesis increase",
+    title: "OIL CONTROL",
+    statNumber: "5%",
+    statLabel: "niacinamide — the clinical dose that actually works",
     bullets: [
-      "Copper Peptide GHK-Cu stimulates collagen at the cellular level",
-      "Supports natural elastin production for resilient skin",
-      "Reduces fine lines with consistent daily use",
+      "Stops the noon shine. Niacinamide regulates oil production at the source",
+      "Visibly reduces pore size within 2-4 weeks",
+      "No more blotting, no more \"is my face shiny?\" in meetings",
     ],
     detail:
-      "Men's skin loses about 1% of collagen per year after 30. Most moisturizers ignore this entirely. Base Layer delivers Copper Peptide GHK-Cu, shown in peer-reviewed studies to increase collagen synthesis by up to 70%. Not a trace amount for the label. A clinical dose that rebuilds skin structure from the inside.",
+      "Men produce up to 50% more sebum than women. That's why your face looks like a frying pan by lunch. Most moisturizers just add more moisture on top of the oil. Base Layer uses Niacinamide at 5% — the exact concentration shown in clinical studies to reduce sebum production and tighten pores. Your skin stays matte. All day.",
     link: { text: "See the formula", href: "/face-cream" },
   },
   {
-    title: "SOOTHING",
-    statNumber: "0",
-    statLabel: "reports of stinging or residue",
+    title: "ZERO GREASE",
+    statNumber: "15s",
+    statLabel: "full absorption — then you forget it's there",
     bullets: [
-      "Centella Asiatica calms post-shave irritation instantly",
-      "Panthenol repairs the moisture barrier without heaviness",
-      "Niacinamide reduces redness and inflammation",
+      "Absorbs in 15 seconds. No residue. No shine. Completely invisible",
+      "Squalane hydrates without sitting on top of your skin like a film",
+      "Works under sunscreen, hats, helmets — or nothing at all",
     ],
     detail:
-      "Razor burn, windburn, dry mountain air. Your skin is constantly under assault. Centella Asiatica and Panthenol work together to calm inflammation and repair barrier damage in real-time. No stinging, no residue. Just fast, invisible relief that works under sunscreen, helmets, or nothing at all.",
-    link: { text: "Full ingredient breakdown", href: "/ingredients" },
+      "\"That greasy feeling 30 minutes after applying\" — it's the reason most guys quit moisturizing. We built the formula around Squalane, a lightweight lipid that matches your skin's own chemistry. It absorbs into the skin instead of coating it. The finish is matte and invisible. You will forget you put anything on.",
+    link: null,
   },
   {
-    title: "REPLENISHING",
-    statNumber: "15s",
-    statLabel: "full absorption, completely invisible",
+    title: "BREAKOUT DEFENSE",
+    statNumber: "42%",
+    statLabel: "of men in their 20s deal with adult acne",
     bullets: [
-      "Hyaluronic Acid pulls moisture deep into the skin",
-      "Squalane locks in hydration without clogging pores",
-      "Absorbs in 15 seconds. Zero shine. Completely invisible",
+      "Niacinamide unclogs pores by regulating the oil that blocks them",
+      "Centella Asiatica calms the redness and inflammation around breakouts",
+      "No salicylic acid burn. No benzoyl peroxide bleaching your pillowcase",
     ],
     detail:
-      "Male skin produces 50% more sebum but still gets dehydrated, especially at altitude, in dry offices, or after a flight. Hyaluronic acid binds 1,000x its weight in water. Squalane matches your skin's natural lipids so it absorbs instantly instead of sitting on top. The result: deep hydration with a matte, invisible finish.",
-    link: null,
+      "Adult acne isn't a teenage problem — 42% of men in their 20s still deal with it. The cause is usually the same: excess oil, clogged pores, inflammation. Most acne products nuke your face with harsh acids that leave you dry, red, and peeling. Niacinamide tackles the root cause by regulating oil production and tightening pores, while Centella Asiatica calms the inflammation that turns a clogged pore into a visible breakout. Prevention, not punishment.",
+    link: { text: "Full ingredient breakdown", href: "/ingredients" },
   },
 ];
 
@@ -184,10 +184,10 @@ const WhyMensSkinSection = () => {
             style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "20px"})` }}
           >
             <p className="font-body text-[10px] md:text-xs tracking-[0.3em] uppercase text-[#1A2F4C]/40 mb-3">
-              Engineered for Performance
+              One Product. Three Problems Solved.
             </p>
             <h2 className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-[#1A2F4C] leading-snug">
-              Trust data, not opinions
+              Built for how men's skin actually works
             </h2>
           </div>
 
