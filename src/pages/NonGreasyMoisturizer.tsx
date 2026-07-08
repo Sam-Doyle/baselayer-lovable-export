@@ -703,7 +703,7 @@ const NonGreasyMoisturizer = () => {
             Try The Non-Greasy Option
           </h2>
           <p className="font-body text-muted-foreground mb-8 max-w-md mx-auto">
-            $38. Absorbs in 15 seconds. No subscription. Shipping Spring 2026.
+            $38. Absorbs in 15 seconds. No subscription required. In stock — ships in 1-2 business days.
           </p>
           <Button
             variant="hero"

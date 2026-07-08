@@ -2,6 +2,13 @@
 # Base Layer — Netlify Redirects (Lovable SPA)
 # =============================================================================
 
+# Shopify checkout passthrough — Shopify has baselayerskin.co set as its
+# primary domain, so Storefront-API checkoutUrls point at this host. DNS
+# serves Netlify, so without these rules checkout links dead-end into the
+# SPA fallback and no order can ever complete.
+/cart/c/*                                   https://base-layer-skin.myshopify.com/cart/c/:splat        301!
+/checkouts/*                                https://base-layer-skin.myshopify.com/checkouts/:splat     301!
+
 # Product URL variants
 /product                                    /face-cream       301
 /shop                                       /face-cream       301

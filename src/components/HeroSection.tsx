@@ -1,33 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { trackEvent, setCapturedEmail } from "@/lib/analytics";
-import TrustpilotStars from "@/components/TrustpilotStars";
-
-const MOBILE_MQ = "(max-width: 767px)";
-
-let _supabase: typeof import("@/integrations/supabase/client")["supabase"] | null = null;
-async function getSupabase() {
-  if (!_supabase) {
-    const mod = await import("@/integrations/supabase/client");
-    _supabase = mod.supabase;
-  }
-  return _supabase;
-}
+import { useEffect, useRef } from "react";
+import { useEarlyAccess } from "@/context/EarlyAccessContext";
 
 const HeroSection = () => {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia(MOBILE_MQ).matches : true
-  );
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const { openModal } = useEarlyAccess();
   const heroImgRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    const mql = window.matchMedia(MOBILE_MQ);
-    const handler = () => setIsMobile(mql.matches);
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
-  }, []);
 
   // Defer cinematic pan animation until after image loads (post-LCP)
   useEffect(() => {
@@ -43,30 +19,6 @@ const HeroSection = () => {
       return () => img.removeEventListener("load", startAnimation);
     }
   }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || loading) return;
-    setLoading(true);
-    try {
-      const sb = await getSupabase();
-      await sb.from("waitlist").insert({ email: email.trim(), source: "hero_inline" });
-      setCapturedEmail(email);
-      localStorage.setItem("bl_email_captured", "true");
-      trackEvent("email_signup", { source: "hero_inline", email: email.trim() });
-      sb.functions
-        .invoke("email-subscribe", { body: { email: email.trim(), source: "hero_inline" } })
-        .catch(() => { });
-      setSubmitted(true);
-      setEmail("");
-      setTimeout(() => setSubmitted(false), 4000);
-    } catch {
-      setSubmitted(true);
-      setTimeout(() => setSubmitted(false), 4000);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <section className="relative w-full min-h-[60vh] md:min-h-[70vh] lg:min-h-[85vh] bg-[#1A2F4C] overflow-hidden flex items-center">
@@ -131,67 +83,41 @@ const HeroSection = () => {
             Sun, wind, dry air, bad sleep. Your face takes a beating every day. One layer fixes it in 15 seconds flat. No routines. No shine. Nobody will know you're wearing it.
           </p>
 
-          {/* Inline Email Capture (Industrial Styling) */}
+          {/* Primary Buy CTA */}
           <div
             className="animate-fade-in-up w-full max-w-[460px] pb-12"
             style={{ animationDelay: "0.2s" }}
           >
-            {!submitted ? (
-              <div className="flex flex-col w-full">
-                {/* Price Block */}
-                <div className="flex items-start gap-2 mb-3 md:mb-4">
-                  <span className="font-body text-[16px] text-white opacity-60 line-through mt-1.5 mr-1">$48</span>
-                  <span className="font-heading font-bold text-[28px] text-white leading-none">$38</span>
-                  <span className="font-body text-[12px] text-white opacity-70 tracking-[0.1em] uppercase mt-2 block">Founding Price</span>
-                </div>
+            <div className="flex flex-col w-full">
+              {/* Price Block */}
+              <div className="flex items-start gap-2 mb-3 md:mb-4">
+                <span className="font-body text-[16px] text-white opacity-60 line-through mt-1.5 mr-1">$48</span>
+                <span className="font-heading font-bold text-[28px] text-white leading-none">$38</span>
+                <span className="font-body text-[12px] text-white opacity-70 tracking-[0.1em] uppercase mt-2 block">Founding Price</span>
+              </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 w-full">
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Your email"
-                    aria-label="Email address"
-                    className="w-full sm:w-[55%] px-5 py-[14px] bg-[#F4F4F0]/80 backdrop-blur-md border border-transparent text-[#1E201E] text-base font-body placeholder:text-[#1E201E]/50 focus:outline-none focus:ring-2 focus:ring-[#F35D1A] transition-all rounded-[4px]"
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full sm:w-[45%] px-0 py-[14px] bg-[#D94E12] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 disabled:opacity-50 rounded-[4px] whitespace-nowrap"
-                  >
-                    {loading ? "\u2026" : "GRAB YOURS \u00b7 $38 \u2192"}
-                  </button>
-                </form>
+              <button
+                type="button"
+                onClick={() => openModal("hero")}
+                className="w-full sm:w-auto sm:min-w-[280px] px-8 py-[14px] bg-[#D94E12] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 rounded-[4px] whitespace-nowrap"
+              >
+                GRAB YOURS &middot; $38 &rarr;
+              </button>
 
-                {/* Trust Micro-Copy */}
-                <p className="font-body text-[12px] text-white opacity-60 mt-3 hidden sm:block">
-                  Free shipping &middot; 30-day guarantee &middot; Cancel anytime
+              {/* Trust Micro-Copy */}
+              <p className="font-body text-[12px] text-white opacity-60 mt-3 hidden sm:block">
+                Free shipping &middot; 30-day guarantee &middot; No subscription required
+              </p>
+              <p className="font-body text-[12px] text-white opacity-70 mt-2 hidden sm:block">Hate it? Keep the bottle. Full refund.</p>
+
+              {/* Mobile exact recreation */}
+              <div className="sm:hidden mt-3 text-left">
+                <p className="font-body text-[12px] text-white opacity-60 mb-2">
+                  Free shipping &middot; 30-day guarantee<br />No subscription required
                 </p>
-                <div className="flex items-center mt-2 hidden sm:flex">
-                  <TrustpilotStars size={14} />
-                  <span className="font-body text-[12px] text-white opacity-70 ml-2">4.8/5 from 1,000+ men</span>
-                </div>
-
-                {/* Mobile exact recreation */}
-                <div className="sm:hidden mt-3 text-left">
-                  <p className="font-body text-[12px] text-white opacity-60 mb-2">
-                    Free shipping &middot; 30-day guarantee<br />Cancel anytime
-                  </p>
-                  <div className="flex items-center">
-                    <TrustpilotStars size={14} />
-                    <span className="font-body text-[12px] text-white opacity-70 ml-2">4.8/5 from 1,000+ men</span>
-                  </div>
-                </div>
+                <p className="font-body text-[12px] text-white opacity-70">Hate it? Keep the bottle. Full refund.</p>
               </div>
-            ) : (
-              <div className="flex border border-[#F35D1A]/50 bg-[#F4F4F0]/80 backdrop-blur-md p-5 border-l-4 border-l-[#F35D1A] rounded-[4px]">
-                <div className="flex flex-col">
-                  <span className="font-heading text-base font-bold tracking-widest uppercase text-[#1E201E]">Allocation Secured.</span>
-                  <span className="font-body text-sm text-[#1E201E]/80 mt-1">Check your inbox for Batch 01 details.</span>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Premium Gear Spec Badges (Technical SVG row) */}

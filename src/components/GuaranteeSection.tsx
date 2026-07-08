@@ -10,7 +10,7 @@ const offerBullets = [
   "6 to 8 weeks per bottle",
   "Free shipping",
   "Free returns",
-  "No subscription",
+  "No subscription required",
   "30-day money-back guarantee",
 ];
 

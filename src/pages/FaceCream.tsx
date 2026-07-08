@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
-import ExitIntentPopup from "@/components/ExitIntentPopup";
-import TrustpilotStars from "@/components/TrustpilotStars";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { useCartStore } from "@/stores/cartStore";
+import { AVAILABLE_TIERS, DEFAULT_TIER, buildCartItem } from "@/config/product";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect, useState, useRef } from "react";
@@ -29,7 +28,7 @@ const PRODUCT_SCHEMA = {
     "@type": "Offer",
     price: "38.00",
     priceCurrency: "USD",
-    availability: "https://schema.org/PreOrder",
+    availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/face-cream",
     priceValidUntil: "2026-12-31",
   },
@@ -58,8 +57,8 @@ const faqs = [
   { question: "Will this leave my face greasy?", answer: "No. Squalane mirrors your skin's own lipids, so the formula absorbs in seconds rather than sitting on top." },
   { question: "Can I put this on right after shaving?", answer: "That's exactly when it works best. Panthenol at 2% calms razor burn and micro-irritation within 24 hours." },
   { question: "Will this break me out?", answer: "Every ingredient is non-comedogenic. Squalane has a comedogenicity rating of 0, the lowest possible." },
-  { question: "How is this different from CeraVe or Nivea?", answer: "Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 1% stimulates collagen synthesis." },
-  { question: "Why no subscription option?", answer: "Because subscriptions benefit the brand, not you. Navigate checkout once, and when you run out, just reorder confidently." },
+  { question: "How is this different from CeraVe or Nivea?", answer: "Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 0.03% stimulates collagen synthesis." },
+  { question: "Do I have to subscribe?", answer: "No. Buying once is the default and always will be. Subscribe & Save is there if you want the discount and hate reordering — pause or cancel in one click, no lock-in, no hoops." },
 ];
 
 const GALLERY = [
@@ -71,20 +70,27 @@ const GALLERY = [
   { id: 6, type: "image", src: "/images/benefits-face-closeup.png", alt: "Face close-up portrait" },
 ];
 
-const BUY_OPTIONS = [
-  { id: 1, bottles: 1, duration: "6 weeks", price: 38, badge: null, savings: 0 },
-  { id: 2, bottles: 2, duration: "12 weeks", price: 68, badge: "MOST POPULAR", badgeColor: "bg-[#1A2F4C]", savings: 8 },
-  { id: 3, bottles: 3, duration: "18 weeks", price: 89, badge: "BEST VALUE", badgeColor: "bg-[#D94E12]", savings: 25 },
-];
+const BUY_OPTIONS = AVAILABLE_TIERS;
 
 const FaceCream = () => {
-  const { openModal } = useEarlyAccess();
   const [activeImage, setActiveImage] = useState(0);
-  const [quantity, setQuantity] = useState(2);
+  const [quantity, setQuantity] = useState(DEFAULT_TIER.id);
   const [showStickyBottom, setShowStickyBottom] = useState(false);
   const ctaRef = useRef<HTMLButtonElement>(null);
+  const addItem = useCartStore(s => s.addItem);
 
-  const selectedOption = BUY_OPTIONS.find(o => o.id === quantity) || BUY_OPTIONS[1];
+  const selectedOption = BUY_OPTIONS.find(o => o.id === quantity) || BUY_OPTIONS[0];
+
+  const handleAddToCart = (source: string) => {
+    trackEvent("add_to_cart", {
+      content_name: "Base Layer Face Cream",
+      content_ids: ["base-layer-face-cream"],
+      value: selectedOption.price,
+      currency: "USD",
+      source,
+    });
+    void addItem(buildCartItem(selectedOption));
+  };
   const msrp = 48 * selectedOption.bottles;
 
   useCanonical();
@@ -193,8 +199,8 @@ const FaceCream = () => {
           <div className="flex flex-col pt-4 md:pt-0 min-h-[500px] md:min-h-[600px]">
             {/* 1. Star Rating */}
             <div className="flex items-center mb-3">
-              <TrustpilotStars size={14} />
-              <a href="#testimonials" className="font-body text-[13px] text-[#6B7280] ml-2 hover:underline">4.8/5 (1,000+ reviews)</a>
+              <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-[#D94E12]">Founding Price</span>
+              <span className="font-body text-[13px] text-[#6B7280] ml-2">$38 now — $48 after launch</span>
             </div>
 
             {/* 2. Title & H1 SEO */}
@@ -245,7 +251,7 @@ const FaceCream = () => {
                       {opt.badge}
                     </div>
                   )}
-                  <div className="font-heading font-bold text-[16px] text-[#1A2F4C] uppercase">{opt.bottles} {opt.bottles === 1 ? 'Bottle' : 'Bottles'}</div>
+                  <div className="font-heading font-bold text-[16px] text-[#1A2F4C] uppercase">{opt.label}</div>
                   <div className="font-body font-medium text-[13px] text-[#6B7280]">{opt.duration}</div>
                   <div className="font-heading font-extrabold text-[24px] text-[#1A2F4C] mt-[12px]">${opt.price}</div>
                   {opt.savings > 0 ? (
@@ -253,7 +259,7 @@ const FaceCream = () => {
                   ) : (
                     <div className="h-[18px]"></div> 
                   )}
-                  <div className="font-body text-[11px] text-[#6B7280] mt-1">${(opt.price / opt.bottles).toFixed(2).replace(/\.00$/, '')}/bottle</div>
+                  <div className="font-body text-[11px] text-[#6B7280] mt-1">{opt.kind === "subscription" ? "per bottle, delivered on your schedule" : `$${(opt.price / opt.bottles).toFixed(2).replace(/\.00$/, '')}/bottle`}</div>
                 </div>
               ))}
             </div>
@@ -262,14 +268,18 @@ const FaceCream = () => {
             <button 
               ref={ctaRef}
               className="w-full bg-[#D94E12] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#C04510] active:scale-[0.98] transition-all mb-[12px]"
-              onClick={() => openModal("buy_box")}
+              onClick={() => handleAddToCart("buy_box")}
             >
-              ADD TO CART - ${selectedOption.price}
+              {selectedOption.kind === "subscription" ? `SUBSCRIBE & SAVE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
             </button>
+
+            {selectedOption.kind === "subscription" && selectedOption.subCopy && (
+              <p className="text-center font-body text-[12px] text-[#4A5568] mb-3 -mt-1">{selectedOption.subCopy}</p>
+            )}
 
             {/* 8. Trust Micro-Copy */}
             <p className="text-center font-body text-[12px] text-[#6B7280]">
-              Free shipping &middot; 30-day money-back guarantee &middot; Ships Spring 2026
+              Free shipping &middot; 30-day money-back guarantee &middot; In stock, ships in 1-2 business days
             </p>
 
             {/* 9. Trust Badges Row */}
@@ -297,9 +307,9 @@ const FaceCream = () => {
           </div>
           <button 
             className="bg-[#D94E12] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px]"
-            onClick={() => openModal("sticky_mobile_cta")}
+            onClick={() => handleAddToCart("sticky_mobile_cta")}
           >
-            ADD TO CART - ${selectedOption.price}
+            {selectedOption.kind === "subscription" ? `SUBSCRIBE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
           </button>
         </div>
 
@@ -416,21 +426,17 @@ const FaceCream = () => {
           <Button 
             size="lg" 
             className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] mb-4" 
-            onClick={() => openModal("face_cream_bottom")}
+            onClick={() => handleAddToCart("face_cream_bottom")}
           >
             GET STARTED - ${selectedOption.price}
           </Button>
-          <div className="flex items-center justify-center">
-            <TrustpilotStars size={14} />
-            <span className="font-body text-[13px] text-[#ABB3BB] ml-2 leading-none">
-              4.8/5 from 1,000+ men
-            </span>
-          </div>
+          <p className="font-body text-[13px] text-[#ABB3BB] leading-none text-center">
+            30-day guarantee. Hate it? Keep the bottle.
+          </p>
         </section>
 
       </main>
       <Footer />
-      <ExitIntentPopup />
     </div>
   );
 };

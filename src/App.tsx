@@ -11,11 +11,9 @@ const ShopifyCartDrawer = lazy(() => import("@/components/ShopifyCartDrawer"));
 
 const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
 const Sonner = lazy(() => import("@/components/ui/sonner").then(m => ({ default: m.Toaster })));
-const EarlyAccessModal = lazy(() => import("@/components/EarlyAccessModal"));
 import Index from "./pages/Index";
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const Checkout = lazy(() => import("./pages/Checkout"));
 // Blog + BlogPost pages removed — /blog and /blog/:slug redirect to /articles
 const Articles = lazy(() => import("./pages/Articles"));
 const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
@@ -278,7 +276,7 @@ const App = () => {
                 <Route path="/non-greasy-moisturizer-for-men" element={<Wrap><NonGreasyMoisturizer /></Wrap>} />
                 <Route path="/all-in-one-skincare-for-men" element={<Wrap><AllInOneSkincare /></Wrap>} />
                 <Route path="/about" element={<Wrap><About /></Wrap>} />
-                <Route path="/checkout" element={<Wrap><Checkout /></Wrap>} />
+                <Route path="/checkout" element={<Navigate to="/face-cream" replace />} />
                 <Route path="/blog" element={<Navigate to="/articles" replace />} />
                 <Route path="/blog/:slug" element={<Navigate to="/articles" replace />} />
                 <Route path="/articles" element={<Wrap><Articles /></Wrap>} />
@@ -298,7 +296,6 @@ const App = () => {
               </Routes>
             </BrowserRouter>
             <Suspense fallback={null}><ShopifyCartDrawer /></Suspense>
-            <Suspense fallback={null}><EarlyAccessModal /></Suspense>
           </CartProvider>
         </EarlyAccessProvider>
       </TooltipProvider>

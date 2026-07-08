@@ -10,6 +10,17 @@ export interface CartItem {
   price: { amount: string; currencyCode: string };
   quantity: number;
   selectedOptions: Array<{ name: string; value: string }>;
+  /** Shopify selling plan GID — present only for subscription lines */
+  sellingPlanId?: string | null;
+}
+
+function toLineInput(item: CartItem) {
+  const line: { quantity: number; merchandiseId: string; sellingPlanId?: string } = {
+    quantity: item.quantity,
+    merchandiseId: item.variantId,
+  };
+  if (item.sellingPlanId) line.sellingPlanId = item.sellingPlanId;
+  return line;
 }
 
 interface CartStore {
@@ -85,7 +96,7 @@ function isCartNotFoundError(userErrors: Array<{ field: string[] | null; message
 
 async function createShopifyCart(item: CartItem): Promise<{ cartId: string; checkoutUrl: string; lineId: string } | null> {
   const data = await storefrontApiRequest(CART_CREATE_MUTATION, {
-    input: { lines: [{ quantity: item.quantity, merchandiseId: item.variantId }] },
+    input: { lines: [toLineInput(item)] },
   });
   if (data?.data?.cartCreate?.userErrors?.length > 0) return null;
   const cart = data?.data?.cartCreate?.cart;
@@ -97,7 +108,7 @@ async function createShopifyCart(item: CartItem): Promise<{ cartId: string; chec
 
 async function addLineToShopifyCart(cartId: string, item: CartItem): Promise<{ success: boolean; lineId?: string; cartNotFound?: boolean }> {
   const data = await storefrontApiRequest(CART_LINES_ADD_MUTATION, {
-    cartId, lines: [{ quantity: item.quantity, merchandiseId: item.variantId }],
+    cartId, lines: [toLineInput(item)],
   });
   const userErrors = data?.data?.cartLinesAdd?.userErrors || [];
   if (isCartNotFoundError(userErrors)) return { success: false, cartNotFound: true };
@@ -141,7 +152,7 @@ export const useCartStore = create<CartStore>()(
 
       addItem: async (item) => {
         const { items, cartId, clearCart } = get();
-        const existingItem = items.find(i => i.variantId === item.variantId);
+        const existingItem = items.find(i => i.variantId === item.variantId && (i.sellingPlanId || null) === (item.sellingPlanId || null));
         set({ isLoading: true });
         try {
           if (!cartId) {

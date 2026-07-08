@@ -1,8 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
+import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
-import productShot from "@/assets/product-hero-rock.png";
+import { buildCartItem, DEFAULT_TIER } from "@/config/product";
 
+// Historically this context gated CTAs behind an email-capture modal
+// (waitlist era). The store is now live, so openModal() adds the real
+// Shopify variant to the cart and opens the drawer. The name is kept so
+// the ~10 CTA call sites don't churn; isOpen/closeModal are inert.
 interface EarlyAccessContextType {
   isOpen: boolean;
   openModal: (source?: string) => void;
@@ -12,125 +16,22 @@ interface EarlyAccessContextType {
 const EarlyAccessContext = createContext<EarlyAccessContextType | undefined>(undefined);
 
 export const EarlyAccessProvider = ({ children }: { children: ReactNode }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   const openModal = useCallback((source?: string) => {
-    const hasCaptured = typeof window !== "undefined" && localStorage.getItem("bl_email_captured") === "true";
-    const isExitIntent = source === "exit_intent" || source === "exit_intent_mobile";
-
-    if (hasCaptured && !isExitIntent) {
-      const { addItem, toggleCart } = useCartStore.getState();
-      addItem({
-        product: {
-          node: {
-            id: "base-layer-face-cream",
-            title: "Base Layer Face Cream",
-            handle: "face-cream",
-            description: "",
-            images: { edges: [{ node: { url: productShot, altText: "Face Cream" } }] },
-            variants: { edges: [] },
-            options: [],
-            priceRange: { minVariantPrice: { amount: "38.00", currencyCode: "USD" } }
-          }
-        } as any,
-        variantId: "default-variant",
-        variantTitle: "50mL",
-        price: { amount: "38.00", currencyCode: "USD" },
-        quantity: 1,
-        selectedOptions: []
-      });
-      toggleCart(true);
-      return;
-    }
-
-    setIsOpen(true);
-    trackEvent("cta_click", {
-      content_name: "Early Access Modal",
+    const { addItem } = useCartStore.getState();
+    trackEvent("add_to_cart", {
+      content_name: "Base Layer Face Cream",
+      content_ids: ["base-layer-face-cream"],
+      value: DEFAULT_TIER.price,
+      currency: "USD",
       source: source || "unknown",
     });
+    void addItem(buildCartItem(DEFAULT_TIER));
   }, []);
 
-  const closeModal = useCallback(() => setIsOpen(false), []);
-
-  // Exit-intent: Desktop mouseleave + Mobile hybrid (scroll depth AND time)
-  useEffect(() => {
-    const shouldSkip = () => {
-      return (
-        sessionStorage.getItem("bl_exit_shown") === "true" ||
-        localStorage.getItem("bl_email_captured") === "true"
-      );
-    };
-
-    // ---- DESKTOP: mouseleave exit-intent (unchanged) ----
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 0 && !shouldSkip()) {
-        sessionStorage.setItem("bl_exit_shown", "true");
-        openModal("exit_intent");
-      }
-    };
-    document.addEventListener("mouseleave", handleMouseLeave);
-
-    // ---- MOBILE: Hybrid scroll-depth + time trigger ----
-    // Requirements: user must have BOTH scrolled 50% AND spent 15s on page.
-    // This prevents triggering on fast scrollers (bouncing) and idle visitors
-    // who haven't engaged with content yet.
-    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    let mobileCleanup: (() => void) | null = null;
-
-    if (isMobile) {
-      let hasReachedScrollDepth = false;
-      let hasReachedTimeThreshold = false;
-      let fired = false;
-
-      const tryFire = () => {
-        if (fired || !hasReachedScrollDepth || !hasReachedTimeThreshold) return;
-        if (shouldSkip()) return;
-        fired = true;
-        sessionStorage.setItem("bl_exit_shown", "true");
-        trackEvent("exit_intent_trigger", {
-          device: "mobile",
-          trigger: "hybrid_scroll_time",
-          scroll_depth: 50,
-          time_on_page_min: 15,
-        });
-        openModal("exit_intent_mobile");
-      };
-
-      // Track scroll depth
-      const handleScroll = () => {
-        if (hasReachedScrollDepth) return;
-        const scrollTop = window.scrollY;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        if (docHeight <= 0) return;
-        const pct = (scrollTop / docHeight) * 100;
-        if (pct >= 50) {
-          hasReachedScrollDepth = true;
-          tryFire();
-        }
-      };
-
-      // Track time on page (15s minimum)
-      const timeTimer = setTimeout(() => {
-        hasReachedTimeThreshold = true;
-        tryFire();
-      }, 15000);
-
-      window.addEventListener("scroll", handleScroll, { passive: true });
-
-      mobileCleanup = () => {
-        clearTimeout(timeTimer);
-        window.removeEventListener("scroll", handleScroll);
-      };
-    }
-
-    return () => {
-      document.removeEventListener("mouseleave", handleMouseLeave);
-      if (mobileCleanup) mobileCleanup();
-    };
-  }, [openModal]);
+  const closeModal = useCallback(() => {}, []);
 
   return (
-    <EarlyAccessContext.Provider value={{ isOpen, openModal, closeModal }}>
+    <EarlyAccessContext.Provider value={{ isOpen: false, openModal, closeModal }}>
       {children}
     </EarlyAccessContext.Provider>
   );

@@ -162,7 +162,7 @@ const AllInOneSkincare = () => {
             </div>
 
             <p className="font-body text-xs text-muted-foreground">
-              One bottle. 6-8 weeks. No subscription to cancel.
+              One bottle. 6-8 weeks. Never locked into a subscription.
             </p>
           </div>
         </section>
@@ -773,7 +773,7 @@ const AllInOneSkincare = () => {
             Simplify Your Routine
           </h2>
           <p className="font-body text-muted-foreground mb-8 max-w-md mx-auto">
-            One product. $38. Replaces three. No subscription.
+            One product. $38. Replaces three. No subscription required.
           </p>
           <Button
             variant="hero"

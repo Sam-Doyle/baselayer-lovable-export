@@ -130,12 +130,9 @@ const TestimonialsSection = () => {
 
         {/* Bottom CTA Block */}
         <div className="mt-[48px] text-center flex flex-col items-center">
-          <div className="flex items-center justify-center mb-4">
-            <TrustpilotStars size={16} />
-            <span className="font-body text-[14px] text-[#ABB3BB] ml-2 leading-none">
-              4.8/5 from 1,000+ men
-            </span>
-          </div>
+          <p className="font-body text-[14px] text-[#ABB3BB] mb-4 leading-none">
+            30-day guarantee — hate it, keep the bottle, full refund.
+          </p>
 
           <Link
             to="/face-cream"

@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Minus, Plus, Trash2, ExternalLink, Loader2, ShoppingCart } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
+import { BUY_TIERS, buildCartItem } from "@/config/product";
 
 const ShopifyCartDrawer = () => {
   const { items, isOpen, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart, toggleCart } = useCartStore();
@@ -13,9 +15,35 @@ const ShopifyCartDrawer = () => {
   const handleCheckout = () => {
     const checkoutUrl = getCheckoutUrl();
     if (checkoutUrl) {
-      window.open(checkoutUrl, '_blank');
-      toggleCart(false);
+      const total = items.reduce((sum, i) => sum + parseFloat(i.price.amount) * i.quantity, 0);
+      trackEvent("begin_checkout", {
+        content_ids: ["base-layer-face-cream"],
+        value: total,
+        currency: "USD",
+        num_items: items.reduce((n, i) => n + i.quantity, 0),
+      });
+      // Same-tab navigation: new tabs are unreliable inside the Instagram/TikTok in-app browsers
+      window.location.href = checkoutUrl;
     }
+  };
+
+  // In-cart AOV upsell: only when the 2-bottle tier is live in Shopify and
+  // the cart is exactly one single-bottle one-time line.
+  const tier2 = BUY_TIERS.find(t => t.id === 2 && t.variantGid !== null);
+  const singleBottleLine = items.length === 1 && items[0].quantity === 1 && !items[0].sellingPlanId && items[0].variantId === BUY_TIERS[0].variantGid ? items[0] : null;
+  const upsellTier = tier2 && singleBottleLine ? tier2 : null;
+
+  const handleUpsell = async () => {
+    if (!upsellTier || !singleBottleLine) return;
+    trackEvent("add_to_cart", {
+      content_name: "Base Layer Face Cream",
+      content_ids: ["base-layer-face-cream"],
+      value: upsellTier.price,
+      currency: "USD",
+      source: "cart_upsell",
+    });
+    await removeItem(singleBottleLine.variantId);
+    await useCartStore.getState().addItem(buildCartItem(upsellTier));
   };
 
   return (
@@ -75,6 +103,16 @@ const ShopifyCartDrawer = () => {
             </div>
 
             <div className="px-6 py-4 border-t border-border space-y-3">
+              {upsellTier && (
+                <button
+                  onClick={handleUpsell}
+                  disabled={isLoading || isSyncing}
+                  className="w-full text-left border border-[#D94E12]/40 bg-[#D94E12]/5 rounded px-4 py-3 hover:bg-[#D94E12]/10 transition-colors"
+                >
+                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-[#D94E12]">Upgrade to 2 bottles — save $8</span>
+                  <span className="block font-body text-xs text-muted-foreground mt-0.5">12 weeks of coverage for $68 instead of $76</span>
+                </button>
+              )}
               <div className="flex items-center justify-between">
                 <span className="font-heading text-sm font-bold uppercase tracking-wide">Subtotal</span>
                 <span className="font-body text-sm">${totalPrice.toFixed(2)}</span>

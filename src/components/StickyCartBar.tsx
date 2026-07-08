@@ -25,7 +25,7 @@ const StickyCartBar = () => {
           <span className="font-heading text-sm font-bold text-background uppercase tracking-wide">
             Base Layer Face Cream
           </span>
-          <span className="font-body text-sm text-background/60"><span className="line-through opacity-40">$48</span> $38 (21% off) · Ships Spring 2026</span>
+          <span className="font-body text-sm text-background/60"><span className="line-through opacity-40">$48</span> $38 (21% off) · In stock, ships in 1-2 days</span>
         </div>
         <Button
           variant="hero"

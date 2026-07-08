@@ -82,7 +82,7 @@ const Listicle = () => {
             <div className="flex bg-[#F35D1A] px-2 py-1 rounded-sm gap-0.5">
               {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 text-white fill-white" />)}
             </div>
-            <span className="text-white/80 font-body text-[13px] ml-3">1,000+ verified reviews</span>
+            <span className="text-white/80 font-body text-[13px] ml-3">30-day keep-the-bottle guarantee</span>
           </div>
           <h1 className="font-heading font-extrabold text-[36px] md:text-[52px] leading-[1.1] text-white mb-6">
             5 reasons high-performers are switching from drugstore face creams to this
@@ -158,7 +158,7 @@ const Listicle = () => {
             <div className="flex bg-[#F35D1A] px-2 py-1 rounded-sm gap-0.5">
               {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 text-white fill-white" />)}
             </div>
-            <span className="font-body text-[13px] text-gray-500 font-medium">Rated 4.8/5 by 1,000+ men</span>
+            <span className="font-body text-[13px] text-gray-500 font-medium">30-day keep-the-bottle guarantee</span>
           </div>
           <h2 className="font-heading font-extrabold text-[32px] md:text-[40px] text-[#1A2F4C] mb-4">
             What high-performers are saying

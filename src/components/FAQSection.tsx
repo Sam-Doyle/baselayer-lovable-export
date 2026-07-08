@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     question: "Is this a subscription?",
-    answer: "No. Base Layer is a one-time purchase. No auto-ship, no hidden charges, no 'cancel anytime' because there's nothing to cancel. Buy when you want.",
+    answer: "Only if you want it to be. One-time purchase is the default. There's an optional Subscribe & Save if you'd rather not think about reordering — cancel or pause in one click, no lock-in, no games.",
   },
   {
     question: "What if it doesn't work for me?",
@@ -32,7 +32,7 @@ const faqs = [
   },
   {
     question: "When will it ship?",
-    answer: "First batch ships April 2026.",
+    answer: "Orders ship from Colorado within 1-2 business days.",
   },
 ];
 

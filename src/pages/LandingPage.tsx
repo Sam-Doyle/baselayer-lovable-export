@@ -74,7 +74,7 @@ const timeline = [
 ];
 
 const faqs = [
-  { q: "Is this a subscription?", a: "No. One-time purchase. No auto-ship, no hidden charges." },
+  { q: "Is this a subscription?", a: "Only if you want it to be. One-time purchase is the default. Optional Subscribe & Save — cancel in one click." },
   { q: "Will it feel greasy?", a: "No. Absorbs in 15 seconds. Matte finish." },
   { q: "What skin type is it for?", a: "All skin types. Especially good for oily and combination." },
   { q: "How long does a bottle last?", a: "6-8 weeks with daily use." },
@@ -302,7 +302,7 @@ const LandingPage = () => {
               </div>
 
               <p className="font-body text-xs text-[#1E201E]/40 text-center">
-                No subscription. Buy once.
+                Buy once, or subscribe on your terms.
               </p>
             </div>
           </div>

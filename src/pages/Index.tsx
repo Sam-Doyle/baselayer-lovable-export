@@ -1,7 +1,6 @@
 import { lazy, Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import ExitIntentPopup from "@/components/ExitIntentPopup";
 import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
@@ -32,38 +31,6 @@ const REVIEW_SCHEMA = {
     availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/face-cream",
     priceValidUntil: "2026-12-31",
-  },
-  review: [
-    {
-      "@type": "Review",
-      author: { "@type": "Person", name: "Sean G." },
-      reviewBody:
-        "I used to blot my forehead before every afternoon meeting. One week on Base Layer and I stopped.",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5", worstRating: "1" },
-      datePublished: "2025-12-01",
-    },
-    {
-      "@type": "Review",
-      author: { "@type": "Person", name: "Matt M." },
-      reviewBody:
-        "Everything I tried after shaving either stung or left a film. This absorbs fast and feels calm.",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5", worstRating: "1" },
-      datePublished: "2025-12-15",
-    },
-    {
-      "@type": "Review",
-      author: { "@type": "Person", name: "Cooper S." },
-      reviewBody:
-        "Hotel air usually wrecks my skin. This is the one bottle I pack every trip.",
-      reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5", worstRating: "1" },
-      datePublished: "2026-01-05",
-    },
-  ],
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "5",
-    reviewCount: "3",
-    bestRating: "5",
   },
 };
 
@@ -100,7 +67,6 @@ const Index = () => {
         </div>
         <Footer />
       </Suspense>
-      <ExitIntentPopup />
     </main>
   );
 };

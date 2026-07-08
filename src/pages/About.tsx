@@ -72,7 +72,7 @@ const About = () => {
               So I started reading the research. Not marketing copy, the actual dermatology studies. Men's skin is about 25% thicker than women's, produces significantly more sebum, and takes daily damage from shaving. But almost nothing on the market is formulated for that biology. It's either a women's formula in a darker bottle, or a basic moisturizer with nothing active in it.
             </p>
             <p>
-              Base Layer is the result: six active ingredients at the concentrations where clinical studies showed measurable results. Niacinamide at 5% to control oil. Copper peptide at 1% to rebuild collagen. Squalane that absorbs in seconds. No fragrance. Because fragrance is the number one cause of skincare irritation and does nothing functional.
+              Base Layer is the result: six active ingredients at the concentrations where clinical studies showed measurable results. Niacinamide at 5% to control oil. Copper peptide at 0.03% to rebuild collagen. Squalane that absorbs in seconds. No fragrance. Because fragrance is the number one cause of skincare irritation and does nothing functional.
             </p>
             <p>
               What the brand refuses to do: add fragrance for marketing appeal, dilute actives to cut costs, create unnecessary products to upsell, or lock anyone into a subscription. One product. It either works for you or you get your money back.
