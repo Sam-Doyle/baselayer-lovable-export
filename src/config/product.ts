@@ -18,9 +18,9 @@ import type { ShopifyProduct } from "@/lib/shopify";
 export const PRODUCT_HANDLE = "performance-daily-face-cream";
 export const PRODUCT_GID = "gid://shopify/Product/7469557612615";
 
-const TIER_1_BOTTLE_GID = "gid://shopify/ProductVariant/42561862402119";
-const TIER_2_BOTTLE_GID: string | null = null; // paste 2-bottle variant GID
-const SELLING_PLAN_GID: string | null = null;  // paste selling plan GID
+const TIER_1_BOTTLE_GID = "gid://shopify/ProductVariant/42940461023303";
+const TIER_2_BOTTLE_GID: string | null = "gid://shopify/ProductVariant/42940461056071";
+const SELLING_PLAN_GID: string | null = "gid://shopify/SellingPlan/2934145095";
 const SUBSCRIBE_PRICE = 32;                     // match the plan's discounted price
 
 export interface BuyTier {
