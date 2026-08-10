@@ -3,17 +3,9 @@ import type { ShopifyProduct } from "@/lib/shopify";
 
 // Live Shopify catalog mapping. Store: base-layer-skin.myshopify.com
 // Product: "Performance Daily Face Cream" (gid://shopify/Product/7469557612615)
-//
-// TO FINISH WIRING (Shopify admin, ~5 min):
-// 1. 2-bottle tier: add a "Pack" option to the product with values
-//    "1 Bottle" / "2 Bottles" ($38 / $68), then paste the 2-bottle
-//    variant GID into TIER_2_BOTTLE_GID below. (The existing default
-//    variant becomes "1 Bottle" and keeps its GID.)
-// 2. Subscribe & Save: install the free "Shopify Subscriptions" app,
-//    create a plan on this product (suggested: "Subscribe & Save",
-//    deliver every 8 weeks, 15% off => $32.30), then paste the selling
-//    plan GID (gid://shopify/SellingPlan/...) into SELLING_PLAN_GID and
-//    set SUBSCRIBE_PRICE to the exact discounted price.
+// Subscription: Shopify Subscriptions app plan "Subscribe & Save",
+// deliver every 6 weeks at SUBSCRIBE_PRICE. If the plan or variants are
+// recreated in admin, update the GIDs below to match.
 // Tiers stay hidden until their IDs are filled in — no fake buttons.
 export const PRODUCT_HANDLE = "performance-daily-face-cream";
 export const PRODUCT_GID = "gid://shopify/Product/7469557612615";
@@ -21,7 +13,7 @@ export const PRODUCT_GID = "gid://shopify/Product/7469557612615";
 const TIER_1_BOTTLE_GID = "gid://shopify/ProductVariant/42940461023303";
 const TIER_2_BOTTLE_GID: string | null = "gid://shopify/ProductVariant/42940461056071";
 const SELLING_PLAN_GID: string | null = "gid://shopify/SellingPlan/2934145095";
-const SUBSCRIBE_PRICE = 32;                     // match the plan's discounted price
+const SUBSCRIBE_PRICE = 34;                     // match the plan's discounted price
 
 export interface BuyTier {
   id: number;
@@ -50,8 +42,8 @@ export const BUY_TIERS: BuyTier[] = [
     variantGid: TIER_2_BOTTLE_GID,
   },
   {
-    id: 3, kind: "subscription", bottles: 1, label: "Subscribe & Save", duration: "every 8 weeks",
-    price: SUBSCRIBE_PRICE, badge: "BEST VALUE", badgeColor: "bg-[#C04510]", savings: 38 - SUBSCRIBE_PRICE,
+    id: 3, kind: "subscription", bottles: 1, label: "Subscribe & Save", duration: "every 6 weeks",
+    price: SUBSCRIBE_PRICE, badge: "BEST VALUE", badgeColor: "bg-brand", savings: 38 - SUBSCRIBE_PRICE,
     subCopy: "Pause or cancel in one click. Never required.",
     variantGid: TIER_1_BOTTLE_GID,
     sellingPlanGid: SELLING_PLAN_GID,
@@ -79,7 +71,7 @@ export function buildCartItem(tier: BuyTier) {
       },
     } as ShopifyProduct,
     variantId: tier.variantGid as string,
-    variantTitle: tier.kind === "subscription" ? "Subscribe & Save · every 8 weeks" : tier.bottles === 1 ? "50mL" : `${tier.bottles} Bottles`,
+    variantTitle: tier.kind === "subscription" ? "Subscribe & Save · every 6 weeks" : tier.bottles === 1 ? "50mL" : `${tier.bottles} Bottles`,
     price: { amount: tier.price.toFixed(2), currencyCode: "USD" },
     quantity: 1,
     selectedOptions: [],
