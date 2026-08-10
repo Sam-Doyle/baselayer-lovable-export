@@ -17,6 +17,11 @@ const EarlyAccessContext = createContext<EarlyAccessContextType | undefined>(und
 
 export const EarlyAccessProvider = ({ children }: { children: ReactNode }) => {
   const openModal = useCallback((source?: string) => {
+    // Mirrors the in-flight guard in cartStore.addItem. Without it a double-click would
+    // be correctly blocked at the cart but still fire a second add_to_cart to GA4/Meta,
+    // inflating the conversion metric. addItem flips isLoading synchronously before its
+    // first await, so a second click in the same tick always sees true here.
+    if (useCartStore.getState().isLoading) return;
     const { addItem } = useCartStore.getState();
     trackEvent("add_to_cart", {
       content_name: "Base Layer Face Cream",

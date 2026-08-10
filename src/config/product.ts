@@ -51,7 +51,7 @@ export const BUY_TIERS: BuyTier[] = [
   },
   {
     id: 3, kind: "subscription", bottles: 1, label: "Subscribe & Save", duration: "every 8 weeks",
-    price: SUBSCRIBE_PRICE, badge: "BEST VALUE", badgeColor: "bg-[#D94E12]", savings: 38 - SUBSCRIBE_PRICE,
+    price: SUBSCRIBE_PRICE, badge: "BEST VALUE", badgeColor: "bg-[#C04510]", savings: 38 - SUBSCRIBE_PRICE,
     subCopy: "Pause or cancel in one click. Never required.",
     variantGid: TIER_1_BOTTLE_GID,
     sellingPlanGid: SELLING_PLAN_GID,

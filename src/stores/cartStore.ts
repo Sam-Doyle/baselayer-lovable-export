@@ -151,6 +151,11 @@ export const useCartStore = create<CartStore>()(
       toggleCart: (open?: boolean) => set({ isOpen: open !== undefined ? open : !get().isOpen }),
 
       addItem: async (item) => {
+        // Double-submit guard. Every CTA on the site funnels through here (most via
+        // EarlyAccessContext.openModal), and a second click before the Storefront API
+        // responds creates a duplicate line instead of incrementing quantity.
+        // Guarding here rather than per-component covers all call sites.
+        if (get().isLoading) return;
         const { items, cartId, clearCart } = get();
         const existingItem = items.find(i => i.variantId === item.variantId && (i.sellingPlanId || null) === (item.sellingPlanId || null));
         set({ isLoading: true });

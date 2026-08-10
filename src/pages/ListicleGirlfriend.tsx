@@ -48,8 +48,8 @@ const ListicleGirlfriend = () => {
         <img src={img} alt={title} className="absolute inset-0 w-full h-full object-cover" />
       </div>
       <div className="w-full sm:w-1/2">
-        <h4 className="font-heading font-bold text-lg text-[#D94E12] flex items-start gap-3 mb-3 leading-tight">
-          <span className="bg-[#D94E12] text-white w-6 h-6 rounded-full flex items-center justify-center text-[12px] shrink-0 mt-0.5">{num}</span>
+        <h4 className="font-heading font-bold text-lg text-[#C04510] flex items-start gap-3 mb-3 leading-tight">
+          <span className="bg-[#C04510] text-white w-6 h-6 rounded-full flex items-center justify-center text-[12px] shrink-0 mt-0.5">{num}</span>
           {title}
         </h4>
         <p className="text-[15px] sm:text-[16px] m-0 text-gray-700 leading-relaxed font-body">
@@ -194,7 +194,7 @@ const ListicleGirlfriend = () => {
             
             <div className="mt-10 text-center">
               <Link to="/face-cream" onClick={handleCTAClick}>
-                 <Button className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] shadow-lg shadow-orange-500/20 h-auto">
+                 <Button className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] shadow-lg shadow-orange-500/20 h-auto">
                    CLAIM MY BASE LAYER STARTER KIT →
                  </Button>
               </Link>
@@ -217,7 +217,7 @@ const ListicleGirlfriend = () => {
               <strong>Stop washing your face with the same soap you use on your body.</strong>
             </p>
             <Link to="/face-cream" onClick={handleCTAClick}>
-              <Button className="w-full sm:w-auto px-12 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#8B2F08] border-none transition-all duration-300 rounded-[4px] h-auto">
+              <Button className="w-full sm:w-auto px-12 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#8B2F08] border-none transition-all duration-300 rounded-[4px] h-auto">
                 CHECK AVAILABILITY & CLAIM KIT
               </Button>
             </Link>
@@ -230,7 +230,7 @@ const ListicleGirlfriend = () => {
       {/* Sticky Mobile CTA */}
       <div className={`fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50 transition-transform duration-300 md:hidden ${showSticky ? 'translate-y-0' : 'translate-y-full'}`}>
         <Link to="/face-cream" onClick={handleCTAClick}>
-          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
+          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
             <span>START YOUR ROUTINE</span>
             <span className="bg-black/10 flex items-center p-1 rounded-full"><ChevronRight className="w-4 h-4"/></span>
           </Button>

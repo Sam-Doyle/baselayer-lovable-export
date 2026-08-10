@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { Link } from "react-router-dom";
+import { trackEvent } from "@/lib/analytics";
 
 const HeroSection = () => {
-  const { openModal } = useEarlyAccess();
   const heroImgRef = useRef<HTMLImageElement>(null);
 
   // Defer cinematic pan animation until after image loads (post-LCP)
@@ -55,7 +55,14 @@ const HeroSection = () => {
           />
         </picture>
         {/* Gradient overlays to ensure text readability */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(26,47,76,0.85)_0%,rgba(26,47,76,0.60)_35%,rgba(26,47,76,0.20)_55%,transparent_70%)] md:bg-[linear-gradient(to_right,rgba(26,47,76,0.80)_0%,rgba(26,47,76,0.50)_30%,rgba(26,47,76,0.15)_50%,transparent_60%)]"></div>
+        {/*
+          Mobile stacks copy over the photo, so the scrim runs vertically: heaviest at the
+          top behind the white/70 eyebrow and headline, easing toward the CTA so the
+          product shot still reads. Worst case (blown-out photo) the 17px subhead sits at
+          4.89:1 on the 0.72 stop — AA pass. md+ puts copy in a left column, so the scrim
+          turns horizontal and clears the product on the right.
+        */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(26,47,76,0.85)_0%,rgba(26,47,76,0.72)_45%,rgba(26,47,76,0.45)_100%)] md:bg-[linear-gradient(to_right,rgba(26,47,76,0.80)_0%,rgba(26,47,76,0.50)_30%,rgba(26,47,76,0.15)_50%,transparent_60%)]"></div>
       </div>
 
       <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-12 pt-[80px] md:pt-[120px]">
@@ -96,13 +103,24 @@ const HeroSection = () => {
                 <span className="font-body text-[12px] text-white opacity-70 tracking-[0.1em] uppercase mt-2 block">Founding Price</span>
               </div>
 
-              <button
-                type="button"
-                onClick={() => openModal("hero")}
-                className="w-full sm:w-auto sm:min-w-[280px] px-8 py-[14px] bg-[#D94E12] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 rounded-[4px] whitespace-nowrap"
+              {/*
+                Routes to the PDP rather than adding to cart directly. Cold traffic
+                landing on the hero has read one paragraph; /face-cream is where the
+                tier selector ($68 2-bottle, $32 subscribe) and the ingredient/FAQ
+                detail live, and it's the only place view_item / Meta ViewContent
+                fires. Adding to cart straight from here locks every hero conversion
+                to the $38 default and hands Meta an AddToCart with no preceding
+                ViewContent, which degrades delivery and starves retargeting.
+                Deep-scroll CTAs further down the page still add directly — by then
+                the visitor has consumed the same content the PDP would give them.
+              */}
+              <Link
+                to="/face-cream"
+                onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "hero" })}
+                className="inline-block text-center w-full sm:w-auto sm:min-w-[280px] px-8 py-[14px] bg-[#C04510] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 rounded-[4px] whitespace-nowrap"
               >
                 GRAB YOURS &middot; $38 &rarr;
-              </button>
+              </Link>
 
               {/* Trust Micro-Copy */}
               <p className="font-body text-[12px] text-white opacity-60 mt-3 hidden sm:block">

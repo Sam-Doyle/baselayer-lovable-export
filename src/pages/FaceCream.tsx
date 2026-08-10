@@ -227,7 +227,7 @@ const FaceCream = () => {
           <div className="flex flex-col pt-4 md:pt-0 min-h-[500px] md:min-h-[600px]">
             {/* 1. Founding Price Badge */}
             <div className="flex items-center mb-3">
-              <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-[#D94E12]">Founding Price</span>
+              <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-[#C04510]">Founding Price</span>
               <span className="font-body text-[13px] text-[#6B7280] ml-2">$38 now — $48 after launch</span>
             </div>
 
@@ -299,7 +299,7 @@ const FaceCream = () => {
             <button
               ref={ctaRef}
               disabled={isAddingToCart}
-              className="w-full bg-[#D94E12] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#C04510] active:scale-[0.98] transition-all mb-[12px] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full bg-[#C04510] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#A83C0E] active:scale-[0.98] transition-all mb-[12px] disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={() => handleAddToCart("buy_box")}
             >
               {selectedOption.kind === "subscription" ? `SUBSCRIBE & SAVE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
@@ -363,7 +363,7 @@ const FaceCream = () => {
           </div>
           <button
             disabled={isAddingToCart}
-            className="bg-[#D94E12] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="bg-[#C04510] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px] disabled:opacity-70 disabled:cursor-not-allowed"
             onClick={() => handleAddToCart("sticky_mobile_cta")}
           >
             {selectedOption.kind === "subscription" ? `SUBSCRIBE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
@@ -483,7 +483,7 @@ const FaceCream = () => {
           <Button
             size="lg"
             disabled={isAddingToCart}
-            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
             onClick={() => handleAddToCart("face_cream_bottom")}
           >
             GET STARTED - ${selectedOption.price}

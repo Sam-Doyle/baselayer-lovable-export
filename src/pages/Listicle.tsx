@@ -63,7 +63,7 @@ const Listicle = () => {
           {text}
         </p>
         <Link to="/face-cream" onClick={handleCTAClick}>
-          <Button className="px-8 py-6 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-[#D94E12] border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
+          <Button className="px-8 py-6 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
             {cta} <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Button>
         </Link>
@@ -91,7 +91,7 @@ const Listicle = () => {
             Base Layer is engineered with clinical focus-boosting ingredients like Niacinamide and Copper Peptides that give your skin a clean, matte finish. Same morning ritual, drastically better results.
           </p>
           <Link to="/face-cream" onClick={handleCTAClick} className="self-start">
-            <Button className="px-10 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] hover:bg-[#C04510] text-white border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
+            <Button className="px-10 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] hover:bg-[#A83C0E] text-white border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
               TRY BASE LAYER RISK FREE <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Button>
           </Link>
@@ -214,7 +214,7 @@ const Listicle = () => {
               ))}
             </ul>
             <Link to="/face-cream" onClick={handleCTAClick}>
-              <Button className="w-full sm:w-auto px-10 py-7 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-[#D94E12] border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center justify-center gap-2">
+              <Button className="w-full sm:w-auto px-10 py-7 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center justify-center gap-2">
                 TRY BASE LAYER RISK FREE <span className="group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
@@ -228,7 +228,7 @@ const Listicle = () => {
       {/* Sticky Mobile CTA */}
       <div className={`fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50 transition-transform duration-300 md:hidden ${showSticky ? 'translate-y-0' : 'translate-y-full'}`}>
         <Link to="/face-cream" onClick={handleCTAClick}>
-          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
+          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
             <span>TRY IT RISK FREE</span>
             <span className="bg-black/10 px-2 py-1 rounded text-xs">→</span>
           </Button>

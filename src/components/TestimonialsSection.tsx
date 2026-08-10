@@ -1,36 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import TrustpilotStars from "@/components/TrustpilotStars";
-
-const testimonials = [
-  {
-    image: "/images/testimonials/sean.webp",
-    fallback: "/images/testimonials/sean.png",
-    stars: 5,
-    quote: "I used to blot my forehead before every afternoon meeting. After about a week on Base Layer, I just stopped. My skin stays matte all day and it doesn't feel dry or tight.",
-    name: "Sean, 34",
-    detail: "Oily skin · Denver, CO",
-    tag: "BEST FOR OILY SKIN",
-  },
-  {
-    image: "/images/testimonials/marcus.webp",
-    fallback: "/images/testimonials/marcus.png",
-    stars: 5,
-    quote: "My girlfriend kept saying my skin looked different, like clearer and healthier. I hadn't even told her I was trying anything new. That's when I figured it was actually working.",
-    name: "Marcus, 28",
-    detail: "Combination skin · Austin, TX",
-    tag: "MOST NOTICED",
-  },
-  {
-    image: "/images/testimonials/cooper.webp",
-    fallback: "/images/testimonials/cooper.png",
-    stars: 5,
-    quote: "Hotel air, airplane cabins, hiking in January. Everything used to wreck my skin. Now I throw one bottle in my bag and forget about it. Goes on fast, no grease, done.",
-    name: "Cooper, 27",
-    detail: "Dry skin · Boulder, CO",
-    tag: "BEST FOR TRAVEL",
-  },
-];
+import StarRating from "@/components/StarRating";
+import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 
 const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], index: number, isVisible: boolean }) => {
   return (
@@ -51,9 +22,9 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
         </div>
       )}
 
-      {/* Stars - full 5/5 for individual reviews */}
+      {/* Stars - individual tester's own rating */}
       <div className="mb-4">
-        <TrustpilotStars size={14} full />
+        <StarRating rating={t.stars} />
       </div>
 
       {/* Quote */}
@@ -117,9 +88,15 @@ const TestimonialsSection = () => {
             DON'T TAKE OUR WORD FOR IT<span className="text-[#F35D1A]">.</span>
           </h2>
           <p className="font-body text-[17px] text-[#ABB3BB] mt-2">
-            Hear from guys who switched.
+            Hear from guys who tried it.
           </p>
         </div>
+
+        {/* Material-connection disclosure (FTC 16 CFR Part 255) — kept
+            visible with the testimonials, not tucked into a footer. */}
+        <p className="font-body text-[13px] text-[#ABB3BB] text-center max-w-[620px] mx-auto mb-8 leading-[1.5]">
+          {TESTIMONIAL_DISCLOSURE}
+        </p>
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 w-full">
@@ -136,7 +113,7 @@ const TestimonialsSection = () => {
 
           <Link
             to="/face-cream"
-            className="inline-flex items-center justify-center px-[36px] py-[14px] bg-[#D94E12] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#C04510] transition-colors duration-300 w-full sm:w-auto mt-2"
+            className="inline-flex items-center justify-center px-[36px] py-[14px] bg-[#C04510] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#A83C0E] transition-colors duration-300 w-full sm:w-auto mt-2"
           >
             GET STARTED · $38 →
           </Link>

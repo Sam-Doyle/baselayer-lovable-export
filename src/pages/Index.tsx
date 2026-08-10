@@ -1,6 +1,8 @@
 import { lazy, Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import MidPageCTA from "@/components/MidPageCTA";
+import StickyMobileCTA from "@/components/StickyMobileCTA";
 import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
@@ -53,15 +55,37 @@ const Index = () => {
       <Navbar />
 
       <HeroSection />
+      <StickyMobileCTA />
 
       <Suspense fallback={null}>
         <PressBanner />
         <WhyMensSkinSection />
         <IngredientsShowcase />
+        <MidPageCTA
+          headline="EVERYTHING YOUR SKIN NEEDS. NOTHING IT DOESN'T."
+          subhead="6 active ingredients. Clinical concentrations. Limited founding batch at $38."
+          ctaLabel="RESERVE YOURS · $38 →"
+          source="home_mid_ingredients"
+          theme="dark"
+        />
         <TestimonialsSection />
         <div className="content-auto">
           <FAQSection />
         </div>
+        {/*
+          Sits after the FAQ and before OurOriginSection, not at the page end:
+          OurOriginSection already closes with its own "GRAB YOURS · $38" button,
+          so putting this last would stack two near-identical $38 asks back to
+          back with no persuasion content between them. Here it fills the real
+          gap — the long testimonials-through-FAQ stretch with no CTA.
+        */}
+        <MidPageCTA
+          headline="FOUNDING BATCH. LIMITED RUN."
+          subhead="30-day guarantee. Hate it? Keep the bottle."
+          ctaLabel="RESERVE MINE · $38 →"
+          source="home_post_faq"
+          theme="light"
+        />
         <div className="content-auto">
           <OurOriginSection />
         </div>

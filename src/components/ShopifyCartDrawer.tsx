@@ -35,6 +35,11 @@ const ShopifyCartDrawer = () => {
 
   const handleUpsell = async () => {
     if (!upsellTier || !singleBottleLine) return;
+    // Same in-flight guard as the other add paths: this fires remove-then-add, and a
+    // second click before the first remove resolves would re-fire add_to_cart against
+    // an already-consumed line. (The trailing addItem is safe on its own — removeItem's
+    // finally clears isLoading before the await resumes.)
+    if (useCartStore.getState().isLoading) return;
     trackEvent("add_to_cart", {
       content_name: "Base Layer Face Cream",
       content_ids: ["base-layer-face-cream"],
@@ -107,9 +112,9 @@ const ShopifyCartDrawer = () => {
                 <button
                   onClick={handleUpsell}
                   disabled={isLoading || isSyncing}
-                  className="w-full text-left border border-[#D94E12]/40 bg-[#D94E12]/5 rounded px-4 py-3 hover:bg-[#D94E12]/10 transition-colors"
+                  className="w-full text-left border border-[#C04510]/40 bg-[#C04510]/5 rounded px-4 py-3 hover:bg-[#C04510]/10 transition-colors"
                 >
-                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-[#D94E12]">Upgrade to 2 bottles — save $8</span>
+                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-[#C04510]">Upgrade to 2 bottles — save $8</span>
                   <span className="block font-body text-xs text-muted-foreground mt-0.5">12 weeks of coverage for $68 instead of $76</span>
                 </button>
               )}
@@ -117,10 +122,14 @@ const ShopifyCartDrawer = () => {
                 <span className="font-heading text-sm font-bold uppercase tracking-wide">Subtotal</span>
                 <span className="font-body text-sm">${totalPrice.toFixed(2)}</span>
               </div>
+              {/*
+                No hover:bg-* — variant="hero" wipes a white ::before across on hover and
+                switches the label to black, so a hover background would never paint.
+              */}
               <Button
                 variant="hero"
                 size="lg"
-                className="w-full px-6 py-5 text-xs bg-foreground text-background border-foreground hover:bg-foreground/90"
+                className="w-full px-6 py-5 text-xs bg-[#C04510] text-white border-[#C04510]"
                 onClick={handleCheckout}
                 disabled={isLoading || isSyncing}
               >

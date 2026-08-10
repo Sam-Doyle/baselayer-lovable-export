@@ -84,7 +84,7 @@ const OurOriginSection = () => {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                             <button
                                 onClick={() => openModal("origin_section")}
-                                className="px-8 py-4 bg-[#D94E12] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#C04510] transition-colors w-full sm:w-auto text-center"
+                                className="px-8 py-4 bg-[#C04510] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#A83C0E] transition-colors w-full sm:w-auto text-center"
                             >
                                 GRAB YOURS · $38
                             </button>
