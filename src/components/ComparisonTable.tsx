@@ -87,7 +87,7 @@ const ComparisonTable = () => {
         
         {/* Header */}
         <div className={`text-center mb-12 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          <div className="font-body text-[11px] font-semibold text-[#F35D1A] tracking-[0.2em] uppercase mb-2">
+          <div className="font-body text-[11px] font-semibold text-brand-accent tracking-[0.2em] uppercase mb-2">
             PRECISION SKINCARE
           </div>
           <h2 className="font-heading text-[clamp(28px,4vw,40px)] font-bold text-[#1A2F4C] uppercase tracking-[0.05em] leading-tight flex items-center justify-center">
@@ -107,9 +107,9 @@ const ComparisonTable = () => {
             <div className={`sticky left-0 z-20 bg-[#1A2F4C] border-b border-[#E2E8F0] opacity-0 ${isVisible ? 'opacity-100' : ''}`} style={{ transition: 'opacity 500ms 200ms' }}></div>
             
             {/* Base Layer Header */}
-            <div className={`col-start-2 bg-[#F35D1A]/[0.06] border-t-[3px] border-[#F35D1A] py-4 px-2 text-center border-b border-[#E2E8F0] opacity-0 ${isVisible ? 'opacity-100' : ''}`} style={{ transition: 'opacity 500ms 200ms' }}>
+            <div className={`col-start-2 bg-brand-accent/[0.06] border-t-[3px] border-brand-accent py-4 px-2 text-center border-b border-[#E2E8F0] opacity-0 ${isVisible ? 'opacity-100' : ''}`} style={{ transition: 'opacity 500ms 200ms' }}>
               <div className="font-heading font-bold text-[13px] md:text-[15px] text-[#1A2F4C]">
-                BASE LAYER<span className="text-[#F35D1A]">.</span>
+                BASE LAYER<span className="text-brand-accent">.</span>
               </div>
               <div className="font-body text-[9px] md:text-[10px] text-[#1A2F4C]/50 mt-0.5 leading-tight italic">Daily Face Cream</div>
               <div className="font-body text-[11px] md:text-[12px] text-[#6B7280] mt-1">
@@ -144,7 +144,7 @@ const ComparisonTable = () => {
                 </div>
                 
                 {/* Score Cells */}
-                <div className={`flex flex-col items-center justify-center py-[16px] px-[12px] md:px-[20px] ${i % 2 === 1 ? 'bg-[#F7F8FA]' : ''} bg-[#F35D1A]/[0.06] border-b border-[#E2E8F0]`}>
+                <div className={`flex flex-col items-center justify-center py-[16px] px-[12px] md:px-[20px] ${i % 2 === 1 ? 'bg-[#F7F8FA]' : ''} bg-brand-accent/[0.06] border-b border-[#E2E8F0]`}>
                   {row.bl ? (
                     row.blText ? (
                       <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ const ComparisonTable = () => {
               <div className="sticky left-0 z-20 flex items-center py-[24px] px-[12px] md:px-[20px] bg-white">
                 <div className="font-body font-semibold text-[12px] md:text-[13px] text-[#ABB3BB]">Active Ingredients</div>
               </div>
-              <div className="flex flex-col items-center justify-center py-[24px] px-[12px] md:px-[20px] bg-[#F35D1A]/[0.06] md:bg-white/[0.04] text-center">
+              <div className="flex flex-col items-center justify-center py-[24px] px-[12px] md:px-[20px] bg-brand-accent/[0.06] md:bg-white/[0.04] text-center">
                 <div className="font-heading font-bold text-[28px] md:text-[32px] text-[#4ADE80] leading-none mb-1">
                   {score}/6
                 </div>
@@ -206,10 +206,10 @@ const ComparisonTable = () => {
         {/* --- BOTTOM CTA --- */}
         <div className={`mt-[32px] flex flex-col items-center text-center opacity-0 ${isVisible ? 'opacity-100 translate-y-0' : 'translate-y-4'}`} style={{ transition: 'all 800ms 1400ms' }}>
           <div className="font-heading font-semibold text-[15px] md:text-[16px] text-[#1A2F4C] mb-[20px]">
-            Six clinical actives. One product. <span className="text-[#F35D1A]">$38.</span>
+            Six clinical actives. One product. <span className="text-brand-accent">$38.</span>
           </div>
           <Button 
-            className="bg-[#C04510] hover:bg-[#A83C0E] text-white font-heading font-bold text-[13px] tracking-[0.05em] px-[36px] py-[14px] h-auto rounded-[4px] w-full sm:w-auto"
+            className="bg-brand hover:bg-brand-hover text-white font-heading font-bold text-[13px] tracking-[0.05em] px-[36px] py-[14px] h-auto rounded-[4px] w-full sm:w-auto"
             onClick={() => {
                document.querySelector('.buy-box-container')?.scrollIntoView({ behavior: 'smooth' });
             }}

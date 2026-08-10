@@ -15,8 +15,8 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
     >
       {/* Optional Tag */}
       {t.tag && (
-        <div className="self-start bg-[#F35D1A]/15 px-[10px] py-[4px] rounded-[12px] mb-4 flex items-center justify-center">
-          <span className="text-[#F35D1A] font-heading font-semibold text-[10px] tracking-[0.1em] uppercase block leading-none">
+        <div className="self-start bg-brand-accent/15 px-[10px] py-[4px] rounded-[12px] mb-4 flex items-center justify-center">
+          <span className="text-brand-accent font-heading font-semibold text-[10px] tracking-[0.1em] uppercase block leading-none">
             {t.tag}
           </span>
         </div>
@@ -81,11 +81,11 @@ const TestimonialsSection = () => {
         
         {/* Section Header */}
         <div className="text-center mb-[48px]">
-          <span className="block font-heading font-normal text-[11px] tracking-[0.2em] text-[#F35D1A] uppercase mb-3">
+          <span className="block font-heading font-normal text-[11px] tracking-[0.2em] text-brand-accent uppercase mb-3">
             REAL RESULTS
           </span>
           <h2 className="font-heading text-[clamp(28px,4vw,40px)] font-bold tracking-tight text-white uppercase leading-[1.1]">
-            DON'T TAKE OUR WORD FOR IT<span className="text-[#F35D1A]">.</span>
+            DON'T TAKE OUR WORD FOR IT<span className="text-brand-accent">.</span>
           </h2>
           <p className="font-body text-[17px] text-[#ABB3BB] mt-2">
             Hear from guys who tried it.
@@ -113,7 +113,7 @@ const TestimonialsSection = () => {
 
           <Link
             to="/face-cream"
-            className="inline-flex items-center justify-center px-[36px] py-[14px] bg-[#C04510] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#A83C0E] transition-colors duration-300 w-full sm:w-auto mt-2"
+            className="inline-flex items-center justify-center px-[36px] py-[14px] bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto mt-2"
           >
             GET STARTED · $38 →
           </Link>

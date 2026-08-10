@@ -117,7 +117,7 @@ const HeroSection = () => {
               <Link
                 to="/face-cream"
                 onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "hero" })}
-                className="inline-block text-center w-full sm:w-auto sm:min-w-[280px] px-8 py-[14px] bg-[#C04510] text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 rounded-[4px] whitespace-nowrap"
+                className="inline-block text-center w-full sm:w-auto sm:min-w-[280px] px-8 py-[14px] bg-brand text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 rounded-[4px] whitespace-nowrap"
               >
                 GRAB YOURS &middot; $38 &rarr;
               </Link>

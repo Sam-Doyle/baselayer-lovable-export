@@ -54,7 +54,7 @@ export default function ExitIntentPopup() {
                 aria-label="Email address"
                 className="flex-1 border border-[#E2E8F0] px-4 py-3 text-sm font-body focus:outline-none focus:border-[#1A2F4C] bg-white" />
               <button type="submit"
-                className="bg-[#C04510] text-white font-heading font-bold text-xs tracking-wider uppercase px-6 py-3 hover:bg-[#A83C0E] whitespace-nowrap">
+                className="bg-brand text-white font-heading font-bold text-xs tracking-wider uppercase px-6 py-3 hover:bg-brand-hover whitespace-nowrap">
                 NOTIFY ME
               </button>
             </form>

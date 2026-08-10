@@ -210,7 +210,7 @@ const WhyMensSkinSection = () => {
             href="#formula" 
             className="inline-flex mt-8 font-heading font-semibold text-[14px] text-[#1A2F4C] tracking-[0.05em] no-underline group transition-colors self-start"
           >
-            See the full formula <span className="ml-2 group-hover:text-[#F35D1A] transition-colors">→</span>
+            See the full formula <span className="ml-2 group-hover:text-brand-accent transition-colors">→</span>
           </a>
         </div>
 

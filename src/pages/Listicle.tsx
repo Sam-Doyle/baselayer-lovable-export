@@ -63,7 +63,7 @@ const Listicle = () => {
           {text}
         </p>
         <Link to="/face-cream" onClick={handleCTAClick}>
-          <Button className="px-8 py-6 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
+          <Button className="px-8 py-6 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-brand border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
             {cta} <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Button>
         </Link>
@@ -72,14 +72,14 @@ const Listicle = () => {
   );
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-body selection:bg-[#F35D1A] selection:text-white pb-24 md:pb-0">
+    <div className="bg-[#FAFAFA] min-h-screen font-body selection:bg-brand-accent selection:text-white pb-24 md:pb-0">
       <JsonLd data={LISTICLE_SCHEMA} />
 
       {/* Hero Section */}
       <section className="bg-[#1A2F4C] w-full relative overflow-hidden flex flex-col md:flex-row min-h-[600px] md:h-auto items-stretch">
         <div className="w-full md:w-[55%] flex flex-col justify-center px-6 md:px-16 lg:px-24 py-16 md:py-24 z-10">
           <div className="flex items-center gap-1 mb-6">
-            <div className="flex bg-[#F35D1A] px-2 py-1 rounded-sm gap-0.5">
+            <div className="flex bg-brand-accent px-2 py-1 rounded-sm gap-0.5">
               {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 text-white fill-white" />)}
             </div>
             <span className="text-white/80 font-body text-[13px] ml-3">30-day keep-the-bottle guarantee</span>
@@ -91,7 +91,7 @@ const Listicle = () => {
             Base Layer is engineered with clinical focus-boosting ingredients like Niacinamide and Copper Peptides that give your skin a clean, matte finish. Same morning ritual, drastically better results.
           </p>
           <Link to="/face-cream" onClick={handleCTAClick} className="self-start">
-            <Button className="px-10 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] hover:bg-[#A83C0E] text-white border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
+            <Button className="px-10 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-brand hover:bg-brand-hover text-white border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center gap-2">
               TRY BASE LAYER RISK FREE <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Button>
           </Link>
@@ -155,7 +155,7 @@ const Listicle = () => {
       <section className="bg-[#FAF9F6] py-20 px-6">
         <div className="max-w-[1100px] mx-auto text-center mb-16">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="flex bg-[#F35D1A] px-2 py-1 rounded-sm gap-0.5">
+            <div className="flex bg-brand-accent px-2 py-1 rounded-sm gap-0.5">
               {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 text-white fill-white" />)}
             </div>
             <span className="font-body text-[13px] text-gray-500 font-medium">30-day keep-the-bottle guarantee</span>
@@ -179,7 +179,7 @@ const Listicle = () => {
                 <span className="bg-[#E5F5E9] text-[#2E7D32] px-3 py-1 text-[11px] font-bold uppercase rounded">{t.tag1}</span>
                 <span className="bg-[#E5F5E9] text-[#2E7D32] px-3 py-1 text-[11px] font-bold uppercase rounded">{t.tag2}</span>
               </div>
-              <div className="flex gap-1 mb-4 text-[#F35D1A]">
+              <div className="flex gap-1 mb-4 text-brand-accent">
                 {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-current" />)}
               </div>
               <p className="font-body text-[15px] leading-[1.6] text-gray-800 mb-8 flex-grow">
@@ -214,7 +214,7 @@ const Listicle = () => {
               ))}
             </ul>
             <Link to="/face-cream" onClick={handleCTAClick}>
-              <Button className="w-full sm:w-auto px-10 py-7 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center justify-center gap-2">
+              <Button className="w-full sm:w-auto px-10 py-7 font-heading font-bold tracking-[0.1em] text-[13px] uppercase bg-[#1A2F4C] text-white hover:bg-brand border-none transition-all duration-300 rounded-[4px] h-auto group flex items-center justify-center gap-2">
                 TRY BASE LAYER RISK FREE <span className="group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
@@ -228,7 +228,7 @@ const Listicle = () => {
       {/* Sticky Mobile CTA */}
       <div className={`fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50 transition-transform duration-300 md:hidden ${showSticky ? 'translate-y-0' : 'translate-y-full'}`}>
         <Link to="/face-cream" onClick={handleCTAClick}>
-          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
+          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-brand text-white hover:bg-brand-hover border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
             <span>TRY IT RISK FREE</span>
             <span className="bg-black/10 px-2 py-1 rounded text-xs">→</span>
           </Button>

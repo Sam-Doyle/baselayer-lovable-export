@@ -48,8 +48,8 @@ const ListicleGirlfriend = () => {
         <img src={img} alt={title} className="absolute inset-0 w-full h-full object-cover" />
       </div>
       <div className="w-full sm:w-1/2">
-        <h4 className="font-heading font-bold text-lg text-[#C04510] flex items-start gap-3 mb-3 leading-tight">
-          <span className="bg-[#C04510] text-white w-6 h-6 rounded-full flex items-center justify-center text-[12px] shrink-0 mt-0.5">{num}</span>
+        <h4 className="font-heading font-bold text-lg text-brand flex items-start gap-3 mb-3 leading-tight">
+          <span className="bg-brand text-white w-6 h-6 rounded-full flex items-center justify-center text-[12px] shrink-0 mt-0.5">{num}</span>
           {title}
         </h4>
         <p className="text-[15px] sm:text-[16px] m-0 text-gray-700 leading-relaxed font-body">
@@ -60,7 +60,7 @@ const ListicleGirlfriend = () => {
   );
 
   return (
-    <div className="bg-white min-h-screen font-body selection:bg-[#F35D1A] selection:text-white pb-24 md:pb-0">
+    <div className="bg-white min-h-screen font-body selection:bg-brand-accent selection:text-white pb-24 md:pb-0">
       <JsonLd data={LISTICLE_SCHEMA} />
 
       {/* Editorial Navigation */}
@@ -78,7 +78,7 @@ const ListicleGirlfriend = () => {
         
         {/* Header Area */}
         <header className="mb-10 text-center">
-          <div className="text-[#F35D1A] font-bold text-[11px] tracking-widest uppercase mb-4 inline-block bg-orange-50 px-3 py-1 rounded-full">
+          <div className="text-brand-accent font-bold text-[11px] tracking-widest uppercase mb-4 inline-block bg-orange-50 px-3 py-1 rounded-full">
             Sponsored Review
           </div>
           <h1 className="font-heading font-extrabold text-[34px] md:text-[46px] text-[#1A2F4C] leading-[1.15] mb-6 tracking-tight">
@@ -120,7 +120,7 @@ const ListicleGirlfriend = () => {
             Between being outside on the golf course, running, the dry winter air, and long hours staring at screens, I didn't think much of it—until my girlfriend made a passing comment about how "tired" and "weathered" my face was starting to look.
           </p>
 
-          <div className="w-12 h-1 bg-[#F35D1A] my-10"></div>
+          <div className="w-12 h-1 bg-brand-accent my-10"></div>
 
           <h2 className="font-heading font-bold text-2xl md:text-3xl text-[#1A2F4C] mb-4">
             The Harsh Truth About Your Soap
@@ -132,7 +132,7 @@ const ListicleGirlfriend = () => {
             Men's skin is roughly 20% thicker than women's and produces significantly more sweat and sebum. It needs a specific foundation—a base layer of protection that normal soap just obliterates.
           </p>
 
-          <div className="w-12 h-1 bg-[#F35D1A] my-10"></div>
+          <div className="w-12 h-1 bg-brand-accent my-10"></div>
 
           <h2 className="font-heading font-bold text-2xl md:text-3xl text-[#1A2F4C] mb-4">
             Enter Base Layer Skin
@@ -141,7 +141,7 @@ const ListicleGirlfriend = () => {
              <img src={howToUseImg} alt="Base Layer" className="w-full h-auto object-cover" />
           </div>
           <p>
-            She handed me a simple, no-nonsense kit from a brand called <Link to="/face-cream" className="text-[#F35D1A] font-bold no-underline hover:underline">Base Layer Skin</Link>. I was heavily skeptical. I had zero interest in starting a shiny, 7-step skincare routine that takes 20 minutes and leaves you smelling like a department store perfume counter.
+            She handed me a simple, no-nonsense kit from a brand called <Link to="/face-cream" className="text-brand-accent font-bold no-underline hover:underline">Base Layer Skin</Link>. I was heavily skeptical. I had zero interest in starting a shiny, 7-step skincare routine that takes 20 minutes and leaves you smelling like a department store perfume counter.
           </p>
           <p>
             But I promised her I'd try it for exactly one week. 
@@ -194,7 +194,7 @@ const ListicleGirlfriend = () => {
             
             <div className="mt-10 text-center">
               <Link to="/face-cream" onClick={handleCTAClick}>
-                 <Button className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] shadow-lg shadow-orange-500/20 h-auto">
+                 <Button className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-brand text-white hover:bg-brand-hover border-none transition-all duration-300 rounded-[4px] shadow-lg shadow-orange-500/20 h-auto">
                    CLAIM MY BASE LAYER STARTER KIT →
                  </Button>
               </Link>
@@ -208,7 +208,7 @@ const ListicleGirlfriend = () => {
             If you want to stop looking tired and actually protect your face, you need a proper foundation. Base Layer Skin is currently offering a solid entry point for guys who want to upgrade.
           </p>
 
-          <div className="bg-[#1A2F4C] text-white p-8 md:p-12 rounded-xl text-center shadow-xl mt-10 mb-8 border-t-4 border-[#F35D1A]">
+          <div className="bg-[#1A2F4C] text-white p-8 md:p-12 rounded-xl text-center shadow-xl mt-10 mb-8 border-t-4 border-brand-accent">
             <img src={productBoxBottle} alt="Base Layer product" className="w-32 h-32 object-cover rounded-full mx-auto mb-6 border-4 border-[#2A4469]" />
             <h3 className="font-heading font-bold text-2xl md:text-3xl mb-4 text-white">The "Better Skin Guarantee"</h3>
             <p className="text-[#ABB3BB] mb-8 max-w-md mx-auto text-base">
@@ -217,7 +217,7 @@ const ListicleGirlfriend = () => {
               <strong>Stop washing your face with the same soap you use on your body.</strong>
             </p>
             <Link to="/face-cream" onClick={handleCTAClick}>
-              <Button className="w-full sm:w-auto px-12 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#8B2F08] border-none transition-all duration-300 rounded-[4px] h-auto">
+              <Button className="w-full sm:w-auto px-12 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-brand text-white hover:bg-[#8B2F08] border-none transition-all duration-300 rounded-[4px] h-auto">
                 CHECK AVAILABILITY & CLAIM KIT
               </Button>
             </Link>
@@ -230,7 +230,7 @@ const ListicleGirlfriend = () => {
       {/* Sticky Mobile CTA */}
       <div className={`fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50 transition-transform duration-300 md:hidden ${showSticky ? 'translate-y-0' : 'translate-y-full'}`}>
         <Link to="/face-cream" onClick={handleCTAClick}>
-          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
+          <Button className="w-full px-6 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-brand text-white hover:bg-brand-hover border-none transition-all duration-300 rounded-[4px] h-auto flex items-center justify-between">
             <span>START YOUR ROUTINE</span>
             <span className="bg-black/10 flex items-center p-1 rounded-full"><ChevronRight className="w-4 h-4"/></span>
           </Button>

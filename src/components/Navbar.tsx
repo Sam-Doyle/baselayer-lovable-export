@@ -35,19 +35,19 @@ const Navbar = () => {
           {/* LOGO: Industrial Typography + Alpine Accent Dot */}
           <Link to="/" className="flex items-center gap-0 group">
             <span className="font-heading text-[#1A2F4C] text-[22px] md:text-[26px] font-black tracking-normal uppercase leading-none">
-              BASE LAYER<span className="text-[#F35D1A]">.</span>
+              BASE LAYER<span className="text-brand-accent">.</span>
             </span>
           </Link>
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-10 font-body text-[12px] lg:text-[13px] tracking-[0.2em] font-bold uppercase text-[#1E201E]/70">
-            <Link to="/face-cream" className="hover:text-[#F35D1A] transition-colors duration-300">
+            <Link to="/face-cream" className="hover:text-brand-accent transition-colors duration-300">
               The Gear
             </Link>
-            <Link to="/ingredients" className="hover:text-[#F35D1A] transition-colors duration-300">
+            <Link to="/ingredients" className="hover:text-brand-accent transition-colors duration-300">
               Specs
             </Link>
-            <Link to="/about" className="hover:text-[#F35D1A] transition-colors duration-300">
+            <Link to="/about" className="hover:text-brand-accent transition-colors duration-300">
               Origin
             </Link>
           </div>
@@ -56,7 +56,7 @@ const Navbar = () => {
           <div className="flex items-center gap-4 md:gap-6">
             <button
               onClick={() => openModal("navbar")}
-              className="hidden md:flex items-center justify-center px-[24px] py-[10px] bg-[#C04510] text-white font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none hover:bg-[#1A2F4C] transition-colors duration-300"
+              className="hidden md:flex items-center justify-center px-[24px] py-[10px] bg-brand text-white font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none hover:bg-[#1A2F4C] transition-colors duration-300"
             >
               GET STARTED
             </button>
@@ -79,13 +79,13 @@ const Navbar = () => {
             }`}
         >
           <div className="px-6 py-6 flex flex-col gap-6 font-body text-[14px] tracking-[0.2em] font-bold uppercase text-[#1E201E]/70">
-            <Link to="/face-cream" onClick={() => setMobileOpen(false)} className="hover:text-[#F35D1A] transition-colors py-1">
+            <Link to="/face-cream" onClick={() => setMobileOpen(false)} className="hover:text-brand-accent transition-colors py-1">
               The Gear
             </Link>
-            <Link to="/ingredients" onClick={() => setMobileOpen(false)} className="hover:text-[#F35D1A] transition-colors py-1">
+            <Link to="/ingredients" onClick={() => setMobileOpen(false)} className="hover:text-brand-accent transition-colors py-1">
               Specs
             </Link>
-            <Link to="/about" onClick={() => setMobileOpen(false)} className="hover:text-[#F35D1A] transition-colors py-1">
+            <Link to="/about" onClick={() => setMobileOpen(false)} className="hover:text-brand-accent transition-colors py-1">
               Origin
             </Link>
             <button
@@ -93,7 +93,7 @@ const Navbar = () => {
                 openModal("navbar_mobile");
                 setMobileOpen(false);
               }}
-              className="w-full mt-4 flex items-center justify-center px-6 py-[10px] bg-[#C04510] text-white hover:bg-[#1A2F4C] transition-colors font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none"
+              className="w-full mt-4 flex items-center justify-center px-6 py-[10px] bg-brand text-white hover:bg-[#1A2F4C] transition-colors font-heading text-[13px] tracking-[0.1em] font-bold rounded-[4px] border-none"
             >
               GET STARTED
             </button>

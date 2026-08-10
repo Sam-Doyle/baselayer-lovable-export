@@ -18,6 +18,30 @@ export default {
         body: ['Inter', 'sans-serif'],
       },
       colors: {
+        /*
+         * Brand CTA orange. Use `bg-brand` / `hover:bg-brand-hover` — never a raw
+         * hex. The previous value (#D94E12) was hardcoded across 18 buttons in 8
+         * files, so fixing its 4.16:1 contrast failure meant a sitewide find and
+         * replace instead of a one-line change.
+         *
+         * DEFAULT is 5.12:1 against white and hover is 6.33:1, both AA. Any
+         * replacement has to clear 4.5:1 against white before it ships.
+         */
+        brand: {
+          DEFAULT: "#C04510",
+          hover: "#A83C0E",
+          /*
+           * Lighter accent orange, used for inline links, icons, rules, and
+           * selection highlights — not for CTA buttons.
+           *
+           * KNOWN CONTRAST FAILURE: 3.29:1 on white and 4.11:1 on the #1A2F4C
+           * navy. Both fail WCAG AA for normal-size text (4.5:1); both pass the
+           * 3:1 bar for large text and non-text UI. It is tokenized here rather
+           * than fixed because darkening it changes the look of 34 call sites
+           * across 9 files. Do not add new normal-size `text-brand-accent`.
+           */
+          accent: "#F35D1A",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

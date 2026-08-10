@@ -54,15 +54,15 @@ const MidPageCTA = ({ headline, subhead, ctaLabel, source, theme = "dark" }: Mid
           </p>
         </div>
         {/*
-          #C04510 is the site-wide CTA orange: 5.12:1 with white, AA pass.
-          hover:#A83C0E is 6.33:1. Don't lighten either toward the old #D94E12
-          (4.16:1) — the rest state is what mobile sees, since hover never fires
-          on touch.
+          bg-brand is the site-wide CTA orange: 5.12:1 with white, AA pass.
+          brand-hover is 6.33:1. Both live in tailwind.config.ts — change them
+          there, not here, and keep the rest state above 4.5:1, since that is
+          what mobile sees when hover never fires.
         */}
         <button
           type="button"
           onClick={() => openModal(source)}
-          className="shrink-0 px-8 py-4 bg-[#C04510] text-white font-heading font-bold text-[13px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#A83C0E] transition-colors duration-300 w-full sm:w-auto whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C04510]"
+          className="shrink-0 px-8 py-4 bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           {ctaLabel}
         </button>

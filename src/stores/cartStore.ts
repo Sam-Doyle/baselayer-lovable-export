@@ -186,6 +186,14 @@ export const useCartStore = create<CartStore>()(
       },
 
       updateQuantity: async (variantId, quantity) => {
+        // Same in-flight guard as addItem. The drawer's +/- buttons stay clickable
+        // while the Storefront API round-trips, and each click sends an absolute
+        // quantity rather than a delta, so two overlapping calls race and the
+        // slower response wins — the cart lands on a quantity the user never chose.
+        if (get().isLoading) return;
+        // Delegating below is safe because isLoading is still false here; the
+        // set({ isLoading: true }) is deliberately after this branch so removeItem's
+        // own guard doesn't reject the call. Don't hoist it.
         if (quantity <= 0) { await get().removeItem(variantId); return; }
         const { items, cartId, clearCart } = get();
         const item = items.find(i => i.variantId === variantId);
@@ -200,6 +208,10 @@ export const useCartStore = create<CartStore>()(
       },
 
       removeItem: async (variantId) => {
+        // Same in-flight guard as addItem. Reached both from the drawer's remove
+        // button and from updateQuantity when quantity hits zero; that delegation
+        // happens before updateQuantity sets isLoading, so it still passes.
+        if (get().isLoading) return;
         const { items, cartId, clearCart } = get();
         const item = items.find(i => i.variantId === variantId);
         if (!item?.lineId || !cartId) return;

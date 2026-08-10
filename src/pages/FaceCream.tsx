@@ -227,7 +227,7 @@ const FaceCream = () => {
           <div className="flex flex-col pt-4 md:pt-0 min-h-[500px] md:min-h-[600px]">
             {/* 1. Founding Price Badge */}
             <div className="flex items-center mb-3">
-              <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-[#C04510]">Founding Price</span>
+              <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-brand">Founding Price</span>
               <span className="font-body text-[13px] text-[#6B7280] ml-2">$38 now — $48 after launch</span>
             </div>
 
@@ -299,7 +299,7 @@ const FaceCream = () => {
             <button
               ref={ctaRef}
               disabled={isAddingToCart}
-              className="w-full bg-[#C04510] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#A83C0E] active:scale-[0.98] transition-all mb-[12px] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full bg-brand text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-brand-hover active:scale-[0.98] transition-all mb-[12px] disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={() => handleAddToCart("buy_box")}
             >
               {selectedOption.kind === "subscription" ? `SUBSCRIBE & SAVE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
@@ -363,7 +363,7 @@ const FaceCream = () => {
           </div>
           <button
             disabled={isAddingToCart}
-            className="bg-[#C04510] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px] disabled:opacity-70 disabled:cursor-not-allowed"
             onClick={() => handleAddToCart("sticky_mobile_cta")}
           >
             {selectedOption.kind === "subscription" ? `SUBSCRIBE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
@@ -382,7 +382,7 @@ const FaceCream = () => {
               { icon: Leaf, title: "Shaving Fixed", desc: "Panthenol calms razor burn and micro-irritation within 24 hours. Centella rebuilds the moisture barrier that shaving strips away." },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="text-center px-4">
-                <Icon className="w-10 h-10 mx-auto mb-4 text-[#F35D1A]" />
+                <Icon className="w-10 h-10 mx-auto mb-4 text-brand-accent" />
                 <h3 className="font-heading text-lg font-bold uppercase mb-3 text-[#1A2F4C]">{title}</h3>
                 <p className="font-body text-[15px] text-[#4A5568] leading-[1.6]">{desc}</p>
               </div>
@@ -429,7 +429,7 @@ const FaceCream = () => {
               <h2 className="font-heading text-[28px] md:text-3xl font-bold text-[#1A2F4C] mb-6">Simple routine</h2>
               <div className="flex items-start gap-4">
                 <div className="flex items-center gap-[6px] text-[#1A2F4C] mt-1 shrink-0">
-                  <Sun className="w-5 h-5 text-[#F35D1A]" />
+                  <Sun className="w-5 h-5 text-brand-accent" />
                   <span className="font-body text-[18px] font-light text-[#1A2F4C] leading-none">/</span>
                   <Moon className="w-5 h-5 text-[#1A2F4C]" />
                 </div>
@@ -465,7 +465,7 @@ const FaceCream = () => {
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, i) => (
                 <AccordionItem key={i} value={`faq-${i}`}>
-                  <AccordionTrigger className="font-body font-semibold text-left text-[#1A2F4C] hover:text-[#F35D1A]">{faq.question}</AccordionTrigger>
+                  <AccordionTrigger className="font-body font-semibold text-left text-[#1A2F4C] hover:text-brand-accent">{faq.question}</AccordionTrigger>
                   <AccordionContent className="font-body text-[#4A5568] leading-[1.6]">{faq.answer}</AccordionContent>
                 </AccordionItem>
               ))}
@@ -483,7 +483,7 @@ const FaceCream = () => {
           <Button
             size="lg"
             disabled={isAddingToCart}
-            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#C04510] text-white hover:bg-[#A83C0E] border-none transition-all duration-300 rounded-[4px] mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-brand text-white hover:bg-brand-hover border-none transition-all duration-300 rounded-[4px] mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
             onClick={() => handleAddToCart("face_cream_bottom")}
           >
             GET STARTED - ${selectedOption.price}

@@ -57,8 +57,8 @@ const OurOriginSection = () => {
                         style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "30px"})` }}
                     >
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="h-px w-6 bg-[#F35D1A]"></div>
-                            <span className="font-heading text-[10px] tracking-[0.2em] font-bold uppercase text-[#F35D1A]">
+                            <div className="h-px w-6 bg-brand-accent"></div>
+                            <span className="font-heading text-[10px] tracking-[0.2em] font-bold uppercase text-brand-accent">
                                 Breckenridge, CO
                             </span>
                         </div>
@@ -84,7 +84,7 @@ const OurOriginSection = () => {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                             <button
                                 onClick={() => openModal("origin_section")}
-                                className="px-8 py-4 bg-[#C04510] text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-[#A83C0E] transition-colors w-full sm:w-auto text-center"
+                                className="px-8 py-4 bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors w-full sm:w-auto text-center"
                             >
                                 GRAB YOURS · $38
                             </button>

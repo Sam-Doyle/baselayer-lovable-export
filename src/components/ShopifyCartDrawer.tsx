@@ -112,9 +112,9 @@ const ShopifyCartDrawer = () => {
                 <button
                   onClick={handleUpsell}
                   disabled={isLoading || isSyncing}
-                  className="w-full text-left border border-[#C04510]/40 bg-[#C04510]/5 rounded px-4 py-3 hover:bg-[#C04510]/10 transition-colors"
+                  className="w-full text-left border border-brand/40 bg-brand/5 rounded px-4 py-3 hover:bg-brand/10 transition-colors"
                 >
-                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-[#C04510]">Upgrade to 2 bottles — save $8</span>
+                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-brand">Upgrade to 2 bottles — save $8</span>
                   <span className="block font-body text-xs text-muted-foreground mt-0.5">12 weeks of coverage for $68 instead of $76</span>
                 </button>
               )}
@@ -129,7 +129,7 @@ const ShopifyCartDrawer = () => {
               <Button
                 variant="hero"
                 size="lg"
-                className="w-full px-6 py-5 text-xs bg-[#C04510] text-white border-[#C04510]"
+                className="w-full px-6 py-5 text-xs bg-brand text-white border-brand"
                 onClick={handleCheckout}
                 disabled={isLoading || isSyncing}
               >

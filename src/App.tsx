@@ -1,6 +1,5 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CartProvider } from "@/context/CartContext";
 import { EarlyAccessProvider } from "@/context/EarlyAccessContext";
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
@@ -270,41 +269,39 @@ const App = () => {
         <Suspense fallback={null}><Sonner /></Suspense>
         <JsonLd data={[organizationSchema, websiteSchema]} />
         <EarlyAccessProvider>
-          <CartProvider>
-            <BrowserRouter>
-              <MetaRouterTracker />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/face-cream" element={<Wrap><FaceCream /></Wrap>} />
-                <Route path="/matte-moisturizer-for-men" element={<Wrap><MatteMoisturizer /></Wrap>} />
-                <Route path="/non-greasy-moisturizer-for-men" element={<Wrap><NonGreasyMoisturizer /></Wrap>} />
-                <Route path="/all-in-one-skincare-for-men" element={<Wrap><AllInOneSkincare /></Wrap>} />
-                <Route path="/about" element={<Wrap><About /></Wrap>} />
-                <Route path="/checkout" element={<Navigate to="/face-cream" replace />} />
-                <Route path="/blog" element={<Navigate to="/articles" replace />} />
-                <Route path="/blog/:slug" element={<Navigate to="/articles" replace />} />
-                <Route path="/articles" element={<Wrap><Articles /></Wrap>} />
-                <Route path="/articles/:slug" element={<Wrap><ArticleDetail /></Wrap>} />
-                <Route path="/ingredients" element={<Wrap><Ingredients /></Wrap>} />
-                <Route path="/ingredients/copper-peptide-ghk-cu" element={<Navigate to="/ingredients/copper-peptide" replace />} />
-                <Route path="/ingredients/:slug" element={<Wrap><IngredientDetail /></Wrap>} />
-                <Route path="/skin-concerns" element={<Wrap><SkinConcerns /></Wrap>} />
-                <Route path="/skin-concerns/:slug" element={<Wrap><SkinConcernDetail /></Wrap>} />
-                <Route path="/comparisons" element={<Wrap><Comparisons /></Wrap>} />
-                <Route path="/comparisons/:slug" element={<Wrap><ComparisonDetail /></Wrap>} />
-                <Route path="/product/:handle" element={<Wrap><ProductDetail /></Wrap>} />
-                <Route path="/lp" element={<Wrap><LandingPage /></Wrap>} />
-                <Route path="/article/5-reasons" element={<Wrap><Listicle /></Wrap>} />
-                <Route path="/article/2-minute-routine" element={<Wrap><ListicleGirlfriend /></Wrap>} />
-                <Route path="/privacy-policy" element={<Wrap><PrivacyPolicy /></Wrap>} />
-                <Route path="/terms-of-service" element={<Wrap><TermsOfService /></Wrap>} />
-                <Route path="/refund-policy" element={<Wrap><RefundPolicy /></Wrap>} />
-                <Route path="/shipping-policy" element={<Wrap><ShippingPolicy /></Wrap>} />
-                <Route path="*" element={<Wrap><NotFound /></Wrap>} />
-              </Routes>
-            </BrowserRouter>
-            <Suspense fallback={null}><ShopifyCartDrawer /></Suspense>
-          </CartProvider>
+          <BrowserRouter>
+            <MetaRouterTracker />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/face-cream" element={<Wrap><FaceCream /></Wrap>} />
+              <Route path="/matte-moisturizer-for-men" element={<Wrap><MatteMoisturizer /></Wrap>} />
+              <Route path="/non-greasy-moisturizer-for-men" element={<Wrap><NonGreasyMoisturizer /></Wrap>} />
+              <Route path="/all-in-one-skincare-for-men" element={<Wrap><AllInOneSkincare /></Wrap>} />
+              <Route path="/about" element={<Wrap><About /></Wrap>} />
+              <Route path="/checkout" element={<Navigate to="/face-cream" replace />} />
+              <Route path="/blog" element={<Navigate to="/articles" replace />} />
+              <Route path="/blog/:slug" element={<Navigate to="/articles" replace />} />
+              <Route path="/articles" element={<Wrap><Articles /></Wrap>} />
+              <Route path="/articles/:slug" element={<Wrap><ArticleDetail /></Wrap>} />
+              <Route path="/ingredients" element={<Wrap><Ingredients /></Wrap>} />
+              <Route path="/ingredients/copper-peptide-ghk-cu" element={<Navigate to="/ingredients/copper-peptide" replace />} />
+              <Route path="/ingredients/:slug" element={<Wrap><IngredientDetail /></Wrap>} />
+              <Route path="/skin-concerns" element={<Wrap><SkinConcerns /></Wrap>} />
+              <Route path="/skin-concerns/:slug" element={<Wrap><SkinConcernDetail /></Wrap>} />
+              <Route path="/comparisons" element={<Wrap><Comparisons /></Wrap>} />
+              <Route path="/comparisons/:slug" element={<Wrap><ComparisonDetail /></Wrap>} />
+              <Route path="/product/:handle" element={<Wrap><ProductDetail /></Wrap>} />
+              <Route path="/lp" element={<Wrap><LandingPage /></Wrap>} />
+              <Route path="/article/5-reasons" element={<Wrap><Listicle /></Wrap>} />
+              <Route path="/article/2-minute-routine" element={<Wrap><ListicleGirlfriend /></Wrap>} />
+              <Route path="/privacy-policy" element={<Wrap><PrivacyPolicy /></Wrap>} />
+              <Route path="/terms-of-service" element={<Wrap><TermsOfService /></Wrap>} />
+              <Route path="/refund-policy" element={<Wrap><RefundPolicy /></Wrap>} />
+              <Route path="/shipping-policy" element={<Wrap><ShippingPolicy /></Wrap>} />
+              <Route path="*" element={<Wrap><NotFound /></Wrap>} />
+            </Routes>
+          </BrowserRouter>
+          <Suspense fallback={null}><ShopifyCartDrawer /></Suspense>
         </EarlyAccessProvider>
       </TooltipProvider>
     </DeferredQueryProvider>
