@@ -51,6 +51,11 @@ function buildSitemap({ articles, ingredients, skinConcerns, comparisons }) {
     { loc: "/matte-moisturizer-for-men", changefreq: "monthly", priority: "0.9" },
     { loc: "/non-greasy-moisturizer-for-men", changefreq: "monthly", priority: "0.9" },
     { loc: "/all-in-one-skincare-for-men", changefreq: "monthly", priority: "0.9" },
+    // Keep in sync with STATIC_PAGES in vite.config.ts — the two lists are separate.
+    { loc: "/privacy-policy", changefreq: "yearly", priority: "0.3" },
+    { loc: "/terms-of-service", changefreq: "yearly", priority: "0.3" },
+    { loc: "/refund-policy", changefreq: "yearly", priority: "0.3" },
+    { loc: "/shipping-policy", changefreq: "yearly", priority: "0.3" },
   ];
 
   const urls = [];

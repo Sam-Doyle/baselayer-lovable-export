@@ -145,6 +145,38 @@ const STATIC_PAGES: PageMeta[] = [
       },
     ],
   },
+  // Legal/policy pages. These must be prerendered, not left as client-only SPA routes:
+  // ad-platform review crawlers (Meta in particular) fetch the privacy policy URL
+  // directly and do not reliably execute JS — an un-prerendered route reads as an empty
+  // page and stalls ad account approval.
+  {
+    path: "/privacy-policy",
+    title: "Privacy Policy | Base Layer",
+    description: "How Base Layer collects, uses, and protects your personal information.",
+    changefreq: "yearly",
+    priority: "0.3",
+  },
+  {
+    path: "/terms-of-service",
+    title: "Terms of Service | Base Layer",
+    description: "The terms governing your use of the Base Layer website and purchases.",
+    changefreq: "yearly",
+    priority: "0.3",
+  },
+  {
+    path: "/refund-policy",
+    title: "Refund Policy | Base Layer",
+    description: "Base Layer's 30-day money-back guarantee, returns, and refund process.",
+    changefreq: "yearly",
+    priority: "0.3",
+  },
+  {
+    path: "/shipping-policy",
+    title: "Shipping Policy | Base Layer",
+    description: "Shipping options, processing times, and delivery information for Base Layer orders.",
+    changefreq: "yearly",
+    priority: "0.3",
+  },
 ];
 
 function escapeHtml(s: string): string {

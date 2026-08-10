@@ -32,6 +32,10 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const Listicle = lazy(() => import("./pages/Listicle"));
 const ListicleGirlfriend = lazy(() => import("./pages/ListicleGirlfriend"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
 
 // ── Deferred QueryClientProvider ──────────────────────────────────
 // Dynamically imports @tanstack/react-query so the 36KB chunk is NOT
@@ -292,6 +296,10 @@ const App = () => {
                 <Route path="/lp" element={<Wrap><LandingPage /></Wrap>} />
                 <Route path="/article/5-reasons" element={<Wrap><Listicle /></Wrap>} />
                 <Route path="/article/2-minute-routine" element={<Wrap><ListicleGirlfriend /></Wrap>} />
+                <Route path="/privacy-policy" element={<Wrap><PrivacyPolicy /></Wrap>} />
+                <Route path="/terms-of-service" element={<Wrap><TermsOfService /></Wrap>} />
+                <Route path="/refund-policy" element={<Wrap><RefundPolicy /></Wrap>} />
+                <Route path="/shipping-policy" element={<Wrap><ShippingPolicy /></Wrap>} />
                 <Route path="*" element={<Wrap><NotFound /></Wrap>} />
               </Routes>
             </BrowserRouter>

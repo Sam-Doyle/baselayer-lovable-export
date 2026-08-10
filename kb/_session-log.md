@@ -39,3 +39,21 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Findings**: Production add-to-cart was broken since launch — stale public/netlify.toml inside dist overrode _headers CSP on every deploy. Netlify CLI deploys hang; zip API deploy works. Shopify recreated variant GIDs when Pack option added.
 - **Files changed**: src/config/product.ts (new variant + selling plan GIDs), public/netlify.toml (deleted)
 - **KB updates**: Deploy pipeline gotchas added to inbox
+
+## 2026-08-10 — Product carousel replacement on /face-cream
+- **Task**: Replaced 6 legacy gallery images with 7-slide Base-Layer-Heroes WebP carousel set (guide order, lifestyle v2); gallery frames aspect-[4/5] → aspect-square to fit square assets uncropped.
+- **Findings**: Carousel images are Vite-bundled static assets, not Sanity/Shopify. 1254px squares cover up to 3x DPR mobile; slide 1 (54KB, eager + fetchPriority high) is the LCP element. KB zip-POST deploy workaround still the working path (CLI deploy unavailable).
+- **Files changed**: src/pages/FaceCream.tsx, src/assets/product-carousel/* (7 new). Commit 3f1dfc7 on cro/day1-golive-fixes, pushed to origin.
+- **KB updates**: None (deploy gotcha already in inbox).
+
+## 2026-08-10 — Day 1 go-live teardown fixes: CRO, accessibility, legal pages
+- **Task**: Implemented the 7-finding store teardown. Add-to-cart double-fire fix, WCAG AA contrast sweep, hero→PDP funnel rearchitecture, Trustpilot mark removal + FTC disclosure, and four legal policy pages taken from scaffold to full text.
+- **Findings**:
+  - Add-to-cart double-fire root cause was a missing in-flight lock in `cartStore.addItem`, not a component bug — every CTA funnels through it. Fixing only the store still left a duplicate `add_to_cart` firing to GA4/Meta from `EarlyAccessContext.openModal`, so the guard is needed in both places.
+  - Brand orange `#D94E12` on white text is 4.16:1 and fails AA. It was hardcoded across 18 CTAs in 8 files because the brand colors were never added to the Tailwind token layer (shadcn tokens exist; brand colors don't). Swept to `#C04510` (5.12:1), hover `#A83C0E` (6.33:1). 10 buttons already had `hover:bg-[#C04510]` and would have become dead hovers if the base changed without touching them.
+  - Hero and sticky-mobile CTAs were adding to cart directly, which locked every cold-traffic conversion to the `$38` `DEFAULT_TIER`, bypassed the `$68`/subscription tiers that exist only in the PDP selector, and handed Meta an AddToCart with no preceding ViewContent (`view_item` fires only at `FaceCream.tsx`). Retargeting loss is unrecoverable retroactively. Hero + sticky now link to `/face-cream`; deep-scroll CTAs still add direct.
+  - `select_item` is unmapped in `FB_STANDARD_EVENTS`, so it reaches GA4 + Supabase and correctly skips Meta.
+  - Meta/Google ad-review crawlers fetch policy URLs without reliably executing JS, so the policy routes must be prerendered — registered in both `vite.config.ts` STATIC_PAGES and `scripts/generate-sitemap.mjs` (two separate lists).
+- **Files changed**: 22 files. New: `src/config/legal.ts`, 4 policy pages, `MidPageCTA`, `StickyMobileCTA`, `StarRating`, `testimonialsData`. Deleted: `TrustpilotStars.tsx` (rendered Trustpilot's trademarked mark implying a nonexistent 4.8 aggregate).
+- **Outstanding**: No cookie-consent banner while GA4/Meta Pixel/`bl_session` fire unconditionally. `legal.ts` `entityName` is the trading name, not a registered entity. No binding arbitration clause (deliberate). Two coexisting cart systems — legacy `CartProvider` mounted at `App.tsx` with its drawer never rendered. Brand colors still not tokenized.
+- **KB updates**: Contrast and funnel findings above are the durable ones; conversion-category entries worth compiling to inbox next session.

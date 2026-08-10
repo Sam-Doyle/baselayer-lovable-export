@@ -30,6 +30,8 @@ const Footer = () => {
             <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-foreground mb-4">Company</h3>
             <ul className="space-y-2">
               <li><Link to="/about" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">About</Link></li>
+              <li><Link to="/privacy-policy" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Terms of Service</Link></li>
             </ul>
           </div>
 
@@ -38,8 +40,8 @@ const Footer = () => {
             <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-foreground mb-4">Support</h3>
             <ul className="space-y-2">
               <li><a href="mailto:contact@baselayerskin.co" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">contact@baselayerskin.co</a></li>
-              <li><a href="mailto:contact@baselayerskin.co?subject=Returns%20%26%20Refunds" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Returns & Refunds</a></li>
-              <li><a href="mailto:contact@baselayerskin.co?subject=Shipping%20Inquiry" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Shipping</a></li>
+              <li><Link to="/refund-policy" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Returns & Refunds</Link></li>
+              <li><Link to="/shipping-policy" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Shipping</Link></li>
             </ul>
             <div className="flex items-center gap-3 mt-4">
               <a href="https://www.instagram.com/baselayerskin/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors p-2 -m-2" aria-label="Follow Base Layer on Instagram">
