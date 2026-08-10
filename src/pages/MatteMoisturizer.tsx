@@ -24,7 +24,7 @@ const PRODUCT_SCHEMA = {
     "@type": "Offer",
     price: "38.00",
     priceCurrency: "USD",
-    availability: "https://schema.org/PreOrder",
+    availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/matte-moisturizer-for-men",
     priceValidUntil: "2026-12-31",
   },
@@ -158,7 +158,7 @@ const MatteMoisturizer = () => {
                   openModal("matte_moisturizer_hero");
                 }}
               >
-                GET EARLY ACCESS — $38
+                GRAB YOURS — $38
               </Button>
             </div>
 
@@ -652,7 +652,7 @@ const MatteMoisturizer = () => {
               All six actives. One bottle. 6-8 weeks of daily use.
             </p>
             <p className="font-body text-[11px] text-muted-foreground/60 mt-2 uppercase tracking-wider">
-              Pre-launch — shipping Spring 2026
+              In stock — ships in 1-2 business days
             </p>
           </div>
         </section>
@@ -709,7 +709,7 @@ const MatteMoisturizer = () => {
             Shop The Matte Formula
           </h2>
           <p className="font-body text-muted-foreground mb-8 max-w-md mx-auto">
-            $38 pre-launch. No subscription traps. Shipping Spring 2026.
+            $38. No subscription traps. In stock, ships in 1-2 business days.
           </p>
           <Button
             variant="hero"
@@ -725,7 +725,7 @@ const MatteMoisturizer = () => {
               openModal("matte_moisturizer_bottom");
             }}
           >
-            GET EARLY ACCESS — $38
+            GRAB YOURS — $38
           </Button>
         </section>
       </main>

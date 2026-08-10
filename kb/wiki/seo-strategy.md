@@ -73,7 +73,7 @@ The `useMetaTags` hook dynamically sets per-page:
 
 **Product schema details (face-cream):**
 - Price: $38.00 USD
-- Availability: PreOrder
+- Availability: InStock (sales opened 2026-08-10; was PreOrder)
 - priceValidUntil: 2026-12-31
 
 ### Noindex Controls

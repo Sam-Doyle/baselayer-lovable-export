@@ -55,7 +55,7 @@ Reference for AI content skills. Add new SKUs as additional `## Product Name` se
     "@type": "Offer",
     "price": "38.00",
     "priceCurrency": "USD",
-    "availability": "https://schema.org/PreOrder",
+    "availability": "https://schema.org/InStock",
     "priceValidUntil": "TBD"
   },
   "aggregateRating": {

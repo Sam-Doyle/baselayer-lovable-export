@@ -61,7 +61,7 @@ const ProductDetail = () => {
       "@type": "Offer",
       price: parseFloat(variant.price.amount || "0").toFixed(2),
       priceCurrency: variant.price.currencyCode || "USD",
-      availability: "https://schema.org/PreOrder",
+      availability: "https://schema.org/InStock",
       url: `${BASE_URL}/products/${handle}`,
     } : undefined,
   } : null;
@@ -90,7 +90,7 @@ const ProductDetail = () => {
             {images.length > 1 && (
               <div className="flex gap-2 overflow-x-auto">
                 {images.map((img: any, idx: number) => (
-                  <button key={idx} onClick={() => setSelectedImage(idx)} className={`w-16 h-16 rounded border-2 overflow-hidden flex-shrink-0 ${selectedImage === idx ? 'border-foreground' : 'border-border'}`}>
+                  <button key={idx} onClick={() => setSelectedImage(idx)} aria-label={`View product image ${idx + 1}`} className={`w-16 h-16 rounded border-2 overflow-hidden flex-shrink-0 ${selectedImage === idx ? 'border-foreground' : 'border-border'}`}>
                     <img src={img.node.url} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
@@ -117,6 +117,7 @@ const ProductDetail = () => {
                           <button
                             key={v.node.id}
                             onClick={() => setSelectedVariantIdx(idx)}
+                            aria-pressed={selectedVariantIdx === idx}
                             className={`px-4 py-2 text-xs border rounded font-body uppercase tracking-wide transition-colors ${selectedVariantIdx === idx ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}
                           >
                             {optVal}
@@ -129,15 +130,15 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <p className="font-body text-xs text-muted-foreground mb-2">Pre-launch pricing — $38.</p>
-            <p className="font-body text-[11px] text-muted-foreground/60 mb-4 uppercase tracking-wider">Pre-launch — shipping Spring 2026</p>
+            <p className="font-body text-xs text-muted-foreground mb-2">Founding price — $38.</p>
+            <p className="font-body text-[11px] text-muted-foreground/60 mb-4 uppercase tracking-wider">In stock — ships in 1-2 business days</p>
             <Button
               variant="hero"
               size="lg"
               className="w-full py-6 text-sm"
               onClick={() => openModal("product_detail")}
             >
-              GET EARLY ACCESS — $38
+              GRAB YOURS — $38
             </Button>
           </div>
         </div>

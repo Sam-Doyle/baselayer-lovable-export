@@ -78,7 +78,7 @@ const faqs = [
   { q: "Will it feel greasy?", a: "No. Absorbs in 15 seconds. Matte finish." },
   { q: "What skin type is it for?", a: "All skin types. Especially good for oily and combination." },
   { q: "How long does a bottle last?", a: "6-8 weeks with daily use." },
-  { q: "When does it ship?", a: "Founding batch ships June 2026." },
+  { q: "When does it ship?", a: "In stock now. Ships in 1-2 business days." },
   { q: "What if it doesn't work?", a: "Full refund within 30 days. Keep the bottle." },
 ];
 

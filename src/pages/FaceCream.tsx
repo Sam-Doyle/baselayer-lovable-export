@@ -78,7 +78,8 @@ const GALLERY = [
 
 const BUY_OPTIONS = AVAILABLE_TIERS;
 
-// F01 social-proof slot: there are zero real reviews yet (pre-launch).
+// F01 social-proof slot: there are zero real reviews yet. Sales opened
+// 2026-08-10, so reviews should start arriving — check before assuming 0.
 // Sanity's `product` schema already has `rating` / `reviewCount` fields
 // (see Product interface + getProductBySlug in src/lib/queries.ts) — wire
 // this constant to that query once real review data exists. count: 0
@@ -270,12 +271,15 @@ const FaceCream = () => {
             </div>
 
             {/* 6. Quantity Selector */}
-            <div className="flex flex-row gap-[12px] mb-[20px] max-[380px]:flex-col">
+            <div className="flex flex-row gap-[12px] mb-[20px] max-[380px]:flex-col" role="radiogroup" aria-label="Select quantity">
               {BUY_OPTIONS.map((opt) => (
-                <div 
+                <button
                   key={opt.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={quantity === opt.id}
                   onClick={() => setQuantity(opt.id)}
-                  className={`flex-1 p-[20px_16px] max-[380px]:p-[16px_12px] rounded-[2px] text-center relative cursor-pointer outline-none transition-all duration-200 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
+                  className={`flex-1 p-[20px_16px] max-[380px]:p-[16px_12px] rounded-[2px] text-center relative cursor-pointer transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
                 >
                   {opt.badge && (
                     <div className={`absolute -top-[10px] left-1/2 -translate-x-1/2 ${opt.badgeColor} text-white font-heading font-semibold text-[9px] tracking-[0.12em] uppercase px-[10px] py-[4px] rounded-[10px] whitespace-nowrap`}>
@@ -291,7 +295,7 @@ const FaceCream = () => {
                     <div className="h-[18px]"></div> 
                   )}
                   <div className="font-body text-[11px] text-[#6B7280] mt-1">{opt.kind === "subscription" ? "per bottle, delivered on your schedule" : `$${(opt.price / opt.bottles).toFixed(2).replace(/\.00$/, '')}/bottle`}</div>
-                </div>
+                </button>
               ))}
             </div>
 

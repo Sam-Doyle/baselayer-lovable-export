@@ -173,7 +173,7 @@ const EarlyAccessModal = () => {
               GET EARLY ACCESS
             </h2>
             <p className="font-body text-sm text-muted-foreground leading-relaxed mb-2">
-              Be first in line. Pre-launch pricing at $38.
+              In stock now. Founding price at $38.
             </p>
             <p className="font-body text-xs text-muted-foreground mb-6 uppercase tracking-wider">
               One email when we launch. No spam.
@@ -259,6 +259,7 @@ const EarlyAccessModal = () => {
                     <button
                       key={opt}
                       onClick={() => setBiggestIssue(biggestIssue === opt ? "" : opt)}
+                      aria-pressed={biggestIssue === opt}
                       className={`px-3 py-1.5 border text-xs font-body transition-colors ${
                         biggestIssue === opt
                           ? "border-foreground bg-foreground text-background"
@@ -281,6 +282,7 @@ const EarlyAccessModal = () => {
                     <button
                       key={opt}
                       onClick={() => setWouldTry(wouldTry === opt ? "" : opt)}
+                      aria-pressed={wouldTry === opt}
                       className={`px-3 py-1.5 border text-xs font-body transition-colors ${
                         wouldTry === opt
                           ? "border-foreground bg-foreground text-background"
@@ -303,6 +305,7 @@ const EarlyAccessModal = () => {
                     <button
                       key={opt}
                       onClick={() => setPreference(preference === opt ? "" : opt)}
+                      aria-pressed={preference === opt}
                       className={`px-3 py-2 border text-xs font-body text-left transition-colors ${
                         preference === opt
                           ? "border-foreground bg-foreground text-background"

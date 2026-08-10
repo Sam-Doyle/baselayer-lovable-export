@@ -279,7 +279,7 @@ const SkinConcernDetail = () => {
             Ready to Try Base Layer?
           </h2>
           <p className="font-body text-sm text-muted-foreground mb-6">
-            6 clinical-grade actives. One step. $38. Shipping Spring 2026.
+            6 clinical-grade actives. One step. $38. In stock, ships in 1-2 business days.
           </p>
           <Button
             variant="hero"
@@ -290,10 +290,10 @@ const SkinConcernDetail = () => {
               openModal("content_cta");
             }}
           >
-            GET EARLY ACCESS — $38
+            GRAB YOURS — $38
           </Button>
           <p className="font-body text-[11px] text-muted-foreground/60 mt-3 uppercase tracking-wider">
-            Pre-launch — shipping Spring 2026
+            In stock — ships in 1-2 business days
           </p>
         </div>
       </section>

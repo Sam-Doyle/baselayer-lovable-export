@@ -23,7 +23,7 @@ const PRODUCT_SCHEMA = {
     "@type": "Offer",
     price: "38.00",
     priceCurrency: "USD",
-    availability: "https://schema.org/PreOrder",
+    availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/all-in-one-skincare-for-men",
     priceValidUntil: "2026-12-31",
   },
@@ -157,7 +157,7 @@ const AllInOneSkincare = () => {
                   openModal("all_in_one_hero");
                 }}
               >
-                GET EARLY ACCESS — $38
+                GRAB YOURS — $38
               </Button>
             </div>
 
@@ -377,7 +377,7 @@ const AllInOneSkincare = () => {
               your time back, too.
             </p>
             <p className="font-body text-[11px] text-muted-foreground/60 text-center mt-3 uppercase tracking-wider">
-              Pre-launch — shipping Spring 2026
+              In stock — ships in 1-2 business days
             </p>
           </div>
         </section>
@@ -789,7 +789,7 @@ const AllInOneSkincare = () => {
               openModal("all_in_one_bottom");
             }}
           >
-            GET EARLY ACCESS — $38
+            GRAB YOURS — $38
           </Button>
         </section>
       </main>
