@@ -6,6 +6,9 @@ import { Navigate } from "react-router-dom";
 import MetaRouterTracker from "@/analytics/MetaRouterTracker";
 import { JsonLd, organizationSchema, websiteSchema } from "@/components/SEO";
 import { useCartSync } from "@/hooks/useCartSync";
+import { fireInitialCapiPageView, initAnalyticsScripts, clearAnalyticsCookies } from "@/lib/analytics";
+import { onConsentChange } from "@/lib/consent";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
 const ShopifyCartDrawer = lazy(() => import("@/components/ShopifyCartDrawer"));
 
 const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
@@ -114,118 +117,26 @@ const App = () => {
     // This captures 100% of page views regardless of whether the browser
     // pixel loads in time. Uses raw fetch() — no Supabase SDK import.
     // The deferred browser pixel fires the same event_id for dedup.
-    if (!isBot && !isEmbedded) {
-      const pageViewEventId = crypto.randomUUID();
-      (window as any).__BL_PV_EID = pageViewEventId;
-
-      const bl = (window as any).__BL || { u: location.href, q: location.search };
-      const cookies = document.cookie.split(";").reduce((acc, c) => {
-        const [k, v] = c.trim().split("=");
-        if (k && v) acc[k] = v;
-        return acc;
-      }, {} as Record<string, string>);
-
-      // Immediate _fbp generation to bypass Race Condition
-      let fbp = cookies._fbp || null;
-      if (!fbp && !isBot) {
-        // format: fb.subdomainIndex.creationTime.random
-        fbp = `fb.1.${Date.now()}.${Math.floor(Math.random() * 10000000000)}`;
-        const domain = window.location.hostname.replace("www.", "");
-        document.cookie = `_fbp=${fbp}; path=/; max-age=7776000; domain=${domain}`; // 90 days
-      }
-
-      const fbc = cookies._fbc || sessionStorage.getItem("_fbc") || null;
-
-      // Upgrade bl_session to persistent cookie (max-age 30 days)
-      let sessionId = cookies.bl_session;
-      if (!sessionId) {
-        sessionId = sessionStorage.getItem("bl_session") || crypto.randomUUID();
-        sessionStorage.setItem("bl_session", sessionId);
-        document.cookie = `bl_session=${sessionId}; path=/; max-age=2592000`; // 30 days
-      }
-
-      fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fb-capi`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
-          event_name: "PageView",
-          event_id: pageViewEventId,
-          event_source_url: bl.u,
-          user_data: {
-            client_user_agent: navigator.userAgent,
-            external_id: sessionId,
-            ...(fbc && { fbc }),
-            ...(fbp && { fbp }),
-          },
-          custom_data: {
-            ...(sessionStorage.getItem("utm_source") && { utm_source: sessionStorage.getItem("utm_source") }),
-            ...(sessionStorage.getItem("utm_medium") && { utm_medium: sessionStorage.getItem("utm_medium") }),
-            ...(sessionStorage.getItem("utm_campaign") && { utm_campaign: sessionStorage.getItem("utm_campaign") }),
-          },
-        }),
-      }).catch(() => { });
-    }
+    //
+    // COOKIE-CONSENT GATE: the fetch above (and the bl_session/_fbp cookies
+    // it writes) now lives in fireInitialCapiPageView() in src/lib/analytics.ts,
+    // which no-ops until the visitor has accepted analytics cookies — see
+    // src/lib/consent.ts. Calling it unconditionally here is safe. The
+    // consent-change subscription effect further down calls it again (plus
+    // initAnalyticsScripts() below) the moment consent is granted, so a
+    // visitor who accepts mid-session still gets an initial page_view
+    // instead of losing it.
+    fireInitialCapiPageView();
 
     // ── Deferred Analytics Loader ──
     // Load GA4 + Meta Pixel after main content paints. Uses window.__BL
     // (set in index.html <head>) to recover the original landing URL with
     // UTMs, which React Router may have already consumed.
+    //
+    // COOKIE-CONSENT GATE: script injection now lives in
+    // initAnalyticsScripts() in src/lib/analytics.ts, which no-ops until
+    // consent is granted. Scheduling still happens here.
     if (!isBot && !isEmbedded) {
-      const loadAnalytics = () => {
-        const w = window as any;
-        const bl = w.__BL || { u: location.href, q: location.search };
-        const landingParams = new URLSearchParams(bl.q || "");
-
-        // ── GA4 (gtag.js) ──
-        if (!document.querySelector('script[src*="googletagmanager.com/gtag"]')) {
-          const gtagScript = document.createElement("script");
-          gtagScript.src = "https://www.googletagmanager.com/gtag/js?id=G-E1GTL9RHY0";
-          gtagScript.async = true;
-          document.head.appendChild(gtagScript);
-
-          w.dataLayer = w.dataLayer || [];
-          w.gtag = function () { w.dataLayer.push(arguments); };
-          w.gtag("js", new Date());
-          w.gtag("config", "G-E1GTL9RHY0", {
-            send_page_view: true,
-            page_location: bl.u,
-            // Pass UTMs explicitly so GA4 attributes correctly even if
-            // the URL has already been rewritten by React Router
-            ...(landingParams.get("utm_source") && { campaign_source: landingParams.get("utm_source") }),
-            ...(landingParams.get("utm_medium") && { campaign_medium: landingParams.get("utm_medium") }),
-            ...(landingParams.get("utm_campaign") && { campaign_name: landingParams.get("utm_campaign") }),
-            ...(landingParams.get("utm_content") && { campaign_content: landingParams.get("utm_content") }),
-            ...(landingParams.get("utm_term") && { campaign_term: landingParams.get("utm_term") }),
-          });
-        }
-
-        // ── Meta Pixel ──
-        if (!w.fbq) {
-          const f = w;
-          const n = (f.fbq = function () {
-            // eslint-disable-next-line prefer-rest-params
-            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-          });
-          if (!f._fbq) f._fbq = n;
-          n.push = n;
-          n.loaded = true;
-          n.version = "2.0";
-          n.queue = [];
-
-          const fbScript = document.createElement("script");
-          fbScript.src = "https://connect.facebook.net/en_US/fbevents.js";
-          fbScript.async = true;
-          document.head.appendChild(fbScript);
-
-          w.fbq("init", "916078074161719");
-          // Use the same event_id as the CAPI PageView for deduplication
-          w.fbq("track", "PageView", {}, { eventID: (window as any).__BL_PV_EID });
-        }
-      };
-
       // Defer analytics until after critical rendering completes.
       // requestIdleCallback fires when truly idle (no forced timeout);
       // setTimeout at 3s is the guaranteed fallback for slow connections.
@@ -233,7 +144,7 @@ const App = () => {
       const loadOnce = () => {
         if (analyticsLoaded) return;
         analyticsLoaded = true;
-        loadAnalytics();
+        initAnalyticsScripts();
       };
       if ("requestIdleCallback" in window) {
         (window as any).requestIdleCallback(loadOnce);
@@ -260,6 +171,24 @@ const App = () => {
         return _origBeacon(url, data);
       };
     }
+  }, []);
+
+  // ── Cookie-consent reaction ──
+  // If the visitor accepts on the banner after this page has already
+  // loaded, fire the page_view/PageView that the gated calls above skipped
+  // and load GA4 + the Meta Pixel now. If they reject (including revoking
+  // an earlier accept via the footer's "Cookie Preferences" link), drop the
+  // first-party cookies this app controls directly — see the caveats in
+  // clearAnalyticsCookies() in src/lib/analytics.ts.
+  useEffect(() => {
+    return onConsentChange((choice) => {
+      if (choice === "accepted") {
+        fireInitialCapiPageView();
+        initAnalyticsScripts();
+      } else {
+        clearAnalyticsCookies();
+      }
+    });
   }, []);
 
   return (
@@ -300,6 +229,7 @@ const App = () => {
               <Route path="/shipping-policy" element={<Wrap><ShippingPolicy /></Wrap>} />
               <Route path="*" element={<Wrap><NotFound /></Wrap>} />
             </Routes>
+            <CookieConsentBanner />
           </BrowserRouter>
           <Suspense fallback={null}><ShopifyCartDrawer /></Suspense>
         </EarlyAccessProvider>

@@ -10,15 +10,25 @@ import { LEGAL } from "@/config/legal";
  * The cookie table and sub-processor list below describe what the Site actually
  * loads — GA4 via gtag, the Meta Pixel via fbq, the first-party bl_session
  * cookie, and Shopify's hosted checkout. If a tag is added or removed, update
- * this page in the same change, or the disclosure stops being accurate.
+ * this page AND src/lib/consent.ts's CONSENT_VERSION in the same change (bumping
+ * the version re-shows the banner so returning visitors make a fresh, informed
+ * choice), or the disclosure stops being accurate.
  *
- * KNOWN GAP: there is no cookie-consent banner anywhere on the Site, and GA4,
- * the Meta Pixel, and bl_session all fire unconditionally on first paint. That
- * is a live compliance exposure for EU/UK/EEA visitors under ePrivacy and GDPR,
- * and for the opt-out-of-sharing right under CPRA and similar state laws. This
- * page discloses the tags honestly and gives opt-out routes, but disclosure is
- * not the same as consent. A consent gate is still owed if you run paid traffic
- * into those regions. Flagged deliberately rather than papered over.
+ * CONSENT MECHANISM (see src/components/CookieConsentBanner.tsx and
+ * src/lib/consent.ts): GA4, the Meta Pixel, Meta CAPI, and the bl_session
+ * cookie are all off by default and only activate after a visitor clicks
+ * Accept on the banner shown on first visit. Shopify's checkout cookies are
+ * unaffected — they're strictly necessary to place an order and aren't
+ * gated. The choice is stored in localStorage and can be changed at any
+ * time via "Cookie Preferences" in the footer.
+ *
+ * REMAINING GAP, flagged deliberately: the SPA route-change tracker
+ * (src/analytics/MetaRouterTracker.tsx) sends a server-side Meta CAPI
+ * PageView on every in-app navigation independent of this consent gate —
+ * it was out of scope for the change that added consent gating and still
+ * needs to be wired up to hasAnalyticsConsent(). Until that lands, treat
+ * per-route CAPI PageViews as a known exception to the "nothing before
+ * consent" claim above.
  */
 
 const PrivacyPolicy = () => {
@@ -79,19 +89,24 @@ const PrivacyPolicy = () => {
                 using Supabase, our backend data platform.
               </p>
               <p className="mt-3">
-                <strong className="text-foreground">Automatically collected information.</strong> We use Google Analytics 4
-                and the Meta (Facebook/Instagram) advertising pixel to understand how visitors use the Site and to measure
-                the performance of our advertising. This includes pages viewed, links and buttons clicked, approximate
-                location derived from IP address, device and browser type, and referring source. We also send certain
-                purchase and add-to-cart events to Meta server-side through the Meta Conversions API.
+                <strong className="text-foreground">Automatically collected information.</strong> With your consent (see
+                Cookies &amp; Tracking Technologies below), we use Google Analytics 4 and the Meta (Facebook/Instagram)
+                advertising pixel to understand how visitors use the Site and to measure the performance of our
+                advertising. This includes pages viewed, links and buttons clicked, approximate location derived from IP
+                address, device and browser type, and referring source. With your consent, we also send certain purchase
+                and add-to-cart events to Meta server-side through the Meta Conversions API.
               </p>
             </section>
 
             <section>
               <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-3 text-foreground">Cookies &amp; Tracking Technologies</h2>
               <p>
-                The Site sets the following cookies and similar technologies. Durations are the values set by each provider
-                and may change if a provider updates its defaults.
+                When you first visit the Site, a banner asks you to Accept or Reject cookies that aren't required to run
+                the Site. Both choices are one click and neither is preselected or visually favored over the other. Until
+                you choose, and if you choose Reject, only the cookies marked "Required" below are set — GA4, the Meta
+                Pixel, Meta CAPI, and the bl_session cookie all stay off. If you choose Accept, those load and the table
+                below is what they set. Durations are the values set by each provider and may change if a provider
+                updates its defaults.
               </p>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
@@ -100,7 +115,8 @@ const PrivacyPolicy = () => {
                       <th className="py-2 pr-4 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Cookie</th>
                       <th className="py-2 pr-4 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Set by</th>
                       <th className="py-2 pr-4 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Purpose</th>
-                      <th className="py-2 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Duration</th>
+                      <th className="py-2 pr-4 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Duration</th>
+                      <th className="py-2 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Requires consent?</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -108,39 +124,45 @@ const PrivacyPolicy = () => {
                       <td className="py-2 pr-4"><code className="text-foreground">bl_session</code></td>
                       <td className="py-2 pr-4">Base Layer (first-party)</td>
                       <td className="py-2 pr-4">Recognizes repeat visits and attributes conversions to the visit that produced them.</td>
-                      <td className="py-2">30 days</td>
+                      <td className="py-2 pr-4">30 days</td>
+                      <td className="py-2">Yes</td>
                     </tr>
                     <tr className="border-b border-border/50">
                       <td className="py-2 pr-4"><code className="text-foreground">_ga</code>, <code className="text-foreground">_ga_*</code></td>
                       <td className="py-2 pr-4">Google Analytics 4</td>
                       <td className="py-2 pr-4">Distinguishes visitors and retains session state for analytics reporting.</td>
-                      <td className="py-2">2 years</td>
+                      <td className="py-2 pr-4">2 years</td>
+                      <td className="py-2">Yes</td>
                     </tr>
                     <tr className="border-b border-border/50">
                       <td className="py-2 pr-4"><code className="text-foreground">_fbp</code></td>
                       <td className="py-2 pr-4">Meta</td>
                       <td className="py-2 pr-4">Identifies browsers for advertising delivery and conversion measurement.</td>
-                      <td className="py-2">90 days</td>
+                      <td className="py-2 pr-4">90 days</td>
+                      <td className="py-2">Yes</td>
                     </tr>
                     <tr className="border-b border-border/50">
                       <td className="py-2 pr-4"><code className="text-foreground">_fbc</code></td>
                       <td className="py-2 pr-4">Meta</td>
                       <td className="py-2 pr-4">Stores the ad click identifier when you arrive from a Meta ad.</td>
-                      <td className="py-2">90 days</td>
+                      <td className="py-2 pr-4">90 days</td>
+                      <td className="py-2">Yes</td>
                     </tr>
                     <tr>
                       <td className="py-2 pr-4">Checkout cookies</td>
                       <td className="py-2 pr-4">Shopify</td>
                       <td className="py-2 pr-4">Maintain your cart and secure the checkout session. Set on Shopify's checkout domain.</td>
-                      <td className="py-2">Session to 2 years</td>
+                      <td className="py-2 pr-4">Session to 2 years</td>
+                      <td className="py-2">No — required</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
               <p className="mt-4">
-                You can block or delete cookies through your browser settings. You can opt out of Google Analytics using
-                Google's browser add-on, and you can adjust how Meta uses your data for advertising in your Meta account ad
-                preferences. Blocking cookies may affect how parts of the Site function.
+                You can change your Accept/Reject choice at any time using "Cookie Preferences" in the site footer. You
+                can also block or delete cookies through your browser settings, opt out of Google Analytics using Google's
+                browser add-on, and adjust how Meta uses your data for advertising in your Meta account ad preferences.
+                Blocking cookies may affect how parts of the Site function.
               </p>
             </section>
 
@@ -195,7 +217,8 @@ const PrivacyPolicy = () => {
               <p className="mt-3">
                 If you are in the European Economic Area or the United Kingdom, you may also have the right to object to or
                 restrict certain processing, to withdraw consent where we rely on it, and to lodge a complaint with your
-                local supervisory authority.
+                local supervisory authority. You can withdraw or change your cookie consent at any time using "Cookie
+                Preferences" in the site footer — see Cookies &amp; Tracking Technologies above.
               </p>
               <p className="mt-3">
                 To exercise any of these rights, email{" "}

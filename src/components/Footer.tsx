@@ -1,5 +1,6 @@
 import { Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
+import { requestConsentReview } from "@/lib/consent";
 
 const Footer = () => {
   return (
@@ -32,6 +33,15 @@ const Footer = () => {
               <li><Link to="/about" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">About</Link></li>
               <li><Link to="/privacy-policy" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Privacy Policy</Link></li>
               <li><Link to="/terms-of-service" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Terms of Service</Link></li>
+              <li>
+                <button
+                  type="button"
+                  onClick={requestConsentReview}
+                  className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block text-left"
+                >
+                  Cookie Preferences
+                </button>
+              </li>
             </ul>
           </div>
 
