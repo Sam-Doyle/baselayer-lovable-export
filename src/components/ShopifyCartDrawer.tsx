@@ -79,7 +79,11 @@ const ShopifyCartDrawer = () => {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-              {items.map((item) => (
+              {items.map((item) => {
+                // Resolve the live tier so renewal copy tracks config, not the
+                // price/cadence persisted in localStorage when the line was added.
+                const subTier = item.sellingPlanId ? BUY_TIERS.find(t => t.sellingPlanGid === item.sellingPlanId) : null;
+                return (
                 <div key={item.variantId} className="flex gap-4 py-3 border-b border-border/50 last:border-0">
                   <div className="w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
                     {item.product.node.images?.edges?.[0]?.node && (
@@ -88,7 +92,10 @@ const ShopifyCartDrawer = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-xs font-bold uppercase tracking-wide truncate">{item.product.node.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.selectedOptions.map(o => o.value).join(' · ')}</p>
+                    <p className={`text-xs ${item.sellingPlanId ? "text-brand font-medium" : "text-muted-foreground"}`}>{item.variantTitle}</p>
+                    {subTier && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Auto-renews {subTier.duration} at ${subTier.price}. Pause or cancel anytime.</p>
+                    )}
                     <p className="font-body text-xs mt-0.5">${parseFloat(item.price.amount).toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button onClick={() => updateQuantity(item.variantId, item.quantity - 1)} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors" aria-label={`Decrease quantity of ${item.product.node.title}`}>
@@ -104,7 +111,8 @@ const ShopifyCartDrawer = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="px-6 py-4 border-t border-border space-y-3">
@@ -122,6 +130,11 @@ const ShopifyCartDrawer = () => {
                 <span className="font-heading text-sm font-bold uppercase tracking-wide">Subtotal</span>
                 <span className="font-body text-sm">${totalPrice.toFixed(2)}</span>
               </div>
+              {items.some(i => i.sellingPlanId) && (
+                <p className="font-body text-[11px] text-muted-foreground text-center">
+                  Your cart includes a subscription. It renews automatically — pause or cancel anytime, no commitment.
+                </p>
+              )}
               {/*
                 No hover:bg-* — variant="hero" wipes a white ::before across on hover and
                 switches the label to black, so a hover background would never paint.

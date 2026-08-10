@@ -1,4 +1,4 @@
-import productShot from "@/assets/product-hero-rock.png";
+import packshot from "@/assets/product-carousel/base-layer-carousel-01-primary.webp";
 import type { ShopifyProduct } from "@/lib/shopify";
 
 // Live Shopify catalog mapping. Store: base-layer-skin.myshopify.com
@@ -64,7 +64,8 @@ export function buildCartItem(tier: BuyTier) {
         title: "Performance Daily Face Cream",
         handle: PRODUCT_HANDLE,
         description: "",
-        images: { edges: [{ node: { url: productShot, altText: "Base Layer Face Cream" } }] },
+        // Light packshot — matches the variant image Shopify shows in checkout.
+        images: { edges: [{ node: { url: packshot, altText: "Base Layer Face Cream" } }] },
         variants: { edges: [] },
         options: [],
         priceRange: { minVariantPrice: { amount: tier.price.toFixed(2), currencyCode: "USD" } },
