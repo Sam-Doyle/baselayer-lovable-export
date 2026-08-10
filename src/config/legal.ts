@@ -12,10 +12,8 @@
  *
  * CONFIRM BEFORE THESE PAGES CARRY ANY WEIGHT:
  *
- *  - entityName: currently the trading name. If Base Layer Skin is registered
- *    as an LLC or corporation, replace this with the exact registered name.
- *    The privacy policy identifies this entity as the data controller, so a
- *    wrong value misidentifies who is legally responsible for the data.
+ *  - entityName: confirmed as the registered LLC. The privacy policy names this
+ *    entity as the data controller, so it has to stay exact.
  *
  *  - processingDays / deliveryWindow: written to match Shopify's standard
  *    fulfilment defaults. If actual fulfilment is slower, these become
@@ -33,8 +31,8 @@
  */
 
 export const LEGAL = {
-  /** Trading name shown to customers. Replace with registered entity if formed. */
-  entityName: "Base Layer Skin",
+  /** Registered legal entity. Named as data controller in the privacy policy. */
+  entityName: "Base Layer Skin LLC",
   /** State whose law governs the Terms and where the business operates. */
   entityState: "Colorado",
   contactEmail: "contact@baselayerskin.co",
