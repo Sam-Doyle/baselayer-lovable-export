@@ -9,6 +9,7 @@ import { useCartSync } from "@/hooks/useCartSync";
 import { fireInitialCapiPageView, initAnalyticsScripts, clearAnalyticsCookies } from "@/lib/analytics";
 import { onConsentChange } from "@/lib/consent";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
+import ErrorBoundary from "@/components/ErrorBoundary";
 const ShopifyCartDrawer = lazy(() => import("@/components/ShopifyCartDrawer"));
 
 const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
@@ -83,8 +84,13 @@ const DeferredQueryProvider = ({ children }: { children: React.ReactNode }) => {
 
 const PageFallback = () => <div style={{ minHeight: "100vh", background: "#0a0a0a" }} />;
 
+// ErrorBoundary wraps Suspense (not the reverse) — see the doc comment in
+// ErrorBoundary.tsx for why the boundary lives here, per-route, rather than
+// around the whole app.
 const Wrap = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<PageFallback />}>{children}</Suspense>
+  <ErrorBoundary>
+    <Suspense fallback={<PageFallback />}>{children}</Suspense>
+  </ErrorBoundary>
 );
 
 const App = () => {
@@ -201,7 +207,7 @@ const App = () => {
           <BrowserRouter>
             <MetaRouterTracker />
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
               <Route path="/face-cream" element={<Wrap><FaceCream /></Wrap>} />
               <Route path="/matte-moisturizer-for-men" element={<Wrap><MatteMoisturizer /></Wrap>} />
               <Route path="/non-greasy-moisturizer-for-men" element={<Wrap><NonGreasyMoisturizer /></Wrap>} />

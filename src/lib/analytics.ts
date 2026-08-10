@@ -177,7 +177,15 @@ export async function trackEvent(eventName: string, payload: Record<string, unkn
  * unconditionally.
  * ──────────────────────────────────────────────────────────────── */
 
-function analyticsBlocked(): boolean {
+/** True until the visitor has granted analytics consent, or if the
+ *  bot/iframe flag (window.__META_PIXEL_DISABLED__, set in App.tsx) is set.
+ *  This is the single gate every GA4/Meta call site in this app must check
+ *  — reads consent fresh from storage on every call, so callers that check
+ *  it at fire time (rather than caching the result) pick up a consent
+ *  change without needing a page reload. Exported so MetaRouterTracker.tsx
+ *  (the route-change PageView tracker) can reuse the same gate instead of
+ *  relying on the bot/iframe flag alone. */
+export function analyticsBlocked(): boolean {
   const flagged = (window as unknown as { __META_PIXEL_DISABLED__?: boolean }).__META_PIXEL_DISABLED__;
   return !hasAnalyticsConsent() || !!flagged;
 }

@@ -1,4 +1,5 @@
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { Link } from "react-router-dom";
+import { trackEvent } from "@/lib/analytics";
 
 /*
  * MID-PAGE CTA
@@ -6,12 +7,11 @@ import { useEarlyAccess } from "@/context/EarlyAccessContext";
  * Reusable band-style CTA for closing conversion gaps between
  * persuasion sections (ingredients, testimonials, etc).
  *
- * Adds to cart directly via useEarlyAccess().openModal(source). This is
- * deliberate and differs from the hero and sticky-mobile CTAs, which link
- * to /face-cream instead: by the time a visitor reaches one of these bands
- * they've scrolled past the ingredient and testimonial sections, so they've
- * already consumed the education the PDP would provide. The hero has not
- * earned that assumption, which is why it routes to the PDP.
+ * Routes to /face-cream via trackEvent("select_item", { source }) on click,
+ * same as the hero and sticky-mobile CTAs. Every GRAB YOURS CTA on the site
+ * sends visitors to the PDP rather than adding to cart directly — a direct
+ * add locks the conversion to the $38 default tier and skips the PDP's
+ * view_item / Meta ViewContent signal.
  *
  * `theme` flips the band's contrast so instances on the same page don't
  * read as identical stacked duplicates.
@@ -26,7 +26,6 @@ interface MidPageCTAProps {
 }
 
 const MidPageCTA = ({ headline, subhead, ctaLabel, source, theme = "dark" }: MidPageCTAProps) => {
-  const { openModal } = useEarlyAccess();
   const isDark = theme === "dark";
 
   return (
@@ -59,13 +58,13 @@ const MidPageCTA = ({ headline, subhead, ctaLabel, source, theme = "dark" }: Mid
           there, not here, and keep the rest state above 4.5:1, since that is
           what mobile sees when hover never fires.
         */}
-        <button
-          type="button"
-          onClick={() => openModal(source)}
-          className="shrink-0 px-8 py-4 bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        <Link
+          to="/face-cream"
+          onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source })}
+          className="inline-block text-center shrink-0 px-8 py-4 bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           {ctaLabel}
-        </button>
+        </Link>
       </div>
     </section>
   );

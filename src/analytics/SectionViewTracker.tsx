@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { analyticsBlocked } from "@/lib/analytics";
 
 /** Sections to observe — maps DOM id → readable name */
 const SECTION_IDS: Record<string, string> = {
@@ -18,6 +19,10 @@ export default function SectionViewTracker() {
 
     const observer = new IntersectionObserver(
       (entries) => {
+        // Same reasoning as ScrollDepthTracker: these call gtag/fbq directly
+        // and so miss trackEvent's consent gate. Checked inside the callback,
+        // not at mount, so consent revoked mid-session takes effect at once.
+        if (analyticsBlocked()) return;
         for (const entry of entries) {
           if (entry.isIntersecting && !seen.has(entry.target.id)) {
             seen.add(entry.target.id);

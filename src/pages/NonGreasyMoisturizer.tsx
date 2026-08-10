@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
@@ -83,8 +82,6 @@ const faqs = [
 /* ── Component ──────────────────────────────────────────────────── */
 
 const NonGreasyMoisturizer = () => {
-  const { openModal } = useEarlyAccess();
-
   useCanonical();
   useMetaTags({
     title: "Non-Greasy Moisturizer for Men | Fast Absorption, Clean Finish",
@@ -146,10 +143,9 @@ const NonGreasyMoisturizer = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-              <Button
-                variant="hero"
-                size="lg"
-                className="w-full sm:w-auto px-12 py-6 text-sm"
+              <Link
+                to="/face-cream"
+                className={buttonVariants({ variant: "hero", size: "lg", className: "w-full sm:w-auto px-12 py-6 text-sm" })}
                 onClick={() => {
                   trackEvent("cta_click", {
                     content_name: "Non-Greasy Moisturizer for Men",
@@ -157,11 +153,11 @@ const NonGreasyMoisturizer = () => {
                     value: 38.0,
                     currency: "USD",
                   });
-                  openModal("non_greasy_hero");
+                  trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "non_greasy_hero" });
                 }}
               >
-                GRAB YOURS — $38
-              </Button>
+                <span className="relative z-10">GRAB YOURS — $38</span>
+              </Link>
             </div>
 
             <p className="font-body text-xs text-muted-foreground">
@@ -707,10 +703,9 @@ const NonGreasyMoisturizer = () => {
           <p className="font-body text-muted-foreground mb-8 max-w-md mx-auto">
             $38. Absorbs in 15 seconds. No subscription required. In stock — ships in 1-2 business days.
           </p>
-          <Button
-            variant="hero"
-            size="lg"
-            className="px-12 py-6 text-sm"
+          <Link
+            to="/face-cream"
+            className={buttonVariants({ variant: "hero", size: "lg", className: "px-12 py-6 text-sm" })}
             onClick={() => {
               trackEvent("cta_click", {
                 content_name: "Non-Greasy Moisturizer for Men",
@@ -718,11 +713,11 @@ const NonGreasyMoisturizer = () => {
                 value: 38.0,
                 currency: "USD",
               });
-              openModal("non_greasy_bottom");
+              trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "non_greasy_bottom" });
             }}
           >
-            GRAB YOURS — $38
-          </Button>
+            <span className="relative z-10">GRAB YOURS — $38</span>
+          </Link>
         </section>
       </main>
 

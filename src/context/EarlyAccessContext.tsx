@@ -23,14 +23,22 @@ export const EarlyAccessProvider = ({ children }: { children: ReactNode }) => {
     // first await, so a second click in the same tick always sees true here.
     if (useCartStore.getState().isLoading) return;
     const { addItem } = useCartStore.getState();
-    trackEvent("add_to_cart", {
-      content_name: "Base Layer Face Cream",
-      content_ids: ["base-layer-face-cream"],
-      value: DEFAULT_TIER.price,
-      currency: "USD",
-      source: source || "unknown",
+    // trackEvent only fires once addItem confirms the line actually landed in
+    // Shopify's cart — a rejected/failed add (out of stock, expired cart,
+    // network error) must not report a successful add_to_cart to GA4/Meta.
+    // addItem's own in-flight guard also means a second call in the same tick
+    // resolves { success: false } without hitting the network, so this can't
+    // double-fire either.
+    void addItem(buildCartItem(DEFAULT_TIER)).then((result) => {
+      if (!result.success) return;
+      trackEvent("add_to_cart", {
+        content_name: "Base Layer Face Cream",
+        content_ids: ["base-layer-face-cream"],
+        value: DEFAULT_TIER.price,
+        currency: "USD",
+        source: source || "unknown",
+      });
     });
-    void addItem(buildCartItem(DEFAULT_TIER));
   }, []);
 
   const closeModal = useCallback(() => {}, []);

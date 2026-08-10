@@ -111,16 +111,23 @@ const FaceCream = () => {
 
   const selectedOption = BUY_OPTIONS.find(o => o.id === quantity) || BUY_OPTIONS[0];
 
+  // add_to_cart fires only after the Storefront API confirms the line. It used
+  // to fire before addItem was even called, so a rejected add (out of stock,
+  // quantity cap, expired cart) still reported a successful add_to_cart to GA4
+  // and Meta — inflating the funnel and training Meta's optimizer on
+  // conversions that never happened. addItem now resolves { success }.
   const handleAddToCart = (source: string) => {
     if (useCartStore.getState().isLoading) return;
-    trackEvent("add_to_cart", {
-      content_name: "Base Layer Face Cream",
-      content_ids: ["base-layer-face-cream"],
-      value: selectedOption.price,
-      currency: "USD",
-      source,
+    void addItem(buildCartItem(selectedOption)).then((result) => {
+      if (!result.success) return;
+      trackEvent("add_to_cart", {
+        content_name: "Base Layer Face Cream",
+        content_ids: ["base-layer-face-cream"],
+        value: selectedOption.price,
+        currency: "USD",
+        source,
+      });
     });
-    void addItem(buildCartItem(selectedOption));
   };
   const msrp = 48 * selectedOption.bottles;
 

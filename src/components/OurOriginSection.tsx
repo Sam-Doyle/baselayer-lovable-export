@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { trackEvent } from "@/lib/analytics";
 
 const OurOriginSection = () => {
     const sectionRef = useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(false);
-    const { openModal } = useEarlyAccess();
 
     useEffect(() => {
         const ref = sectionRef.current;
@@ -82,12 +81,13 @@ const OurOriginSection = () => {
 
                         {/* Conversion CTA */}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <button
-                                onClick={() => openModal("origin_section")}
-                                className="px-8 py-4 bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors w-full sm:w-auto text-center"
+                            <Link
+                                to="/face-cream"
+                                onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "origin_section" })}
+                                className="inline-block px-8 py-4 bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors w-full sm:w-auto text-center"
                             >
                                 GRAB YOURS · $38
-                            </button>
+                            </Link>
                             <Link
                                 to="/face-cream"
                                 className="font-body text-[13px] text-white/50 hover:text-white/80 transition-colors underline underline-offset-4"

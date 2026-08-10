@@ -8,8 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getArticleBySlug } from "@/lib/queries";
 import PortableText from "@/components/PortableText";
 import { trackEvent } from "@/lib/analytics";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema, buildArticleSchema } from "@/components/SEO";
 import {
   Accordion,
@@ -50,7 +49,6 @@ const articleHeroImages: Record<string, string> = {
 };
 
 const ArticleDetail = () => {
-  const { openModal } = useEarlyAccess();
   const { slug } = useParams<{ slug: string }>();
 
   const { data: article, isLoading, error } = useQuery({
@@ -297,17 +295,16 @@ const ArticleDetail = () => {
           <p className="font-body text-sm text-muted-foreground mb-6">
             6 clinical-grade actives. One step. $38. In stock, ships in 1-2 business days.
           </p>
-          <Button
-            variant="hero"
-            size="lg"
-            className="px-12 py-6 text-sm"
+          <Link
+            to="/face-cream"
+            className={buttonVariants({ variant: "hero", size: "lg", className: "px-12 py-6 text-sm" })}
             onClick={() => {
               trackEvent("cta_click", { source: "article_detail" });
-              openModal("content_cta");
+              trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "content_cta" });
             }}
           >
-            GRAB YOURS — $38
-          </Button>
+            <span className="relative z-10">GRAB YOURS — $38</span>
+          </Link>
           <p className="font-body text-[11px] text-muted-foreground/60 mt-3 uppercase tracking-wider">
             In stock — ships in 1-2 business days
           </p>

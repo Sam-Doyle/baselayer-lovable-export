@@ -40,6 +40,16 @@ const ShopifyCartDrawer = () => {
     // an already-consumed line. (The trailing addItem is safe on its own — removeItem's
     // finally clears isLoading before the await resumes.)
     if (useCartStore.getState().isLoading) return;
+    const removeResult = await removeItem(singleBottleLine.variantId);
+    // If the remove failed (removeItem already surfaced its own toast), don't
+    // chase it with an add — that would leave the shopper with both the old
+    // single-bottle line AND the 2-bottle line instead of a clean swap.
+    if (!removeResult.success) return;
+    const addResult = await useCartStore.getState().addItem(buildCartItem(upsellTier));
+    // Only report the upsell as a successful add once Shopify actually
+    // confirms the 2-bottle line landed — a failed add must not fire a
+    // successful add_to_cart event to GA4/Meta.
+    if (!addResult.success) return;
     trackEvent("add_to_cart", {
       content_name: "Base Layer Face Cream",
       content_ids: ["base-layer-face-cream"],
@@ -47,8 +57,6 @@ const ShopifyCartDrawer = () => {
       currency: "USD",
       source: "cart_upsell",
     });
-    await removeItem(singleBottleLine.variantId);
-    await useCartStore.getState().addItem(buildCartItem(upsellTier));
   };
 
   return (

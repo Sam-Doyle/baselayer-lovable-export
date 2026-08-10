@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { Link } from "react-router-dom";
+import { trackEvent } from "@/lib/analytics";
 import { ChevronDown } from "lucide-react";
 
 import productRockWebp from "@/assets/product-hero-rock-1200w.webp";
@@ -101,17 +102,29 @@ const Stars = ({ className = "" }: { className?: string }) => (
   </div>
 );
 
-const CtaButton = ({ className = "" }: { className?: string }) => {
-  const { openModal } = useEarlyAccess();
-  return (
-    <button
-      onClick={() => openModal("landing_page")}
-      className={`px-10 py-5 bg-[#F95D1A] text-[#FFFFFF] font-heading font-black tracking-widest text-[13px] md:text-[14px] uppercase hover:bg-[#1E201E] transition-all duration-300 rounded-none whitespace-nowrap ${className}`}
-    >
-      TRY IT RISK-FREE &mdash; $38
-    </button>
-  );
-};
+/*
+  Routes to the PDP rather than adding to cart. /lp is the paid-traffic entry
+  point, so it is the single coldest audience on the site — exactly the traffic
+  that should not be dropped into a cart holding a tier it never chose. Sending
+  it to /face-cream also restores the view_item/ViewContent signal that Meta's
+  optimizer needs from this page.
+
+  Rendered at several points down the page; the source stays "landing_page"
+  for all of them, matching how it read before.
+
+  inline-flex + justify-center, not inline-block: a <button> centers its own
+  label, an <a> does not, and two of the four call sites pass w-full. Without
+  it they would render left-aligned text in a full-width bar.
+*/
+const CtaButton = ({ className = "" }: { className?: string }) => (
+  <Link
+    to="/face-cream"
+    onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "landing_page" })}
+    className={`inline-flex items-center justify-center px-10 py-5 bg-[#F95D1A] text-[#FFFFFF] font-heading font-black tracking-widest text-[13px] md:text-[14px] uppercase hover:bg-[#1E201E] transition-all duration-300 rounded-none whitespace-nowrap ${className}`}
+  >
+    TRY IT RISK-FREE &mdash; $38
+  </Link>
+);
 
 const Price = ({ className = "" }: { className?: string }) => (
   <div className={`flex items-baseline gap-3 ${className}`}>

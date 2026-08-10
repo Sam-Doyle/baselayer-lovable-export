@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
@@ -80,8 +79,6 @@ const faqs = [
 /* ── Component ──────────────────────────────────────────────────── */
 
 const AllInOneSkincare = () => {
-  const { openModal } = useEarlyAccess();
-
   useCanonical();
   useMetaTags({
     title: "All-in-One Skincare for Men | One Daily Moisturizer That Covers More",
@@ -143,10 +140,9 @@ const AllInOneSkincare = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-              <Button
-                variant="hero"
-                size="lg"
-                className="w-full sm:w-auto px-12 py-6 text-sm"
+              <Link
+                to="/face-cream"
+                className={buttonVariants({ variant: "hero", size: "lg", className: "w-full sm:w-auto px-12 py-6 text-sm" })}
                 onClick={() => {
                   trackEvent("cta_click", {
                     content_name: "All-in-One Skincare for Men",
@@ -154,11 +150,11 @@ const AllInOneSkincare = () => {
                     value: 38.0,
                     currency: "USD",
                   });
-                  openModal("all_in_one_hero");
+                  trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "all_in_one_hero" });
                 }}
               >
-                GRAB YOURS — $38
-              </Button>
+                <span className="relative z-10">GRAB YOURS — $38</span>
+              </Link>
             </div>
 
             <p className="font-body text-xs text-muted-foreground">
@@ -775,10 +771,9 @@ const AllInOneSkincare = () => {
           <p className="font-body text-muted-foreground mb-8 max-w-md mx-auto">
             One product. $38. Replaces three. No subscription required.
           </p>
-          <Button
-            variant="hero"
-            size="lg"
-            className="px-12 py-6 text-sm"
+          <Link
+            to="/face-cream"
+            className={buttonVariants({ variant: "hero", size: "lg", className: "px-12 py-6 text-sm" })}
             onClick={() => {
               trackEvent("cta_click", {
                 content_name: "All-in-One Skincare for Men",
@@ -786,11 +781,11 @@ const AllInOneSkincare = () => {
                 value: 38.0,
                 currency: "USD",
               });
-              openModal("all_in_one_bottom");
+              trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "all_in_one_bottom" });
             }}
           >
-            GRAB YOURS — $38
-          </Button>
+            <span className="relative z-10">GRAB YOURS — $38</span>
+          </Link>
         </section>
       </main>
 

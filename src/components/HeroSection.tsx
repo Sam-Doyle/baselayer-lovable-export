@@ -111,8 +111,9 @@ const HeroSection = () => {
                 fires. Adding to cart straight from here locks every hero conversion
                 to the $38 default and hands Meta an AddToCart with no preceding
                 ViewContent, which degrades delivery and starves retargeting.
-                Deep-scroll CTAs further down the page still add directly — by then
-                the visitor has consumed the same content the PDP would give them.
+                Every other GRAB YOURS CTA on the site — deep-scroll bands included —
+                routes to the PDP the same way, so this signal integrity holds
+                everywhere, not just at the top of the page.
               */}
               <Link
                 to="/face-cream"

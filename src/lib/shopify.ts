@@ -1,5 +1,17 @@
 import { toast } from "sonner";
 
+/** Thrown by storefrontApiRequest on a non-2xx response. Carries the HTTP
+ *  status so callers (cartStore's retry logic) can tell a transient failure
+ *  (429 throttled, 5xx) apart from a hard client error worth not retrying. */
+export class ShopifyHttpError extends Error {
+  status: number;
+  constructor(status: number) {
+    super(`HTTP error! status: ${status}`);
+    this.name = 'ShopifyHttpError';
+    this.status = status;
+  }
+}
+
 const SHOPIFY_API_VERSION = '2025-07';
 const SHOPIFY_STORE_PERMANENT_DOMAIN = import.meta.env.VITE_SHOPIFY_DOMAIN;
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
@@ -67,7 +79,7 @@ export async function storefrontApiRequest(query: string, variables: Record<stri
   }
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    throw new ShopifyHttpError(response.status);
   }
 
   const data = await response.json();

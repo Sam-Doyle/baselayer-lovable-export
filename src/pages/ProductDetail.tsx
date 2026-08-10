@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { fetchProductByHandle } from "@/lib/shopify";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useEarlyAccess } from "@/context/EarlyAccessContext";
+import { trackEvent } from "@/lib/analytics";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, BASE_URL } from "@/components/SEO";
 import { merchantOfferFields } from "@/config/merchantSchema";
 
@@ -15,7 +15,6 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [selectedImage, setSelectedImage] = useState(0);
-  const { openModal } = useEarlyAccess();
 
   useCanonical();
   useMetaTags({
@@ -137,14 +136,13 @@ const ProductDetail = () => {
 
             <p className="font-body text-xs text-muted-foreground mb-2">Founding price — $38.</p>
             <p className="font-body text-[11px] text-muted-foreground/60 mb-4 uppercase tracking-wider">In stock — ships in 1-2 business days</p>
-            <Button
-              variant="hero"
-              size="lg"
-              className="w-full py-6 text-sm"
-              onClick={() => openModal("product_detail")}
+            <Link
+              to="/face-cream"
+              className={buttonVariants({ variant: "hero", size: "lg", className: "w-full py-6 text-sm" })}
+              onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "product_detail" })}
             >
-              GRAB YOURS — $38
-            </Button>
+              <span className="relative z-10">GRAB YOURS — $38</span>
+            </Link>
           </div>
         </div>
       </div>

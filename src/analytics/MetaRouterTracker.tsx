@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { analyticsBlocked } from "@/lib/analytics";
 
 /**
  * SPA route-change tracker for GA4 + Meta Pixel + CAPI.
@@ -13,6 +14,17 @@ import { useLocation } from "react-router-dom";
  *
  * Skips the initial mount — the deferred loader already fires the first
  * page_view and PageView, and App.tsx fires the initial CAPI PageView.
+ *
+ * COOKIE-CONSENT GATE: analyticsBlocked() (src/lib/analytics.ts) is the same
+ * gate fireInitialCapiPageView()/initAnalyticsScripts()/trackEvent() use —
+ * it reads hasAnalyticsConsent() (src/lib/consent.ts) fresh from storage on
+ * every call, so it can't go stale in a closure. Checking it here, inside
+ * the effect that reruns on every navigation, means a route change right
+ * after the visitor accepts fires normally with no reload needed; a route
+ * change while consent is denied/undecided fires nothing. Do NOT gate on
+ * window.__META_PIXEL_DISABLED__ alone — that flag only marks bots/iframes
+ * (see App.tsx) and is never set on consent denial, so it is not a consent
+ * signal by itself.
  */
 export default function MetaRouterTracker() {
   const location = useLocation();
@@ -24,7 +36,7 @@ export default function MetaRouterTracker() {
       return;
     }
 
-    if ((window as any).__META_PIXEL_DISABLED__) return;
+    if (analyticsBlocked()) return;
 
     const url = window.location.origin + location.pathname + location.search;
     const eventId = crypto.randomUUID();
