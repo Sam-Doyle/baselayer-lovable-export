@@ -739,9 +739,26 @@ function prerenderPlugin(): Plugin {
       // Write SPA fallback shell (generic skeleton, no page-specific content)
       fs.writeFileSync(path.join(distDir, "__shell.html"), shellHtml);
 
+      // 404 shell: same SPA boot (React renders the NotFound route client-side)
+      // but served with a 404 status + noindex, so unknown URLs don't become
+      // soft-404s / indexable homepage duplicates.
+      const notFoundHtml = shellHtml
+        .replace(/<title>[\s\S]*?<\/title>/, "<title>Page Not Found | Base Layer</title>")
+        .replace(
+          /<meta name="viewport"([^>]*)>/,
+          '<meta name="viewport"$1>\n    <meta name="robots" content="noindex">'
+        );
+      fs.writeFileSync(path.join(distDir, "404.html"), notFoundHtml);
+
       redirectLines.push("");
-      redirectLines.push("# SPA fallback — must be last");
-      redirectLines.push("/*  /__shell.html  200");
+      redirectLines.push("# Client-only routes (ad landing pages, dynamic product URLs) — not");
+      redirectLines.push("# prerendered, must keep serving the SPA shell with a 200 status.");
+      redirectLines.push("/lp  /__shell.html  200");
+      redirectLines.push("/article/*  /__shell.html  200");
+      redirectLines.push("/product/*  /__shell.html  200");
+      redirectLines.push("");
+      redirectLines.push("# Unknown routes — real 404 status (React still renders the NotFound UI)");
+      redirectLines.push("/*  /404.html  404");
 
       fs.writeFileSync(path.join(distDir, "_redirects"), redirectLines.join("\n"));
       console.log(`  ✅ _redirects (${prerenderedPaths.length} prerendered routes)`);

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base Layer Skin — SEO Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #21262d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --faint: #484f58;
+    --accent: #e3b341;
+    --green: #3fb950;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 40px 32px 64px;
+    max-width: 1200px;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  h1 .brand { color: var(--accent); }
+  .daterange { color: var(--muted); font-size: 13px; }
+  .subhead { color: var(--faint); font-size: 12px; margin-bottom: 32px; }
+
+  .grid { display: grid; gap: 16px; }
+
+  /* Priorities */
+  .priorities { background: linear-gradient(135deg, #1a1408 0%, var(--card) 55%); border: 1px solid #3a2f10; border-radius: 12px; padding: 24px 28px; margin-bottom: 24px; }
+  .priorities h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 18px; font-weight: 600; }
+  .priority { display: flex; gap: 16px; padding: 12px 0; border-top: 1px solid #21262d; align-items: flex-start; }
+  .priority:first-of-type { border-top: none; padding-top: 0; }
+  .priority .num { font-size: 22px; font-weight: 700; color: var(--accent); line-height: 1.2; min-width: 28px; }
+  .priority .body strong { display: block; font-size: 15px; margin-bottom: 3px; }
+  .priority .body span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .priority .body .stat { color: var(--accent); font-weight: 600; }
+
+  /* Score + toplines row */
+  .row-score { grid-template-columns: 320px 1fr; margin-bottom: 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; margin-bottom: 16px; }
+
+  /* Score ring */
+  @property --p { syntax: '<number>'; inherits: false; initial-value: 0; }
+  .ring-wrap { display: flex; flex-direction: column; align-items: center; }
+  .ring {
+    --p: 6;
+    width: 170px; height: 170px; border-radius: 50%;
+    background: conic-gradient(var(--red) calc(var(--p) * 1%), #21262d 0);
+    display: flex; align-items: center; justify-content: center;
+    animation: fill 1.2s ease-out forwards;
+    margin-bottom: 18px;
+  }
+  @keyframes fill { from { --p: 0; } to { --p: 6; } }
+  .ring-inner {
+    width: 138px; height: 138px; border-radius: 50%;
+    background: var(--card);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ring-inner .score { font-size: 46px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .ring-inner .of { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .breakdown { width: 100%; }
+  .breakdown .part { margin-bottom: 12px; }
+  .breakdown .label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .breakdown .bar { height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
+  .breakdown .bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+
+  /* Topline cards */
+  .toplines { grid-template-columns: repeat(3, 1fr); align-content: start; }
+  .metric .name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px; }
+  .metric .val { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .metric .val.zero { color: var(--faint); }
+  .metric .delta { font-size: 12px; margin-top: 10px; color: var(--muted); }
+  .delta.up { color: var(--green); }
+  .delta.down { color: var(--red); }
+  .metric .src { font-size: 10px; color: var(--faint); margin-top: 6px; }
+
+  /* Mid row */
+  .row-mid { grid-template-columns: 320px 1fr; margin: 24px 0; }
+  .donut-empty { display: flex; flex-direction: column; align-items: center; padding: 12px 0; }
+  .donut {
+    width: 140px; height: 140px; border-radius: 50%;
+    background: conic-gradient(#21262d 100%, #21262d 0);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  }
+  .donut-inner { width: 106px; height: 106px; border-radius: 50%; background: var(--card); display: flex; align-items: center; justify-content: center; flex-direction: column; }
+  .donut-inner .pct { font-size: 26px; font-weight: 700; color: var(--faint); }
+  .empty-note { color: var(--muted); font-size: 13px; text-align: center; line-height: 1.6; max-width: 240px; }
+
+  /* Indexing panel */
+  .idx-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .fact { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .fact .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .fact .v { font-size: 15px; font-weight: 600; }
+  .ok { color: var(--green); } .warn { color: var(--accent); } .bad { color: var(--red); }
+  .fact ul { list-style: none; margin-top: 6px; }
+  .fact li { font-size: 12px; color: var(--muted); padding: 2px 0; }
+  .fact li::before { content: "⚠ "; color: var(--accent); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); color: var(--text); }
+  td.num, th.num { text-align: right; }
+  td .path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  td .none { color: var(--faint); }
+  .table-empty { padding: 28px 0 12px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.7; }
+  .table-empty strong { color: var(--text); }
+
+  .row-bottom { grid-template-columns: 1fr; margin-top: 24px; }
+  footer { margin-top: 40px; color: var(--faint); font-size: 11px; text-align: center; }
+  @media (max-width: 900px) { .row-score, .row-mid { grid-template-columns: 1fr; } .toplines { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="brand">BASE LAYER</span> SEO Dashboard</h1>
+  <div class="daterange">Jul 14 – Aug 10, 2026 · vs Jun 16 – Jul 13</div>
+</header>
+<div class="subhead">Generated Aug 10, 2026 · sc-domain:baselayerskin.co · GA4 properties/526066920</div>
+
+<section class="priorities">
+  <h2>This Week's 3 Priorities</h2>
+  <div class="priority">
+    <div class="num">1</div>
+    <div class="body">
+      <strong>Submit an XML sitemap — you have <span class="stat">0</span> submitted</strong>
+      <span>Google last crawled the homepage <span class="stat">Jul 1</span> (40 days ago) and has recorded <span class="stat">0 impressions</span> in 6 months. The site is indexed but Google has no feed of your ~18 content URLs. Generate /sitemap.xml and submit it in Search Console.</span>
+    </div>
+  </div>
+  <div class="priority">
+    <div class="num">2</div>
+    <div class="body">
+      <strong>Fix 3 Merchant Listing schema warnings on the product page</strong>
+      <span>Product, review, and merchant rich results all detected, but missing <span class="stat">shippingDetails</span>, <span class="stat">hasMerchantReturnPolicy</span>, and <span class="stat">validFrom</span>. These gate shopping-surface eligibility — high leverage for a single-product store.</span>
+    </div>
+  </div>
+  <div class="priority">
+    <div class="num">3</div>
+    <div class="body">
+      <strong>Claim the non-Google engines that are already sending traffic</strong>
+      <span>GA4 shows <span class="stat">3 organic sessions</span> (100% engagement) this period while Google sent <span class="stat">0 clicks</span> — that traffic is Bing/DuckDuckGo. Submit the sitemap to Bing Webmaster Tools; it indexes faster and feeds DuckDuckGo.</span>
+    </div>
+  </div>
+</section>
+
+<div class="grid row-score">
+  <div class="card ring-wrap">
+    <h3 style="align-self:flex-start">SEO Health Score</h3>
+    <div class="ring"><div class="ring-inner">
+      <div class="score">6</div>
+      <div class="of">/ 100 · pre-SEO</div>
+    </div></div>
+    <div class="breakdown">
+      <div class="part">
+        <div class="label"><span>Trend momentum</span><span>6 / 30</span></div>
+        <div class="bar"><i style="width:20%"></i></div>
+      </div>
+      <div class="part">
+        <div class="label"><span>CTR vs expected</span><span>0 / 30 · no rankings</span></div>
+        <div class="bar"><i style="width:0%"></i></div>
+      </div>
+      <div class="part">
+        <div class="label"><span>Non-branded strength</span><span>0 / 40 · no clicks</span></div>
+        <div class="bar"><i style="width:0%"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid toplines">
+    <div class="card metric">
+      <div class="name">GSC Clicks</div>
+      <div class="val zero">0</div>
+      <div class="delta">— flat vs prior 28d (0)</div>
+      <div class="src">Google Search Console</div>
+    </div>
+    <div class="card metric">
+      <div class="name">GSC Impressions</div>
+      <div class="val zero">0</div>
+      <div class="delta">— flat vs prior 28d (0)</div>
+      <div class="src">Google Search Console</div>
+    </div>
+    <div class="card metric">
+      <div class="name">Avg Position</div>
+      <div class="val zero">—</div>
+      <div class="delta">no ranking data yet</div>
+      <div class="src">Google Search Console</div>
+    </div>
+    <div class="card metric">
+      <div class="name">CTR</div>
+      <div class="val zero">—</div>
+      <div class="delta">no impression data yet</div>
+      <div class="src">Google Search Console</div>
+    </div>
+    <div class="card metric">
+      <div class="name">Organic Sessions</div>
+      <div class="val">3</div>
+      <div class="delta up">▲ +3 vs prior 28d (0) · non-Google</div>
+      <div class="src">GA4 · Organic Search channel</div>
+    </div>
+    <div class="card metric">
+      <div class="name">Organic Engagement</div>
+      <div class="val">100%</div>
+      <div class="delta">3 of 3 sessions engaged</div>
+      <div class="src">GA4 · site avg 33% (40 sessions)</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid row-mid">
+  <div class="card">
+    <h3>Branded vs Non-Branded</h3>
+    <div class="donut-empty">
+      <div class="donut"><div class="donut-inner"><div class="pct">n/a</div></div></div>
+      <div class="empty-note">0 Google clicks — nothing to segment yet. When clicks arrive, this becomes the number to watch: high branded % = SEO isn't doing new-customer work.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Indexing Status (live inspection)</h3>
+    <div class="idx-facts">
+      <div class="fact"><div class="k">Homepage index state</div><div class="v ok">Submitted &amp; indexed ✓</div></div>
+      <div class="fact"><div class="k">Last crawl</div><div class="v bad">Jul 1, 2026 — 40 days ago</div></div>
+      <div class="fact"><div class="k">Sitemaps submitted</div><div class="v bad">0</div></div>
+      <div class="fact"><div class="k">Robots / fetch</div><div class="v ok">Allowed · fetch OK</div></div>
+      <div class="fact" style="grid-column: 1 / -1;">
+        <div class="k">Rich results</div>
+        <div class="v warn">Product ✓ · Reviews ✓ · Merchant listing: 3 warnings</div>
+        <ul>
+          <li>Missing field "shippingDetails"</li>
+          <li>Missing field "hasMerchantReturnPolicy"</li>
+          <li>Missing field "validFrom"</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Quick Wins — position 4–20 opportunities</h3>
+  <div class="table-empty">
+    <strong>None available — the site has 0 impressions, so nothing ranks anywhere yet.</strong><br>
+    (Threshold was already relaxed to ≥5 impressions; still empty.) This table populates once Google starts crawling regularly — Priority 1 is the unblocker. Re-run after the sitemap has been live ~2 weeks.
+  </div>
+</div>
+
+<div class="grid row-bottom">
+  <div class="card">
+    <h3>Top Pages (GA4 sessions, all channels) × Top Google Query</h3>
+    <table>
+      <thead><tr><th>Page</th><th class="num">Sessions</th><th class="num">Engagement</th><th>Top GSC query</th></tr></thead>
+      <tbody>
+        <tr><td><span class="path">/</span></td><td class="num">17</td><td class="num">53%</td><td><span class="none">— no query data</span></td></tr>
+        <tr><td><span class="path">/face-cream</span></td><td class="num">6</td><td class="num">67%</td><td><span class="none">— no query data</span></td></tr>
+        <tr><td><span class="path">/skin-concerns/post-shave-irritation</span></td><td class="num">4</td><td class="num">0%</td><td><span class="none">— no query data</span></td></tr>
+        <tr><td><span class="path">/articles/best-moisturizer-men-over-40</span></td><td class="num">3</td><td class="num">0%</td><td><span class="none">— no query data</span></td></tr>
+        <tr><td><span class="path">/articles/best-moisturizer-outdoor-workers</span></td><td class="num">3</td><td class="num">67%</td><td><span class="none">— no query data</span></td></tr>
+        <tr><td><span class="path">/articles/the-ultimate-3-step-skincare-routine-for-surfers</span></td><td class="num">2</td><td class="num">0%</td><td><span class="none">— no query data</span></td></tr>
+        <tr><td><span class="path">/ingredients</span></td><td class="num">2</td><td class="num">0%</td><td><span class="none">— no query data</span></td></tr>
+        <tr><td><span class="path">/ingredients/niacinamide</span></td><td class="num">2</td><td class="num">0%</td><td><span class="none">— no query data</span></td></tr>
+      </tbody>
+    </table>
+    <div class="table-empty" style="padding: 16px 0 0;">SEO-shaped content already exists (articles, ingredients, skin concerns) — the mismatch column activates once Google query data flows.</div>
+  </div>
+</div>
+
+<footer>All figures pulled live from Google Search Console &amp; GA4 APIs on Aug 10, 2026 · Base Layer Skin SEO-OS</footer>
+
+</body>
+</html>

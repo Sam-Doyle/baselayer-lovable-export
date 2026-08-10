@@ -6,6 +6,7 @@ import StickyMobileCTA from "@/components/StickyMobileCTA";
 import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
+import { merchantOfferFields } from "@/config/merchantSchema";
 
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
 const FAQSection = lazy(() => import("@/components/FAQSection"));
@@ -33,6 +34,7 @@ const REVIEW_SCHEMA = {
     availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/face-cream",
     priceValidUntil: "2026-12-31",
+    ...merchantOfferFields("38.00"),
   },
 };
 

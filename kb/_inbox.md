@@ -54,3 +54,30 @@ confidence: high
 target_article: seo baseline / organic search
 ---
 SEO baseline as of 2026-08-10: zero recorded search impressions for baselayerskin.co over the trailing 6 months (Feb–Aug 2026). Site is starting organic search from scratch. GA4 property: properties/526066920 (account "Base Layer Skin", 385687789).
+
+---
+date: 2026-08-10
+category: technical
+source: GSC URL inspection API + sitemaps API (/seo-os:dashboard run)
+confidence: high
+target_article: seo baseline / organic search
+---
+Root cause of zero impressions found: NO sitemap submitted to Search Console (0 sitemaps), and Google last crawled the homepage 2026-07-01 (40 days stale). Homepage IS indexed ("Submitted and indexed", robots allowed, fetch OK). Rich results: Product snippets PASS, Review snippets PASS (4 reviews detected), Merchant listings have 3 warnings — missing shippingDetails, hasMerchantReturnPolicy, validFrom in product schema. Fix = generate + submit sitemap.xml, patch Offer schema fields.
+
+---
+date: 2026-08-10
+category: marketing
+source: GA4 API (properties/526066920)
+confidence: medium
+target_article: seo baseline / organic search
+---
+GA4 last 28d (Jul 14–Aug 10): 40 total sessions — Direct 31, Organic Search 3 (100% engagement, non-Google since GSC=0 clicks; likely Bing/DDG), Organic Social 2, Referral 1. Top pages: / (17), /face-cream (6), /skin-concerns/post-shave-irritation (4). Article + ingredient pages already receiving trickle traffic. Action: submit sitemap to Bing Webmaster Tools too.
+
+---
+date: 2026-08-10
+category: technical
+source: /seo-os:tech-debt live crawl of all 59 sitemap URLs + repo inspection
+confidence: high
+target_article: seo baseline / organic search
+---
+Tech-debt audit result: site is structurally clean (0 redirect chains, 0 canonical errors, 0 noindex, 0 4xx; prerendered HTML has correct canonicals; www/http variants 301 correctly; trailing-slash dupes neutralized by canonicals). A valid 59-URL sitemap.xml IS live and referenced in robots.txt — the only gap is it was never SUBMITTED to GSC (submit API blocked: our OAuth is webmasters.readonly by design; manual UI submit required). Two real defects: (1) soft-404 — SPA fallback `/* /index.html 200` in public/_redirects serves homepage shell at unknown URLs; fix = prerender 404.html + `/* /404.html 404`. (2) product Offer schema duplicated across 5 page files (FaceCream.tsx, Index.tsx, ProductDetail.tsx, MatteMoisturizer.tsx, NonGreasyMoisturizer.tsx) missing shippingDetails/hasMerchantReturnPolicy/validFrom. Tickets: runs/tech-debt-2026-08-10.md.

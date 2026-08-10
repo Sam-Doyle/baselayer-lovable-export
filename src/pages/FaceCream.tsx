@@ -22,6 +22,7 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 import ComparisonTable from "@/components/ComparisonTable";
 import StarRating from "@/components/StarRating";
+import { merchantOfferFields } from "@/config/merchantSchema";
 
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
@@ -36,6 +37,7 @@ const PRODUCT_SCHEMA = {
     availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/face-cream",
     priceValidUntil: "2026-12-31",
+    ...merchantOfferFields("38.00"),
   },
 };
 

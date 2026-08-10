@@ -13,6 +13,9 @@
 /product                                    /face-cream       301
 /shop                                       /face-cream       301
 /products/*                                 /face-cream       301
+# Server-side version of the client <Navigate> in App.tsx — required now that
+# unknown routes 404 instead of falling back to the SPA shell
+/checkout                                   /face-cream       301
 
 # Blog → Articles (canonical)
 /blog                                       /articles         301

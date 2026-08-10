@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useEarlyAccess } from "@/context/EarlyAccessContext";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, BASE_URL } from "@/components/SEO";
+import { merchantOfferFields } from "@/config/merchantSchema";
 
 const ProductDetail = () => {
   const { handle } = useParams<{ handle: string }>();
@@ -63,6 +64,10 @@ const ProductDetail = () => {
       priceCurrency: variant.price.currencyCode || "USD",
       availability: "https://schema.org/InStock",
       url: `${BASE_URL}/products/${handle}`,
+      ...merchantOfferFields(
+        parseFloat(variant.price.amount || "0").toFixed(2),
+        variant.price.currencyCode || "USD"
+      ),
     } : undefined,
   } : null;
 

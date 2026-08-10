@@ -10,6 +10,7 @@ import { Droplets, Timer, Shield, Leaf, Zap, FlaskConical, CheckCircle2, ArrowRi
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import routineGraphic from "@/assets/generated-creatives/content_visual_routine_graphic_1772738778419.png";
 import absorptionDiagram from "@/assets/generated-creatives/content_visual_absorption_diagram_1772738792625.png";
+import { merchantOfferFields } from "@/config/merchantSchema";
 
 /* ── Structured Data ────────────────────────────────────────────── */
 
@@ -27,6 +28,7 @@ const PRODUCT_SCHEMA = {
     availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/non-greasy-moisturizer-for-men",
     priceValidUntil: "2026-12-31",
+    ...merchantOfferFields("38.00"),
   },
   image: "https://baselayerskin.co/og-face-cream.jpg",
   url: "https://baselayerskin.co/non-greasy-moisturizer-for-men",

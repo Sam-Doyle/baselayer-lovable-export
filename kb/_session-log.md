@@ -84,7 +84,17 @@ Each session appends a digest here. Never edit or delete prior entries.
 ## 2026-08-10 — Subscription price $34 (save $4) + deploy prep
 - **Task**: Subscription price moved from $32 to $34. Sam changed the Shopify selling plan himself to a fixed $34 (same GID, `SellingPlanFixedPriceAdjustment` $34.00 on both variants, verified via Storefront API). Frontend `SUBSCRIBE_PRICE` updated 32→34 in `src/config/product.ts`; savings auto-computes to $4 from the $38 one-time price.
 - **Findings**: Changing a Subscriptions app plan's pricing model (percentage → fixed price) also preserves the selling plan GID. Existing subscribers keep their old price; new subscribers get $34.
-- **Files changed**: `src/config/product.ts` — committed as 45b732d on `cro/day1-golive-fixes` ("feat(product): subscription $34 every 6 weeks to match live selling plan"). Typecheck clean, 15/15 tests pass, production build prerendered 59 routes; bundle spot-check confirms `price:34, savings:4, duration:"every 6 weeks"`.
+- **Files changed**: `src/config/product.ts` — committed as 45b732d on `cro/day1-golive-fixes` ("feat(product): subscription $34 every 6 weeks to match live selling plan"). Typecheck clean, 15/15 tests pass, production build prerendered 59 routes; bundle spot-check confirms `price:34, savings:4, duration:"every 6 weeks"`. Deployed to Netlify (deploy 6a7a1a326595a52c9d0c0127), verified live on /face-cream.
+- **KB updates**: This entry only.
+
+## 2026-08-10 — Cart drawer subscription clarity + shop-subdomain redirect
+- **Task**: Made subscription lines explicit in the cart drawer (variant title in brand orange, "Auto-renews every 6 weeks at $34. Pause or cancel anytime." sourced from live tier config, renewal disclosure above the checkout button, light packshot as cart thumbnail). Added a redirect to the unused Horizon theme's `layout/theme.liquid` so shop.baselayerskin.co storefront pages bounce to baselayerskin.co (post-checkout "Continue shopping" no longer strands buyers on the default Shopify theme).
+- **Findings**:
+  - Cart drawer prices come from localStorage-persisted items, so lines added before a price change keep showing the old price; deriving renewal copy from `BUY_TIERS` (matched by `sellingPlanGid`) sidesteps the staleness.
+  - Theme id is exposed in storefront HTML as `Shopify.theme` — direct code-editor URL is `admin.shopify.com/store/<store>/themes/<id>?key=layout/theme.liquid`. The new VS Code-style editor never finishes loading in a backgrounded Chrome tab (rAF throttling); the tab must be visible. The permission classifier blocks typing into the admin code editor entirely — Sam pastes, agent verifies.
+  - Theme-layout redirect is safe for checkout: `/checkouts/cn/*` and `/cart/c/*` never render `theme.liquid`. Curl-testing a cart permalink without cookies false-alarms (Shop Pay universal redirect bounces cookie-less clients to the homepage); verify in a real browser.
+  - Shopify checkout already carries a subscription disclosure ("you agree to the future charges listed on this page and the cancellation policy").
+- **Files changed**: `src/components/ShopifyCartDrawer.tsx`, `src/config/product.ts` (packshot import) — commit 6aa0a6b. Shopify theme 139500027975 `layout/theme.liquid` (manual paste by Sam, verified live).
 - **KB updates**: This entry only.
 
 ## 2026-08-10 — Accent AA split, consent gate, homepage CTA band, go-live availability sweep
@@ -99,3 +109,21 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Files changed**: `tailwind.config.ts`, `TestimonialsSection`, `OurOriginSection`, `ListicleGirlfriend` (accent split); `consent.ts`, `CookieConsentBanner`, `App.tsx`, `analytics.ts`, `Footer`, `PrivacyPolicy` (consent); `Index.tsx` (CTA band); 9 content pages + `vite.config.ts` (availability sweep); `package.json`, `.gitignore`, `src/test/*` (tooling + 15 tests). Deleted `Checkout.tsx`, `CartDrawer.tsx`, `SoldOutModal.tsx`, `CartContext.tsx`.
 - **Outstanding**: "Ships in 1-2 business days" is now a binding FTC 16 CFR 435 claim and is unverified against real fulfilment. `/lp` and two article pages still carry fabricated testimonials, press blurbs and scarcity counts. All Shopify `userErrors` paths in `cartStore.ts` still fail silently. No ErrorBoundary. `MetaRouterTracker.tsx` fires CAPI outside the consent gate. Navbar is navy-on-navy over the hero at scroll-top (pre-existing).
 - **KB updates**: This entry; the availability change is reflected in `kb/wiki/seo-strategy.md`.
+
+## 2026-08-10 — SEO-OS setup (Search Console + GA4 connection)
+- **Task**: Ran /seo-os:setup. Old gcloud auth (samuel.r.doyle@gmail.com / gws-personal-cli) was fully revoked; rebuilt under contact@baselayerskin.co on project steadfast-pivot-489901-u5. Google blocked the generic gcloud client (expected), so created a dedicated Internal OAuth desktop client (~/.seo-os/oauth-client.json, chmod 600) — Internal audience means no token expiry. Enabled searchconsole/analyticsdata/analyticsadmin/cloudresourcemanager APIs; set quota project.
+- **Findings**: GSC verified (sc-domain:baselayerskin.co, siteOwner). GA4 verified (properties/526066920). Zero search impressions in trailing 6 months — organic baseline is zero.
+- **Files changed**: none in repo (auth config only)
+- **KB updates**: inbox entry with SEO baseline + GA4 property id
+
+## 2026-08-10 — SEO dashboard + tech-debt audit
+- **Task**: /seo-os:dashboard (score 6/100, runs/seo-dashboard.html) then /seo-os:tech-debt (runs/tech-debt-2026-08-10.md). Crawled all 59 sitemap URLs live.
+- **Findings**: Zero-impression root cause = sitemap never submitted to GSC (sitemap itself is live + valid). Site structurally clean. Soft-404 on unknown paths; merchant schema missing 3 fields across 5 page files. GA4 90d: 110 sessions, 100% of organic is non-Google.
+- **Files changed**: runs/seo-dashboard.html, runs/tech-debt-2026-08-10.md (new, audit outputs only — no site code touched)
+- **KB updates**: 3 inbox entries (SEO baseline, indexing root cause, tech-debt results)
+
+## 2026-08-10 — Implemented tech-debt tickets 2 & 3
+- **Task**: Merchant schema fields (shared src/config/merchantSchema.ts spread into 5 Offer blocks) + soft-404 fix (prerender plugin now emits dist/404.html with noindex; fallback is /* /404.html 404 with explicit 200 shell rewrites for client-only ad routes /lp, /article/*, /product/*; /checkout got a server-side 301).
+- **Findings**: /lp and /article/* listicles are client-only ad routes that depended on the SPA 200 fallback — naive 404 fallback would have served ad landing pages with HTTP 404 to Meta's crawler. Pre-existing typecheck failures on branch (analytics.ts fbq stub, vite.config.ts puppeteer callbacks) — spawned separate task.
+- **Files changed**: src/config/merchantSchema.ts (new), FaceCream/Index/MatteMoisturizer/NonGreasyMoisturizer/ProductDetail.tsx, vite.config.ts, public/_redirects
+- **KB updates**: this entry
