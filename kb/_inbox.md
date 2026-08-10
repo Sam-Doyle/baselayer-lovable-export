@@ -45,3 +45,12 @@ confidence: high
 target_article: technical/deploy-pipeline (create if missing)
 ---
 Netlify deploy gotchas found while wiring Shopify checkout: (1) A `netlify.toml` copied into the publish dir (we had a stale duplicate in `public/`) takes precedence over `_headers` on deploy — root netlify.toml + public/_headers are the only two places headers should live; the duplicate is now deleted. (2) `netlify deploy --prod` CLI hangs indefinitely at deploy creation (three deploys stuck in "new" state, 0 files attached, incl. one 51 min). Workaround that works reliably: zip dist and POST to `api.netlify.com/api/v1/sites/<id>/deploys` with Content-Type application/zip. (3) Adding an option to a Shopify product RECREATES all variants — old variant GIDs die; always re-fetch GIDs from the Storefront API after structural product changes.
+
+---
+date: 2026-08-10
+category: marketing
+source: Search Console API (sc-domain:baselayerskin.co)
+confidence: high
+target_article: seo baseline / organic search
+---
+SEO baseline as of 2026-08-10: zero recorded search impressions for baselayerskin.co over the trailing 6 months (Feb–Aug 2026). Site is starting organic search from scratch. GA4 property: properties/526066920 (account "Base Layer Skin", 385687789).
