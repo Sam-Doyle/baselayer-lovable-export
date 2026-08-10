@@ -7,16 +7,21 @@ import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchem
 import { trackEvent } from "@/lib/analytics";
 import { useEffect, useState, useRef } from "react";
 import textureSmearStone from "@/assets/generated-creatives/asset_texture_smear_stone_1772750541116.png";
-import productBoxBottle from "@/assets/generated-creatives/product-box-bottle.jpg";
-import productInHand from "@/assets/generated-creatives/product-in-hand.jpg";
-import productMacroText from "@/assets/generated-creatives/product-macro-text.jpg";
-import productBathroom from "@/assets/generated-creatives/product-bathroom-counter.jpg";
+import carouselPrimary from "@/assets/product-carousel/base-layer-carousel-01-primary.webp";
+import carouselPositioning from "@/assets/product-carousel/base-layer-carousel-02-positioning.webp";
+import carouselIngredients from "@/assets/product-carousel/base-layer-carousel-03-ingredients.webp";
+import carouselOneStep from "@/assets/product-carousel/base-layer-carousel-04-one-step.webp";
+import carouselLifestyle from "@/assets/product-carousel/base-layer-carousel-05-lifestyle-v2.webp";
+import carouselDesign from "@/assets/product-carousel/base-layer-carousel-06-design.webp";
+import carouselRecap from "@/assets/product-carousel/base-layer-carousel-07-recap.webp";
 import { Mountain, Zap, Shield, Droplets, Timer, Leaf, ChevronLeft, ChevronRight, Check, Sun, Moon } from "lucide-react";
 import howToUseImage from "@/assets/generated-creatives/how-to-use-lifestyle.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import TestimonialsSection from "@/components/TestimonialsSection";
+import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 import ComparisonTable from "@/components/ComparisonTable";
+import StarRating from "@/components/StarRating";
 
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
@@ -62,15 +67,30 @@ const faqs = [
 ];
 
 const GALLERY = [
-  { id: 1, type: "image", src: productBoxBottle, alt: "Base Layer Daily Face Cream with Box" },
-  { id: 2, type: "image", src: productBathroom, alt: "Base Layer Daily Face Cream in Bathroom" },
-  { id: 3, type: "image", src: productInHand, alt: "Base Layer Product in-hand showing scale" },
-  { id: 4, type: "image", src: productMacroText, alt: "Base Layer Bottle Macro Texture details" },
-  { id: 5, type: "image", src: textureSmearStone, alt: "Cream texture close-up on stone" },
-  { id: 6, type: "image", src: "/images/benefits-face-closeup.png", alt: "Face close-up portrait" },
+  { id: 1, type: "image", src: carouselPrimary, alt: "Base Layer Daily Face Cream bottle and carton on white background" },
+  { id: 2, type: "image", src: carouselPositioning, alt: "Base Layer bottle on charcoal stone — Daily Moisture. Active Recovery." },
+  { id: 3, type: "image", src: carouselIngredients, alt: "Ingredient callout — 5% Niacinamide + Copper Peptides" },
+  { id: 4, type: "image", src: carouselOneStep, alt: "One Step. Every Day. — Base Layer bottle with cream ribbon" },
+  { id: 5, type: "image", src: carouselLifestyle, alt: "Man applying Base Layer face cream in morning bathroom light" },
+  { id: 6, type: "image", src: carouselDesign, alt: "Base Layer bottle and carton on graphite — Simple by Design." },
+  { id: 7, type: "image", src: carouselRecap, alt: "Daily Face Cream — 5% Niacinamide + Copper Peptides — 50 ml / 1.7 fl oz" },
 ];
 
 const BUY_OPTIONS = AVAILABLE_TIERS;
+
+// F01 social-proof slot: there are zero real reviews yet (pre-launch).
+// Sanity's `product` schema already has `rating` / `reviewCount` fields
+// (see Product interface + getProductBySlug in src/lib/queries.ts) — wire
+// this constant to that query once real review data exists. count: 0
+// makes <StarRating> render nothing until then. Do not hardcode fake numbers.
+const PRODUCT_RATING = { rating: 0, count: 0 };
+
+// Sourced from testimonialsData.ts rather than retyped, so the quote can't
+// drift from the homepage version. <TestimonialsSection /> lower on this page
+// renders all three testers, so whoever is quoted here necessarily appears
+// twice. Sean is the pick because his quote speaks directly to the matte/
+// no-shine promise this buy box is closing on.
+const pullQuoteTestimonial = testimonials.find((t) => t.name.startsWith("Sean")) ?? testimonials[0];
 
 const FaceCream = () => {
   const [activeImage, setActiveImage] = useState(0);
@@ -78,10 +98,18 @@ const FaceCream = () => {
   const [showStickyBottom, setShowStickyBottom] = useState(false);
   const ctaRef = useRef<HTMLButtonElement>(null);
   const addItem = useCartStore(s => s.addItem);
+  // F07: the correctness fix for the cart(2)/$76 double-add lives in
+  // cartStore.addItem, which now early-returns while a request is in flight —
+  // that covers every call site, not just this page. Subscribing to isLoading
+  // here is purely UX: it disables all three CTA buttons so the user gets
+  // immediate visual feedback instead of a dead-feeling button. Don't remove
+  // it as redundant; it's doing different work from the store guard.
+  const isAddingToCart = useCartStore(s => s.isLoading);
 
   const selectedOption = BUY_OPTIONS.find(o => o.id === quantity) || BUY_OPTIONS[0];
 
   const handleAddToCart = (source: string) => {
+    if (useCartStore.getState().isLoading) return;
     trackEvent("add_to_cart", {
       content_name: "Base Layer Face Cream",
       content_ids: ["base-layer-face-cream"],
@@ -135,7 +163,7 @@ const FaceCream = () => {
           
           {/* LEFT COLUMN: IMAGE GALLERY */}
           <div className="w-full flex-col gap-4 hidden md:flex">
-            <div className="relative aspect-[4/5] w-full rounded-[2px] overflow-hidden bg-[#E2E8F0]">
+            <div className="relative aspect-square w-full rounded-[2px] overflow-hidden bg-[#E2E8F0]">
               {GALLERY.map((img, idx) => (
                 <div key={idx} className={`absolute inset-0 transition-opacity duration-300 ${activeImage === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
                   {img.type === "image" ? (
@@ -169,7 +197,7 @@ const FaceCream = () => {
           </div>
 
           {/* MOBILE SWIPEABLE CAROUSEL */}
-          <div className="md:hidden relative w-full aspect-[4/5] bg-[#E2E8F0] overflow-hidden -mx-6 px-6 sm:mx-0 sm:px-0 sm:rounded-[2px]">
+          <div className="md:hidden relative w-full aspect-square bg-[#E2E8F0] overflow-hidden -mx-6 px-6 sm:mx-0 sm:px-0 sm:rounded-[2px]">
             <div className="flex w-full h-full overflow-x-auto snap-x snap-mandatory hide-scrollbar"
                  onScroll={(e) => {
                    const scrollLeft = e.currentTarget.scrollLeft;
@@ -197,7 +225,7 @@ const FaceCream = () => {
 
           {/* RIGHT COLUMN: BUY BOX */}
           <div className="flex flex-col pt-4 md:pt-0 min-h-[500px] md:min-h-[600px]">
-            {/* 1. Star Rating */}
+            {/* 1. Founding Price Badge */}
             <div className="flex items-center mb-3">
               <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-[#D94E12]">Founding Price</span>
               <span className="font-body text-[13px] text-[#6B7280] ml-2">$38 now — $48 after launch</span>
@@ -207,6 +235,9 @@ const FaceCream = () => {
             <h1 className="font-heading text-[24px] md:text-[28px] font-bold text-[#1A2F4C] leading-[1.2] mb-1">
               Performance Daily Face Cream
             </h1>
+
+            {/* 2b. Star Rating (renders nothing until real review data exists) */}
+            <StarRating rating={PRODUCT_RATING.rating} count={PRODUCT_RATING.count} />
 
             {/* 3. Short Desc */}
             <p className="font-body text-[15px] text-[#4A5568] mb-4">
@@ -265,9 +296,10 @@ const FaceCream = () => {
             </div>
 
             {/* 7. CTA Button */}
-            <button 
+            <button
               ref={ctaRef}
-              className="w-full bg-[#D94E12] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#C04510] active:scale-[0.98] transition-all mb-[12px]"
+              disabled={isAddingToCart}
+              className="w-full bg-[#D94E12] text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-[#C04510] active:scale-[0.98] transition-all mb-[12px] disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={() => handleAddToCart("buy_box")}
             >
               {selectedOption.kind === "subscription" ? `SUBSCRIBE & SAVE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
@@ -291,11 +323,35 @@ const FaceCream = () => {
                 {icon: Leaf, label: "Clean Ingredients"}
               ].map((b, i) => (
                 <div key={i} className={`flex flex-col items-center flex-1 px-1 ${i !== 0 ? 'border-l border-[#E2E8F0]' : ''}`}>
-                  <b.icon className="w-4 h-4 text-[#ABB3BB] mb-1" />
-                  <span className="font-body text-[10px] sm:text-[11px] text-[#ABB3BB] text-center leading-[1.2]">{b.label}</span>
+                  <b.icon className="w-4 h-4 text-[#6B7280] mb-1" />
+                  <span className="font-body text-[12px] text-[#6B7280] text-center leading-[1.2]">{b.label}</span>
                 </div>
               ))}
             </div>
+
+            {/*
+              10. Tester pull quote.
+              Deliberately a compact callout, not a full testimonial card: the same tester
+              also appears in the full <TestimonialsSection /> further down this page, and
+              repeating the avatar card would read as a duplication bug rather than a
+              decision-point callout. Disclosure repeats here because FTC 16 CFR 255
+              wants the material connection disclosed near each endorsement, not once
+              per page.
+            */}
+            <div className="border-t border-[#E2E8F0] pt-4 mt-4">
+              <StarRating rating={pullQuoteTestimonial.stars} />
+              <p className="font-body text-[14px] text-[#2D3748] leading-[1.6] mt-2 mb-2">
+                "{pullQuoteTestimonial.quote}"
+              </p>
+              <p className="font-body text-[12px] text-[#1A2F4C] mb-3">
+                <span className="font-heading font-semibold">{pullQuoteTestimonial.name}</span>
+                <span className="text-[#6B7280]"> · {pullQuoteTestimonial.detail}</span>
+              </p>
+              <p className="font-body text-[12px] text-[#6B7280] leading-[1.5]">
+                {TESTIMONIAL_DISCLOSURE}
+              </p>
+            </div>
+
           </div>
         </section>
 
@@ -305,8 +361,9 @@ const FaceCream = () => {
             <span className="font-heading font-bold text-[20px] text-[#1A2F4C] leading-none">${selectedOption.price}</span>
             <span className="font-body text-[11px] text-[#ABB3BB] mt-1">Founding Price</span>
           </div>
-          <button 
-            className="bg-[#D94E12] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px]"
+          <button
+            disabled={isAddingToCart}
+            className="bg-[#D94E12] text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px] disabled:opacity-70 disabled:cursor-not-allowed"
             onClick={() => handleAddToCart("sticky_mobile_cta")}
           >
             {selectedOption.kind === "subscription" ? `SUBSCRIBE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
@@ -423,9 +480,10 @@ const FaceCream = () => {
           <h2 className="font-heading text-[28px] md:text-4xl font-bold uppercase tracking-wide mb-8">
             ONE MOISTURIZER.<br className="md:hidden" /> VISIBLE RESULTS.<br className="md:hidden" /> NO GREASY FINISH.
           </h2>
-          <Button 
-            size="lg" 
-            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] mb-4" 
+          <Button
+            size="lg"
+            disabled={isAddingToCart}
+            className="w-full sm:w-auto px-10 py-6 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-[#D94E12] text-white hover:bg-[#C04510] border-none transition-all duration-300 rounded-[4px] mb-4 disabled:opacity-70 disabled:cursor-not-allowed"
             onClick={() => handleAddToCart("face_cream_bottom")}
           >
             GET STARTED - ${selectedOption.price}
