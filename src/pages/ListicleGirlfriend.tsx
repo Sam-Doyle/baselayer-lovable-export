@@ -208,7 +208,7 @@ const ListicleGirlfriend = () => {
             If you want to stop looking tired and actually protect your face, you need a proper foundation. Base Layer Skin is currently offering a solid entry point for guys who want to upgrade.
           </p>
 
-          <div className="bg-[#1A2F4C] text-white p-8 md:p-12 rounded-xl text-center shadow-xl mt-10 mb-8 border-t-4 border-brand-accent">
+          <div className="bg-[#1A2F4C] text-white p-8 md:p-12 rounded-xl text-center shadow-xl mt-10 mb-8 border-t-4 border-brand-accent-on-dark">
             <img src={productBoxBottle} alt="Base Layer product" className="w-32 h-32 object-cover rounded-full mx-auto mb-6 border-4 border-[#2A4469]" />
             <h3 className="font-heading font-bold text-2xl md:text-3xl mb-4 text-white">The "Better Skin Guarantee"</h3>
             <p className="text-[#ABB3BB] mb-8 max-w-md mx-auto text-base">

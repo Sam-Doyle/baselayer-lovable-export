@@ -13,10 +13,18 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
         transitionDelay: `${index * 150}ms`
       }}
     >
-      {/* Optional Tag */}
+      {/*
+        Optional Tag.
+
+        White label, not accent. The pill's ground is brand-accent-on-dark at
+        15% over the card's rgba(255,255,255,0.06) over #1A2F4C, which
+        composites to roughly #484352 — accent text on its own tint is only
+        3.46:1 and fails AA at this 10px size. White on that ground is 9.55:1.
+        The pill keeps the accent; only the label moved.
+      */}
       {t.tag && (
-        <div className="self-start bg-brand-accent/15 px-[10px] py-[4px] rounded-[12px] mb-4 flex items-center justify-center">
-          <span className="text-brand-accent font-heading font-semibold text-[10px] tracking-[0.1em] uppercase block leading-none">
+        <div className="self-start bg-brand-accent-on-dark/15 px-[10px] py-[4px] rounded-[12px] mb-4 flex items-center justify-center">
+          <span className="text-white font-heading font-semibold text-[10px] tracking-[0.1em] uppercase block leading-none">
             {t.tag}
           </span>
         </div>
@@ -81,11 +89,11 @@ const TestimonialsSection = () => {
         
         {/* Section Header */}
         <div className="text-center mb-[48px]">
-          <span className="block font-heading font-normal text-[11px] tracking-[0.2em] text-brand-accent uppercase mb-3">
+          <span className="block font-heading font-normal text-[11px] tracking-[0.2em] text-brand-accent-on-dark uppercase mb-3">
             REAL RESULTS
           </span>
           <h2 className="font-heading text-[clamp(28px,4vw,40px)] font-bold tracking-tight text-white uppercase leading-[1.1]">
-            DON'T TAKE OUR WORD FOR IT<span className="text-brand-accent">.</span>
+            DON'T TAKE OUR WORD FOR IT<span className="text-brand-accent-on-dark">.</span>
           </h2>
           <p className="font-body text-[17px] text-[#ABB3BB] mt-2">
             Hear from guys who tried it.

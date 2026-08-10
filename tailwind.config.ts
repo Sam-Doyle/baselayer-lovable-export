@@ -31,16 +31,27 @@ export default {
           DEFAULT: "#C04510",
           hover: "#A83C0E",
           /*
-           * Lighter accent orange, used for inline links, icons, rules, and
-           * selection highlights — not for CTA buttons.
+           * Accent orange for inline links, icons, rules, eyebrows, and
+           * selection highlights — never for CTA buttons, which use `brand`.
            *
-           * KNOWN CONTRAST FAILURE: 3.29:1 on white and 4.11:1 on the #1A2F4C
-           * navy. Both fail WCAG AA for normal-size text (4.5:1); both pass the
-           * 3:1 bar for large text and non-text UI. It is tokenized here rather
-           * than fixed because darkening it changes the look of 34 call sites
-           * across 9 files. Do not add new normal-size `text-brand-accent`.
+           * TWO TOKENS, SPLIT BY BACKGROUND — this is not a style preference.
+           * The old single value (#F35D1A) failed AA on both grounds: 3.29:1 on
+           * white and 4.11:1 on the #1A2F4C navy. Darkening it fixes white and
+           * makes navy worse, because contrast against a dark ground rises as
+           * the foreground gets lighter. The two required luminance ranges do
+           * not overlap, so no single hex can pass 4.5:1 on both — a second
+           * token is the only fix, not an over-engineering choice.
+           *
+           * accent          #C4470E  4.94:1 on white   — light grounds only
+           * accent-on-dark  #FF7034  4.90:1 on #1A2F4C — navy grounds only
+           *
+           * Pick by the background you are painting on, not by text size, and
+           * re-check the pair before changing either. `accent` on navy is
+           * 2.74:1 and `accent-on-dark` on white is 2.76:1 — swapping them is
+           * a worse failure than the one this replaced.
            */
-          accent: "#F35D1A",
+          accent: "#C4470E",
+          "accent-on-dark": "#FF7034",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

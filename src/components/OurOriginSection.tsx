@@ -57,8 +57,8 @@ const OurOriginSection = () => {
                         style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "30px"})` }}
                     >
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="h-px w-6 bg-brand-accent"></div>
-                            <span className="font-heading text-[10px] tracking-[0.2em] font-bold uppercase text-brand-accent">
+                            <div className="h-px w-6 bg-brand-accent-on-dark"></div>
+                            <span className="font-heading text-[10px] tracking-[0.2em] font-bold uppercase text-brand-accent-on-dark">
                                 Breckenridge, CO
                             </span>
                         </div>
