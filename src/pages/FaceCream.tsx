@@ -23,6 +23,7 @@ import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsD
 import ComparisonTable from "@/components/ComparisonTable";
 import StarRating from "@/components/StarRating";
 import { merchantOfferFields } from "@/config/merchantSchema";
+import { LEGAL } from "@/config/legal";
 
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
@@ -111,6 +112,18 @@ const FaceCream = () => {
 
   const selectedOption = BUY_OPTIONS.find(o => o.id === quantity) || BUY_OPTIONS[0];
 
+  // The trust line under the CTA has to describe the tier the shopper actually
+  // has selected, not the site-wide claim. Only the single bottle pays shipping
+  // (it's under the threshold and carries no selling plan), so on that one tier
+  // the line states the charge and names the threshold — which doubles as the
+  // reason to click the 2-pack sitting right above it. Every other tier ships
+  // free and says so flatly.
+  const selectionShipsFree =
+    selectedOption.kind === "subscription" || selectedOption.price >= LEGAL.freeShippingThreshold;
+  const shippingLine = selectionShipsFree
+    ? "Free shipping"
+    : `$${LEGAL.flatShippingRate.toFixed(2)} shipping — free over $${LEGAL.freeShippingThreshold}`;
+
   // add_to_cart fires only after the Storefront API confirms the line. It used
   // to fire before addItem was even called, so a rejected add (out of stock,
   // quantity cap, expired cart) still reported a successful add_to_cart to GA4
@@ -134,7 +147,7 @@ const FaceCream = () => {
   useCanonical();
   useMetaTags({
     title: "Best Men's Face Moisturizer - Base Layer Performance Daily Face Cream | $38",
-    description: "The one-step daily face cream for men. Absorbs in 15 seconds. Replaces serum, moisturizer, and eye cream. Niacinamide 5% + Copper Peptides. $38 with free shipping and 30-day guarantee.",
+    description: "The one-step daily face cream for men. Absorbs in 15 seconds. Replaces serum, moisturizer, and eye cream. Niacinamide 5% + Copper Peptides. $38 a bottle, 2-pack $68, 30-day guarantee.",
     type: "product",
     image: "https://baselayerskin.co/og-face-cream.jpg",
   });
@@ -324,7 +337,7 @@ const FaceCream = () => {
 
             {/* 8. Trust Micro-Copy */}
             <p className="text-center font-body text-[12px] text-[#6B7280]">
-              Free shipping &middot; 30-day money-back guarantee &middot; In stock, ships in 1-2 business days
+              {shippingLine} &middot; 30-day money-back guarantee &middot; In stock, ships in 1-2 business days
             </p>
 
             {/* 9. Trust Badges Row */}

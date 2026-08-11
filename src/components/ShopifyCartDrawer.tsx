@@ -4,6 +4,7 @@ import { X, Minus, Plus, Trash2, ExternalLink, Loader2, ShoppingCart } from "luc
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
 import { BUY_TIERS, buildCartItem } from "@/config/product";
+import { LEGAL } from "@/config/legal";
 
 const ShopifyCartDrawer = () => {
   const { items, isOpen, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart, toggleCart } = useCartStore();
@@ -29,6 +30,12 @@ const ShopifyCartDrawer = () => {
 
   // In-cart AOV upsell: only when the 2-bottle tier is live in Shopify and
   // the cart is exactly one single-bottle one-time line.
+  //
+  // This fires less often now that the 2-pack is the PDP default — a single
+  // bottle is a deliberate downgrade, not the path of least resistance. It's
+  // kept because that remaining cart is the only one on the site that pays
+  // shipping, which makes it the one where the upsell has a hard number behind
+  // it rather than a vague "save $8": $38 + $5.95 vs $68 shipped.
   const tier2 = BUY_TIERS.find(t => t.id === 2 && t.variantGid !== null);
   const singleBottleLine = items.length === 1 && items[0].quantity === 1 && !items[0].sellingPlanId && items[0].variantId === BUY_TIERS[0].variantGid ? items[0] : null;
   const upsellTier = tier2 && singleBottleLine ? tier2 : null;
@@ -130,8 +137,10 @@ const ShopifyCartDrawer = () => {
                   disabled={isLoading || isSyncing}
                   className="w-full text-left border border-brand/40 bg-brand/5 rounded px-4 py-3 hover:bg-brand/10 transition-colors"
                 >
-                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-brand">Upgrade to 2 bottles — save $8</span>
-                  <span className="block font-body text-xs text-muted-foreground mt-0.5">12 weeks of coverage for $68 instead of $76</span>
+                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-brand">Add a second bottle — free shipping</span>
+                  <span className="block font-body text-xs text-muted-foreground mt-0.5">
+                    12 weeks for $68 shipped, instead of $38 plus ${LEGAL.flatShippingRate.toFixed(2)} shipping
+                  </span>
                 </button>
               )}
               <div className="flex items-center justify-between">

@@ -45,6 +45,19 @@ export const LEGAL = {
   deliveryWindow: "3–7 business days",
   shipsInternationally: false,
 
+  /*
+   * Shipping charges. These are the on-site representation of rules that
+   * actually live in Shopify admin — the shipping profile rate and the two
+   * automatic free-shipping discounts. If admin and these numbers disagree,
+   * the site is making a deceptive shipping representation, so change them
+   * together or not at all.
+   */
+  freeShippingThreshold: 50,
+  /** Charged only when neither free-shipping condition is met (single bottle). */
+  flatShippingRate: 5.95,
+  /** Subscription orders ship free regardless of order value. */
+  subscriptionShipsFree: true,
+
   // Guarantee — must stay consistent with on-site marketing claims.
   guaranteeDays: 30,
   /** "purchase" | "delivery" — which event starts the guarantee clock. */
@@ -59,3 +72,11 @@ export const LEGAL = {
 
 /** "30 days from the date of purchase" — used in both refund and shipping copy. */
 export const GUARANTEE_WINDOW_PHRASE = `${LEGAL.guaranteeDays} days from the date of ${LEGAL.guaranteeStart}`;
+
+/**
+ * "Free shipping over $50" — the short marketing form, used in the announcement
+ * bar, hero, and PDP trust lines. Every one of those places used to read "Free
+ * shipping" flat. Import this rather than retyping the threshold; a stale $35
+ * or $75 in one banner is exactly the mismatch the FTC rule punishes.
+ */
+export const FREE_SHIPPING_PHRASE = `Free shipping over $${LEGAL.freeShippingThreshold}`;

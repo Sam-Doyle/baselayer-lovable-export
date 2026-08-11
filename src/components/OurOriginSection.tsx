@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
+import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 
 const OurOriginSection = () => {
     const sectionRef = useRef<HTMLDivElement>(null);
@@ -98,7 +99,7 @@ const OurOriginSection = () => {
 
                         {/* Trust line */}
                         <p className="font-body text-[12px] text-white/40 mt-4">
-                            Free shipping · 30-day money-back guarantee
+                            {FREE_SHIPPING_PHRASE} · 30-day money-back guarantee
                         </p>
                     </div>
 

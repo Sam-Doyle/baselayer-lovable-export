@@ -53,7 +53,18 @@ export const BUY_TIERS: BuyTier[] = [
 export const AVAILABLE_TIERS = BUY_TIERS.filter(
   t => t.variantGid !== null && (t.kind !== "subscription" || !!t.sellingPlanGid)
 );
-export const DEFAULT_TIER = AVAILABLE_TIERS[0];
+/*
+ * Preselected tier on the PDP. The 2-bottle pack, deliberately: at COGS $10 it
+ * carries ~$38.73 of contribution against ~$21.10 for the single, which nearly
+ * doubles the CAC ceiling at a breakeven ROAS that barely moves (1.76x vs
+ * 1.80x). It also clears the FREE_SHIPPING_THRESHOLD, so the default selection
+ * is the one that ships free.
+ *
+ * Falls back to the first available tier so a 2-pack variant that gets deleted
+ * in Shopify admin degrades to the single instead of rendering an empty buy box.
+ */
+export const DEFAULT_TIER =
+  AVAILABLE_TIERS.find(t => t.id === 2) ?? AVAILABLE_TIERS[0];
 
 /** Build the CartItem payload the cart store expects for a given tier. */
 export function buildCartItem(tier: BuyTier) {

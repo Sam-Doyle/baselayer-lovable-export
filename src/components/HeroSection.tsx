@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
+import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 
 const HeroSection = () => {
   const heroImgRef = useRef<HTMLImageElement>(null);
@@ -125,14 +126,14 @@ const HeroSection = () => {
 
               {/* Trust Micro-Copy */}
               <p className="font-body text-[12px] text-white opacity-60 mt-3 hidden sm:block">
-                Free shipping &middot; 30-day guarantee &middot; No subscription required
+                {FREE_SHIPPING_PHRASE} &middot; 30-day guarantee &middot; No subscription required
               </p>
               <p className="font-body text-[12px] text-white opacity-70 mt-2 hidden sm:block">Hate it? Keep the bottle. Full refund.</p>
 
               {/* Mobile exact recreation */}
               <div className="sm:hidden mt-3 text-left">
                 <p className="font-body text-[12px] text-white opacity-60 mb-2">
-                  Free shipping &middot; 30-day guarantee<br />No subscription required
+                  {FREE_SHIPPING_PHRASE} &middot; 30-day guarantee<br />No subscription required
                 </p>
                 <p className="font-body text-[12px] text-white opacity-70">Hate it? Keep the bottle. Full refund.</p>
               </div>

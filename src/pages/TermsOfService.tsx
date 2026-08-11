@@ -112,7 +112,9 @@ const TermsOfService = () => {
             <section>
               <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-3 text-foreground">Shipping</h2>
               <p>
-                We offer free shipping within the United States. See our{" "}
+                We ship within the United States. Shipping is free on orders of ${LEGAL.freeShippingThreshold} or more
+                and on every Subscribe &amp; Save order; smaller one-time orders are charged a flat rate shown at
+                checkout. See our{" "}
                 <Link to="/shipping-policy" className="text-foreground underline underline-offset-4 hover:no-underline">
                   Shipping Policy
                 </Link>{" "}

@@ -133,3 +133,15 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Findings**: One new defect — Sanity article (urban-commuters routine) links to nonexistent /skin-concerns/barrier-damage; added 301 → dry-dehydrated-skin-men in public/_redirects (ships next deploy). Sanity content edit is the durable fix. Everything else clean; the 15-component deletion broke no links.
 - **Files changed**: public/_redirects (+1 redirect), runs/tech-debt-2026-08-10.md (re-audit section)
 - **KB updates**: this entry
+
+## 2026-08-11 — 3-agent content quality pass (2 articles + comparison)
+- **Task**: Copy editor, front-end designer, SEO specialist subagents on best-moisturizer-for-men, best-moisturizer-men-over-40, best-mens-face-moisturizers-compared.
+- **Findings**: injectMeta regex bug (site-wide meta never reached crawlers); empty Our Verdict render; fabricated competitor absorption times; duplicate timeline content; 228% GHK-Cu stat uncited (pending decision); comparison lacks disclosure + author.
+- **Files changed**: vite.config.ts, src/components/SEO.tsx, src/components/PortableText.tsx, src/pages/ArticleDetail.tsx, src/pages/ComparisonDetail.tsx, src/lib/queries.ts (uncommitted). Sanity: 3 drafts (not published).
+- **KB updates**: inbox entry (site-wide meta bug + integrity findings)
+
+## 2026-08-11 — 2-pack as PDP default + $50 free-shipping threshold
+- **Task**: Made the $68 2-pack the preselected PDP tier (it already existed in BUY_TIERS with a live variant GID — only the default changed), and rewrote every shipping claim on the site from unconditional "free shipping" to "free over $50, free on subscriptions, $5.95 otherwise".
+- **Findings**: The old ShippingPolicy text ("no minimum order value and no shipping charge") and merchantSchema's hardcoded shippingRate 0 would both have become false claims — the schema one is the dangerous half, since Google Merchant Center reconciles it against checkout. Two FAQ answers served in FAQPage JSON-LD claimed "$38, ships free" and "we don't do subscriptions" (the latter already false given Subscribe & Save); both corrected. Shopify supports the subscribe-and-save shipping exemption natively via a Free Shipping automatic discount with Purchase type: Subscription — no Function needed.
+- **Files changed**: src/config/product.ts, src/config/legal.ts, src/config/merchantSchema.ts, src/components/Navbar.tsx, src/components/HeroSection.tsx, src/components/OurOriginSection.tsx, src/components/ShopifyCartDrawer.tsx, src/pages/FaceCream.tsx, src/pages/ShippingPolicy.tsx, src/pages/TermsOfService.tsx, src/pages/LandingPage.tsx, src/pages/NonGreasyMoisturizer.tsx, src/pages/AllInOneSkincare.tsx, src/test/ctaRouting.test.tsx
+- **KB updates**: inbox entry (2-pack default economics + Shopify free-shipping construction)

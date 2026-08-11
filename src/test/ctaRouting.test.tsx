@@ -13,8 +13,9 @@ import LandingPage from "@/pages/LandingPage";
 // mobile bar, mid-page bands, the origin section, every content-page CTA, the
 // navbar GET STARTED, and the /lp landing page — must route to the PDP
 // (/face-cream) rather than adding to cart directly. A direct add locks the
-// conversion to the $38 DEFAULT_TIER, skips the PDP's higher tiers and its
-// view_item / Meta ViewContent signal, and (for deep-scroll CTAs specifically)
+// conversion to DEFAULT_TIER (now the $68 2-pack), skips the tier choice the
+// PDP exists to present and its view_item / Meta ViewContent signal, and (for
+// deep-scroll CTAs specifically)
 // fires Meta AddToCart with no preceding ViewContent. These tests exist to stop
 // any of these buttons being "simplified" back to a direct add-to-cart call.
 //

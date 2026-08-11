@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
 import { ChevronDown } from "lucide-react";
+import { LEGAL } from "@/config/legal";
 
 import productRockWebp from "@/assets/product-hero-rock-1200w.webp";
 import productRockPng from "@/assets/product-hero-rock.png";
@@ -189,7 +190,7 @@ const LandingPage = () => {
               <CtaButton className="w-full md:w-auto mb-6" />
 
               <p className="font-body text-[11px] text-[#1E201E]/50 uppercase tracking-widest">
-                FREE SHIPPING &middot; 30-DAY MONEY BACK &middot; NO SUBSCRIPTION
+                FREE SHIPPING OVER ${LEGAL.freeShippingThreshold} &middot; 30-DAY MONEY BACK &middot; NO SUBSCRIPTION
               </p>
             </div>
 
@@ -304,7 +305,7 @@ const LandingPage = () => {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" className="text-[#1E201E]/60">
                     <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
                   </svg>
-                  <span className="font-body text-[10px] text-[#1E201E]/50 uppercase tracking-wider">Free Shipping</span>
+                  <span className="font-body text-[10px] text-[#1E201E]/50 uppercase tracking-wider">Free Shipping ${LEGAL.freeShippingThreshold}+</span>
                 </div>
                 <div className="flex flex-col items-center gap-1 flex-1">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" className="text-[#1E201E]/60">
