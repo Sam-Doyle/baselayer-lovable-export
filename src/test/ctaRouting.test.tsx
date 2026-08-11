@@ -18,12 +18,10 @@ import LandingPage from "@/pages/LandingPage";
 // fires Meta AddToCart with no preceding ViewContent. These tests exist to stop
 // any of these buttons being "simplified" back to a direct add-to-cart call.
 //
-// Scope note: this covers every component that is actually reachable from a
-// route. Six others still on disk (PayoffSection, ProductSection,
-// IngredientsSection, StickyCartBar, WhoWeAreSection, GuaranteeSection) do
-// still call openModal, but they have zero importers anywhere in the repo and
-// so never render. If one is ever wired back into a page, add it here — it
-// will not be caught otherwise.
+// Scope note: this covers every component reachable from a route, which is now
+// all of them — the unreferenced components that still carried direct
+// add-to-cart CTAs were deleted rather than converted. Any new buy CTA belongs
+// in this file; nothing else enforces the policy.
 
 // analytics.ts is being edited concurrently by another agent — mock it.
 const mockTrackEvent = vi.fn();
