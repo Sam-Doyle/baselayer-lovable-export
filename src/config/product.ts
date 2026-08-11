@@ -15,28 +15,31 @@ const TIER_2_BOTTLE_GID: string | null = "gid://shopify/ProductVariant/429404610
 const SELLING_PLAN_GID: string | null = "gid://shopify/SellingPlan/2934145095";
 
 /*
- * The subscription discount is a RETENTION discount, not an acquisition one:
- * first delivery bills at the one-time price, $34 from the second onward.
+ * One subscription price, every delivery: $35. Below the $38 single, above the
+ * $34/bottle the 2-pack works out to, so the ladder reads left to right without
+ * anybody having to do arithmetic.
  *
- * Why it moved. At $34 on delivery one the subscription carried $17.21 of
- * contribution against $21.10 for a plain single bottle — the worst first order
- * on the site, breakeven ROAS 1.98x vs 1.80x, and it took two retained cycles
- * just to catch a one-time buyer. With zero retention data there was nothing
- * justifying that bet. Full price on delivery one costs a subscriber nothing
- * they weren't already willing to pay and lifts four-order contribution from
- * $68.86 to $72.73.
+ * This replaced a staged plan that billed $38 on delivery one and $34 after. The
+ * staged version was defensible on paper and the four-order economics are a wash
+ * — $72.74 flat against $72.73 staged, a one cent difference — but it cost two
+ * prices in every piece of copy, a renewal disclosure in the cart, and a Shopify
+ * selling plan carrying separate initial and recurring pricing policies that the
+ * native Subscriptions app UI doesn't reliably expose. A flat $3 off is one
+ * number the shopper can hold in their head and one field in admin.
  *
- * It's also the honest version for a brand that sells itself as the alternative
- * to subscription traps: reward staying, don't bribe signing up.
+ * Where the two actually differ: staged earns $2.91 more on the first order,
+ * flat earns $0.98 more on every renewal, and they cross at the fourth delivery.
+ * Betting on flat is a bet on retention past six months, which is also the
+ * business we say we're in.
  *
- * BOTH numbers must match the selling plan in Shopify admin. The plan needs an
- * initial pricing policy at 0% off and a recurring policy at $4 off after cycle
- * 1 (SellingPlanPricingPolicy supports this; the native Subscriptions app UI
- * may not expose it — see the admin note in the commit). If admin bills $34 on
- * delivery one while the PDP says $38, the site is misrepresenting the price.
+ * At $35 the contribution is $18.19 on COGS $10 plus ~$5.50 landed shipping and
+ * 2.9% + $0.30 in fees — 52.0% margin, breakeven ROAS 1.93x.
+ *
+ * This number must match the selling plan in Shopify admin: a single pricing
+ * policy, $3.00 off the $38 variant, no initial/recurring split. If admin bills
+ * anything other than $35 the site is misrepresenting the price.
  */
-const SUBSCRIBE_FIRST_PRICE = 38;
-const SUBSCRIBE_RENEWAL_PRICE = 34;
+const SUBSCRIBE_PRICE = 35;
 
 export interface BuyTier {
   id: number;
@@ -51,12 +54,6 @@ export interface BuyTier {
   subCopy?: string;
   variantGid: string | null;
   sellingPlanGid?: string | null;
-  /**
-   * Subscription tiers only. What every delivery after the first bills at.
-   * `price` is what the shopper pays today, so it is the number the buy box and
-   * the add_to_cart event use; this is the number the renewal disclosure uses.
-   */
-  renewalPrice?: number;
 }
 
 export const BUY_TIERS: BuyTier[] = [
@@ -72,13 +69,20 @@ export const BUY_TIERS: BuyTier[] = [
   },
   {
     id: 3, kind: "subscription", bottles: 1, label: "Subscribe & Save", duration: "every 6 weeks",
-    // savings is 0 because there is nothing saved on this order. The chip it
-    // drives would otherwise claim a discount the shopper isn't getting yet.
-    price: SUBSCRIBE_FIRST_PRICE, badge: "$34 ONGOING", badgeColor: "bg-brand", savings: 0,
-    subCopy: `First bottle $${SUBSCRIBE_FIRST_PRICE}. Every one after that $${SUBSCRIBE_RENEWAL_PRICE}. Pause or cancel in one click.`,
+    /*
+     * The badge answers the objection instead of restating the price — the buy
+     * box already shows $35, and the thing keeping a Jack Black refugee off this
+     * tile isn't the number, it's whether he can get back out.
+     *
+     * Keep it at or under ~90px rendered. The badges are whitespace-nowrap and
+     * centred on their tile, so a long one bleeds into the 12px gap and hits
+     * "MOST POPULAR" coming the other way. At a 360px viewport (most Android)
+     * tiles are 96px: "NO LOCK-IN" clears by 13px, "CANCEL ANYTIME" collided.
+     */
+    price: SUBSCRIBE_PRICE, badge: "NO LOCK-IN", badgeColor: "bg-brand", savings: 38 - SUBSCRIBE_PRICE,
+    subCopy: `Same $${SUBSCRIBE_PRICE} every time. Pause or cancel in one click.`,
     variantGid: TIER_1_BOTTLE_GID,
     sellingPlanGid: SELLING_PLAN_GID,
-    renewalPrice: SUBSCRIBE_RENEWAL_PRICE,
   },
 ];
 

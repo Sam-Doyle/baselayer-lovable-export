@@ -108,13 +108,13 @@ const ShopifyCartDrawer = () => {
                     <p className="font-heading text-xs font-bold uppercase tracking-wide truncate">{item.product.node.title}</p>
                     <p className={`text-xs ${item.sellingPlanId ? "text-brand font-medium" : "text-muted-foreground"}`}>{item.variantTitle}</p>
                     {/*
-                      Renewal price, not the price of the line above it. The first
-                      delivery bills at the one-time price and only renewals get
-                      the discount, so quoting item.price here would understate
-                      what auto-renews.
+                      Every delivery bills the same $35, so the renewal price is
+                      subTier.price. Stating it anyway rather than leaving it
+                      implied: an auto-renewing charge has to be disclosed before
+                      checkout, not discovered on the bank statement.
                     */}
                     {subTier && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Auto-renews {subTier.duration} at ${subTier.renewalPrice ?? subTier.price}. Pause or cancel anytime.</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Auto-renews {subTier.duration} at ${subTier.price}. Pause or cancel anytime.</p>
                     )}
                     <p className="font-body text-xs mt-0.5">${parseFloat(item.price.amount).toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
