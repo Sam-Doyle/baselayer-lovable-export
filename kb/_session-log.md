@@ -127,3 +127,9 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Findings**: /lp and /article/* listicles are client-only ad routes that depended on the SPA 200 fallback — naive 404 fallback would have served ad landing pages with HTTP 404 to Meta's crawler. Pre-existing typecheck failures on branch (analytics.ts fbq stub, vite.config.ts puppeteer callbacks) — spawned separate task.
 - **Files changed**: src/config/merchantSchema.ts (new), FaceCream/Index/MatteMoisturizer/NonGreasyMoisturizer/ProductDetail.tsx, vite.config.ts, public/_redirects
 - **KB updates**: this entry
+
+## 2026-08-10 (evening) — Tech-debt re-audit post-deploy
+- **Task**: Re-ran /seo-os:tech-debt after production deploy 82c4df8. Verified all 3 morning tickets live (sitemap submitted 18:08 + downloaded by Google 0 errors; merchant schema live; real 404s live, ad routes intact).
+- **Findings**: One new defect — Sanity article (urban-commuters routine) links to nonexistent /skin-concerns/barrier-damage; added 301 → dry-dehydrated-skin-men in public/_redirects (ships next deploy). Sanity content edit is the durable fix. Everything else clean; the 15-component deletion broke no links.
+- **Files changed**: public/_redirects (+1 redirect), runs/tech-debt-2026-08-10.md (re-audit section)
+- **KB updates**: this entry
