@@ -22,9 +22,14 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 import ComparisonTable from "@/components/ComparisonTable";
 import StarRating from "@/components/StarRating";
+import ProductReviews from "@/components/ProductReviews";
+import { useProductReviews, buildReviewSchema, FACE_CREAM_HANDLE } from "@/config/reviews";
 import { merchantOfferFields } from "@/config/merchantSchema";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 
+// Base product schema. The aggregateRating and review nodes are merged in at
+// render time from real approved reviews — see PRODUCT_RATING's replacement in
+// the component body. Nothing rating-shaped belongs in this constant.
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Product",
@@ -81,13 +86,12 @@ const GALLERY = [
 
 const BUY_OPTIONS = AVAILABLE_TIERS;
 
-// F01 social-proof slot: there are zero real reviews yet. Sales opened
-// 2026-08-10, so reviews should start arriving — check before assuming 0.
-// Sanity's `product` schema already has `rating` / `reviewCount` fields
-// (see Product interface + getProductBySlug in src/lib/queries.ts) — wire
-// this constant to that query once real review data exists. count: 0
-// makes <StarRating> render nothing until then. Do not hardcode fake numbers.
-const PRODUCT_RATING = { rating: 0, count: 0 };
+// F01 social-proof slot: now wired to real data. useProductReviews reads
+// approved rows from public_product_reviews, and every one of those came
+// through submit-review, which checks the order against Shopify before it will
+// write anything. The aggregate is 0/0 until someone who bought a bottle writes
+// the first review, and <StarRating> renders nothing at 0. Do not shortcut this
+// with a hardcoded number — see the header comment in src/config/reviews.ts.
 
 // Sourced from testimonialsData.ts rather than retyped, so the quote can't
 // drift from the homepage version. <TestimonialsSection /> lower on this page
@@ -99,6 +103,16 @@ const pullQuoteTestimonial = testimonials.find((t) => t.name.startsWith("Sean"))
 const FaceCream = () => {
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(DEFAULT_TIER.id);
+  const { reviews, loading: reviewsLoading, aggregate } = useProductReviews(FACE_CREAM_HANDLE);
+  /*
+   * Reviews land in the JSON-LD client-side, not at build time. The Puppeteer
+   * prerender would otherwise bake a snapshot of the review count into static
+   * HTML that goes stale the moment the next review is approved, and an
+   * aggregateRating that disagrees with what's rendered on the page is exactly
+   * what gets a manual action. Googlebot executes JS and picks this up.
+   */
+  const reviewSchema = buildReviewSchema(reviews);
+  const productSchema = reviewSchema ? { ...PRODUCT_SCHEMA, ...reviewSchema } : PRODUCT_SCHEMA;
   const [showStickyBottom, setShowStickyBottom] = useState(false);
   const ctaRef = useRef<HTMLButtonElement>(null);
   const addItem = useCartStore(s => s.addItem);
@@ -164,7 +178,7 @@ const FaceCream = () => {
 
   return (
     <div className="min-h-screen bg-white text-[#1A2F4C]">
-      <JsonLd data={[PRODUCT_SCHEMA, buildBreadcrumbSchema([{ name: "Home", path: "/" }, { name: "Face Cream" }]), buildFaqSchema(faqs)]} />
+      <JsonLd data={[productSchema, buildBreadcrumbSchema([{ name: "Home", path: "/" }, { name: "Face Cream" }]), buildFaqSchema(faqs)]} />
       <Navbar />
       
       <main className="pt-24 pb-0">
@@ -247,8 +261,14 @@ const FaceCream = () => {
               Performance Daily Face Cream
             </h1>
 
-            {/* 2b. Star Rating (renders nothing until real review data exists) */}
-            <StarRating rating={PRODUCT_RATING.rating} count={PRODUCT_RATING.count} />
+            {/* 2b. Star Rating. Renders nothing until real review data exists, and
+                the jump link is gated on the same condition — an anchor wrapping a
+                null child is an empty link with no accessible name. */}
+            {aggregate.count > 0 && (
+              <a href="#reviews" className="inline-block hover:opacity-80 transition-opacity">
+                <StarRating rating={aggregate.rating} count={aggregate.count} />
+              </a>
+            )}
 
             {/* 3. Short Desc */}
             <p className="font-body text-[15px] text-[#4A5568] mb-4">
@@ -487,7 +507,12 @@ const FaceCream = () => {
           </div>
         </section>
 
-
+        {/* 8. REVIEWS (verified purchasers only) */}
+        <ProductReviews
+          productHandle={FACE_CREAM_HANDLE}
+          reviews={reviews}
+          loading={reviewsLoading}
+        />
 
         {/* 9. BOTTOM CTA */}
         <section className="px-6 py-[80px] text-center bg-[#1A2F4C] text-white">

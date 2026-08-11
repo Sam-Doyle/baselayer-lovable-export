@@ -71,6 +71,51 @@ export type Database = {
         }
         Relationships: []
       }
+      product_reviews: {
+        Row: {
+          body: string
+          created_at: string
+          display_name: string
+          id: string
+          product_handle: string
+          published_at: string | null
+          rating: number
+          reviewer_email: string
+          shopify_order_id: string
+          shopify_order_name: string
+          status: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          display_name: string
+          id?: string
+          product_handle: string
+          published_at?: string | null
+          rating: number
+          reviewer_email: string
+          shopify_order_id: string
+          shopify_order_name: string
+          status?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          product_handle?: string
+          published_at?: string | null
+          rating?: number
+          reviewer_email?: string
+          shopify_order_id?: string
+          shopify_order_name?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           address1: string | null
@@ -124,7 +169,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      // Read surface for reviews. The base product_reviews table is not
+      // readable with the anon key at all — this view is what strips
+      // reviewer_email and shopify_order_id before anything reaches a browser.
+      public_product_reviews: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          product_handle: string
+          rating: number
+          title: string
+          body: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
