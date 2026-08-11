@@ -28,6 +28,17 @@ vi.mock("sonner", () => ({
   toast: { error: (...args: unknown[]) => mockToastError(...args) },
 }));
 
+// notifyCartError reports every failure as a cart_error event — that is the
+// only thing separating "the add button is broken" from "nobody clicked" in
+// the funnel, so it is asserted on rather than left as an untested side
+// effect. Mocked here so the real consent gate doesn't swallow it in jsdom.
+const mockTrackEvent = vi.fn();
+vi.mock("@/lib/analytics", () => ({
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+  setCapturedEmail: vi.fn(),
+  analyticsBlocked: () => false,
+}));
+
 const testItem: Omit<CartItem, "lineId"> = {
   product: {
     node: {
@@ -83,6 +94,7 @@ function deferred<T>() {
 beforeEach(() => {
   mockStorefrontApiRequest.mockReset();
   mockToastError.mockClear();
+  mockTrackEvent.mockClear();
   localStorage.clear();
   // Reset the mutable fields only (merge, not replace) so the action
   // functions defined at store-creation time stay attached.
@@ -243,6 +255,117 @@ describe("cartStore addItem — userErrors are surfaced, not swallowed", () => {
     expect(mockToastError).toHaveBeenCalledTimes(1);
     const [title] = mockToastError.mock.calls[0];
     expect(title).not.toMatch(/Shopify-specific/i);
+  });
+});
+
+// The four-way split exists because the old single 'limit' bucket told a
+// shopper hitting SELLING_PLAN_NOT_APPLICABLE to "adjust it and try again" —
+// a loop they cannot win, since nothing about their quantity is the problem.
+// These tests pin the classification, the copy it selects, and which kinds
+// get a Retry button.
+describe("cartStore — cart error classification, copy, and retry affordance", () => {
+  function addFailsWith(userErrors: Array<{ code: string | null; message: string }>) {
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: { cartCreate: { cart: null, userErrors: userErrors.map(e => ({ ...e, field: null })) } },
+    });
+  }
+
+  it("an unavailable-variant code gets its own copy and a contact route, never 'change the quantity'", async () => {
+    addFailsWith([{ code: "SELLING_PLAN_NOT_APPLICABLE", message: "Selling plan is not applicable." }]);
+
+    await useCartStore.getState().addItem(testItem);
+
+    const [, opts] = mockToastError.mock.calls[0];
+    expect(opts.description).toMatch(/contact@baselayerskin\.co/);
+    expect(opts.description).not.toMatch(/quantity|amount/i);
+  });
+
+  it("unavailable wins over quantity when a response carries both", async () => {
+    // Order deliberately puts the quantity code first: classification must not
+    // be first-match-wins, or the unfixable error hides behind fixable copy.
+    addFailsWith([
+      { code: "MAXIMUM_EXCEEDED", message: "Too many." },
+      { code: "MERCHANDISE_NOT_APPLICABLE", message: "Not sellable." },
+    ]);
+
+    await useCartStore.getState().addItem(testItem);
+
+    const [, opts] = mockToastError.mock.calls[0];
+    expect(opts.description).toMatch(/contact@baselayerskin\.co/);
+    expect(mockTrackEvent).toHaveBeenCalledWith("cart_error", { kind: "unavailable", operation: "add" });
+  });
+
+  it("neither unavailable nor quantity errors offer a Retry button — retrying them fails identically", async () => {
+    addFailsWith([{ code: "MAXIMUM_EXCEEDED", message: "Too many." }]);
+    await useCartStore.getState().addItem(testItem);
+    expect(mockToastError.mock.calls[0][1].action).toBeUndefined();
+
+    mockToastError.mockClear();
+    addFailsWith([{ code: "MERCHANDISE_NOT_APPLICABLE", message: "Not sellable." }]);
+    await useCartStore.getState().addItem(testItem);
+    expect(mockToastError.mock.calls[0][1].action).toBeUndefined();
+  });
+
+  it("a generic failure offers Retry, and pressing it actually re-runs the add", async () => {
+    addFailsWith([{ code: "VALIDATION_CUSTOM", message: "nope" }]);
+
+    const result = await useCartStore.getState().addItem(testItem);
+    expect(result.success).toBe(false);
+
+    const [, opts] = mockToastError.mock.calls[0];
+    expect(opts.action.label).toBe("Retry");
+
+    // The retry has no caller awaiting it, so the store fires add_to_cart
+    // itself on success — the only place tracking lives inside the store.
+    mockStorefrontApiRequest.mockResolvedValueOnce(cartCreateResponse());
+    opts.action.onClick();
+    await vi.waitFor(() => expect(useCartStore.getState().items).toHaveLength(1));
+    await vi.waitFor(() =>
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        "add_to_cart",
+        expect.objectContaining({ source: "cart_error_retry" })
+      )
+    );
+  });
+
+  it("a transport failure reports as network and does not tell desktop shoppers to check their signal", async () => {
+    mockStorefrontApiRequest.mockRejectedValueOnce(new ShopifyHttpError(400));
+
+    await useCartStore.getState().addItem(testItem);
+
+    const [title, opts] = mockToastError.mock.calls[0];
+    expect(title).toBe("Connection dropped.");
+    expect(opts.description).not.toMatch(/signal/i);
+    expect(opts.action.label).toBe("Retry");
+    expect(mockTrackEvent).toHaveBeenCalledWith("cart_error", { kind: "network", operation: "add" });
+  });
+
+  it("tags the failing operation, so a spike in removes is distinguishable from a spike in adds", async () => {
+    mockStorefrontApiRequest.mockResolvedValueOnce(cartCreateResponse("gid://shopify/CartLine/1"));
+    await useCartStore.getState().addItem(testItem);
+    mockTrackEvent.mockClear();
+
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: { cartLinesRemove: { cart: null, userErrors: [{ code: "VALIDATION_CUSTOM", field: null, message: "nope" }] } },
+    });
+    await useCartStore.getState().removeItem(testItem.variantId);
+    expect(mockTrackEvent).toHaveBeenCalledWith("cart_error", { kind: "other", operation: "remove" });
+
+    mockTrackEvent.mockClear();
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: { cartLinesUpdate: { cart: null, userErrors: [{ code: "MAXIMUM_EXCEEDED", field: null, message: "Too many." }] } },
+    });
+    await useCartStore.getState().updateQuantity(testItem.variantId, 5);
+    expect(mockTrackEvent).toHaveBeenCalledWith("cart_error", { kind: "quantity", operation: "update" });
+  });
+
+  it("never sends the raw Shopify message to analytics — it is vendor free text", async () => {
+    addFailsWith([{ code: "VALIDATION_CUSTOM", message: "leaky-variant-detail-12345" }]);
+
+    await useCartStore.getState().addItem(testItem);
+
+    const payloads = JSON.stringify(mockTrackEvent.mock.calls);
+    expect(payloads).not.toMatch(/leaky-variant-detail/);
   });
 });
 

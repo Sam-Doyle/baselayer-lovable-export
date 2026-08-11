@@ -128,7 +128,7 @@ describe("EarlyAccessContext.openModal — a failed add must not report a succes
     });
     await waitFor(() => expect(useCartStore.getState().isLoading).toBe(false));
 
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalledWith("add_to_cart", expect.anything());
   });
 
   it("does not fire add_to_cart when the Storefront API throws", async () => {
@@ -141,7 +141,7 @@ describe("EarlyAccessContext.openModal — a failed add must not report a succes
     });
     await waitFor(() => expect(useCartStore.getState().isLoading).toBe(false));
 
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalledWith("add_to_cart", expect.anything());
   });
 
   it("a failed add followed by a real retry click fires add_to_cart exactly once, not twice", async () => {
@@ -155,7 +155,7 @@ describe("EarlyAccessContext.openModal — a failed add must not report a succes
       result.current.openModal("hero");
     });
     await waitFor(() => expect(useCartStore.getState().isLoading).toBe(false));
-    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalledWith("add_to_cart", expect.anything());
 
     // Shopper clicks GRAB YOURS again — this time it succeeds.
     mockStorefrontApiRequest.mockResolvedValueOnce(cartCreateResponse());
@@ -164,6 +164,9 @@ describe("EarlyAccessContext.openModal — a failed add must not report a succes
     });
     await waitFor(() => expect(useCartStore.getState().isLoading).toBe(false));
 
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    // Counted by name, not by total call count: the failed attempt also emits
+    // a cart_error event through the same mock, and that is not a conversion.
+    const addToCartCalls = mockTrackEvent.mock.calls.filter(([name]) => name === "add_to_cart");
+    expect(addToCartCalls).toHaveLength(1);
   });
 });

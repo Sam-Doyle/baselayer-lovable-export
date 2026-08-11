@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { storefrontApiRequest, ShopifyHttpError, ShopifyProduct } from '@/lib/shopify';
+import { trackEvent } from '@/lib/analytics';
 
 export interface CartItem {
   lineId: string | null;
@@ -116,28 +117,54 @@ interface ShopifyUserError {
   message: string;
 }
 
-type CartErrorKind = 'limit' | 'network' | 'other' | 'silent';
+type CartErrorKind = 'quantity' | 'unavailable' | 'network' | 'other' | 'silent';
+
+// Which cart call failed. Sent with the cart_error event so a spike can be
+// attributed — "adds are failing" and "removes are failing" are very
+// different problems, and the copy alone can't tell them apart.
+type CartOperation = 'add' | 'update' | 'remove';
 
 function isCartNotFoundError(userErrors: ShopifyUserError[]): boolean {
   return userErrors.some(e => e.message.toLowerCase().includes('cart not found') || e.message.toLowerCase().includes('does not exist'));
 }
 
-// Quantity-rule / merchandise-availability codes — the "can't add that many
-// / that item right now" bucket. Verified against the Storefront 2025-07
-// CartErrorCode enum.
-const LIMIT_ERROR_CODES = new Set([
+/*
+  These two sets were one 'limit' bucket. Splitting them is the whole point:
+  the codes below are things the shopper can fix by changing the number in the
+  quantity stepper. Verified against the Storefront 2025-07 CartErrorCode enum.
+*/
+const QUANTITY_ERROR_CODES = new Set([
   'MINIMUM_NOT_MET',
   'MAXIMUM_EXCEEDED',
   'INVALID_INCREMENT',
+  'CART_TOO_LARGE',
+]);
+
+/*
+  These are NOT the shopper's fault and no amount of adjusting fixes them —
+  the variant or its selling plan is misconfigured or no longer sellable.
+  Telling someone to change their quantity here sends them into a loop they
+  cannot win, so they get different copy and a way to reach a human.
+
+  VARIANT_REQUIRES_SELLING_PLAN / SELLING_PLAN_NOT_APPLICABLE specifically
+  fire when the Subscriptions app plan drifts from the GIDs pinned in
+  src/config/product.ts — recreating the plan in admin changes its GID and
+  every subscription add starts failing here. That is a merchandising break
+  masquerading as a user error, which is why it now reports as its own kind.
+*/
+const UNAVAILABLE_ERROR_CODES = new Set([
   'MERCHANDISE_NOT_APPLICABLE',
   'INVALID_MERCHANDISE_LINE',
   'VARIANT_REQUIRES_SELLING_PLAN',
   'SELLING_PLAN_NOT_APPLICABLE',
-  'CART_TOO_LARGE',
 ]);
 
 function classifyUserErrors(userErrors: ShopifyUserError[]): CartErrorKind {
-  if (userErrors.some(e => e.code && LIMIT_ERROR_CODES.has(e.code))) return 'limit';
+  // Unavailable is checked first on purpose. If a response carries both, the
+  // unfixable one has to win — otherwise we'd tell the shopper to adjust a
+  // quantity that was never the problem.
+  if (userErrors.some(e => e.code && UNAVAILABLE_ERROR_CODES.has(e.code))) return 'unavailable';
+  if (userErrors.some(e => e.code && QUANTITY_ERROR_CODES.has(e.code))) return 'quantity';
   // SERVICE_UNAVAILABLE = "An error occurred while saving the cart" — a
   // transient server-side condition, so it gets the same copy as a network
   // failure even though it arrives as a normal 200 response, not a thrown
@@ -146,30 +173,75 @@ function classifyUserErrors(userErrors: ShopifyUserError[]): CartErrorKind {
   return 'other';
 }
 
-// Brand voice: direct, short, declarative. No apologising, no "Oops!". Never
-// the raw Shopify message — that goes to console.error only, for debugging.
+/*
+  Brand voice: direct, short, declarative. No apologising, no "Oops!". Never
+  the raw Shopify message — that goes to console.error only, for debugging.
+
+  Deliberate deviation from the brand doc: it says headings are always
+  uppercase, and these are sentence case. A toast title is UI notification,
+  not a headline, and "THAT DIDN'T GO THROUGH." shouted at someone whose
+  purchase just failed reads as blame. Signed off as an exception.
+*/
 const CART_ERROR_COPY: Record<Exclude<CartErrorKind, 'silent'>, { title: string; description: string }> = {
-  limit: {
+  quantity: {
     title: "That quantity isn't available.",
-    description: 'Adjust it and try again.',
+    description: 'Change the amount and try again.',
+  },
+  unavailable: {
+    title: "We can't add that right now.",
+    description: "Email contact@baselayerskin.co and we'll sort it.",
   },
   network: {
     title: 'Connection dropped.',
-    description: 'Check your signal and try again.',
+    // Not "check your signal" — roughly half of sessions are desktop and have
+    // no signal to check. The Retry action carries the instruction instead.
+    description: 'Try that again.',
   },
   other: {
     title: "That didn't go through.",
-    description: 'Try again in a moment.',
+    description: 'Try that again.',
   },
 };
 
-function notifyCartError(kind: CartErrorKind, rawMessage: string): void {
+// Only these two are worth a Retry button. Retrying a quantity rule or an
+// unsellable variant fails identically every time, and a button that always
+// fails is worse than no button.
+const RETRYABLE_KINDS = new Set<CartErrorKind>(['network', 'other']);
+
+function notifyCartError(
+  kind: CartErrorKind,
+  rawMessage: string,
+  operation: CartOperation,
+  onRetry?: () => void,
+): void {
   console.error('Shopify cart error:', rawMessage);
+
+  /*
+    Every cart failure was previously invisible: it reached the shopper's
+    console and nowhere else, so a broken add button and an absence of demand
+    looked identical in the funnel. This is the only signal that tells them
+    apart.
+
+    Deliberately does NOT send rawMessage. That is vendor free text and can
+    carry variant/customer detail; kind + operation is enough to spot a spike
+    and the full message is already in the console for debugging.
+
+    Fires before the 'silent' bail — a 402 is still a cart failure worth
+    counting, it just already has a toast on screen. trackEvent self-gates on
+    consent, so this adds no new tracking for a shopper who declined.
+  */
+  void trackEvent('cart_error', { kind, operation });
+
   // 'silent' = storefrontApiRequest already surfaced its own toast (the 402
   // payment-required path) — don't stack a second one on top of it.
   if (kind === 'silent') return;
   const copy = CART_ERROR_COPY[kind];
-  toast.error(copy.title, { description: copy.description });
+  toast.error(copy.title, {
+    description: copy.description,
+    ...(onRetry && RETRYABLE_KINDS.has(kind)
+      ? { action: { label: 'Retry', onClick: onRetry } }
+      : {}),
+  });
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -316,6 +388,38 @@ export const useCartStore = create<CartStore>()(
         if (get().isLoading) return { success: false };
         const { items, cartId, clearCart } = get();
         const existingItem = items.find(i => i.variantId === item.variantId && (i.sellingPlanId || null) === (item.sellingPlanId || null));
+
+        /*
+          Retry handler for the error toast. Re-runs the whole add with the
+          same item, so it re-enters every recovery path (cart recreation
+          included) rather than replaying one failed mutation.
+
+          It fires add_to_cart itself, which is the one place in the codebase
+          that tracking lives in the store instead of at the call site. A
+          normal add is tracked by whoever awaited addItem (the PDP,
+          EarlyAccessContext); a toast retry has no such caller still waiting,
+          so without this a recovered add — a real order — would complete
+          unreported and under-count revenue in GA4 and Meta. It cannot
+          double-fire with the call-site event, because that caller's promise
+          already resolved { success: false } on the failure that produced
+          this toast.
+
+          isLoading is false again by the time this can run: the finally block
+          clears it before the toast is ever clickable.
+        */
+        const retryAdd = () => {
+          void get().addItem(item).then((result) => {
+            if (!result.success) return;
+            void trackEvent('add_to_cart', {
+              content_name: 'Base Layer Face Cream',
+              content_ids: ['base-layer-face-cream'],
+              value: Number(item.price.amount),
+              currency: item.price.currencyCode,
+              source: 'cart_error_retry',
+            });
+          });
+        };
+
         set({ isLoading: true });
         try {
           if (!cartId) {
@@ -324,7 +428,7 @@ export const useCartStore = create<CartStore>()(
               set({ cartId: result.cartId, checkoutUrl: result.checkoutUrl, items: [{ ...item, lineId: result.lineId }], isOpen: true });
               return { success: true };
             }
-            notifyCartError(result.errorKind, result.errorMessage);
+            notifyCartError(result.errorKind, result.errorMessage, 'add', retryAdd);
             return { success: false };
           }
 
@@ -347,10 +451,10 @@ export const useCartStore = create<CartStore>()(
                 set({ cartId: recreate.cartId, checkoutUrl: recreate.checkoutUrl, items: [{ ...existingItem, quantity: newQuantity, lineId: recreate.lineId }], isOpen: true });
                 return { success: true };
               }
-              notifyCartError(recreate.errorKind, recreate.errorMessage);
+              notifyCartError(recreate.errorKind, recreate.errorMessage, 'add', retryAdd);
               return { success: false };
             }
-            notifyCartError(result.errorKind, result.errorMessage);
+            notifyCartError(result.errorKind, result.errorMessage, 'add', retryAdd);
             return { success: false };
           }
 
@@ -367,14 +471,14 @@ export const useCartStore = create<CartStore>()(
               set({ cartId: recreate.cartId, checkoutUrl: recreate.checkoutUrl, items: [{ ...item, lineId: recreate.lineId }], isOpen: true });
               return { success: true };
             }
-            notifyCartError(recreate.errorKind, recreate.errorMessage);
+            notifyCartError(recreate.errorKind, recreate.errorMessage, 'add', retryAdd);
             return { success: false };
           }
-          notifyCartError(result.errorKind, result.errorMessage);
+          notifyCartError(result.errorKind, result.errorMessage, 'add', retryAdd);
           return { success: false };
         } catch (error) {
           console.error('Failed to add item:', error);
-          notifyCartError('network', error instanceof Error ? error.message : String(error));
+          notifyCartError('network', error instanceof Error ? error.message : String(error), 'add', retryAdd);
           return { success: false };
         } finally {
           set({ isLoading: false });
@@ -394,6 +498,9 @@ export const useCartStore = create<CartStore>()(
         const { items, cartId, clearCart } = get();
         const item = items.find(i => i.variantId === variantId);
         if (!item?.lineId || !cartId) return { success: false };
+        // No analytics on this retry: quantity edits inside the drawer aren't
+        // tracked on the happy path either, so there is nothing to under-count.
+        const retryUpdate = () => { void get().updateQuantity(variantId, quantity); };
         set({ isLoading: true });
         try {
           const result = await updateShopifyCartLine(cartId, item.lineId, quantity);
@@ -410,14 +517,14 @@ export const useCartStore = create<CartStore>()(
               set({ cartId: recreate.cartId, checkoutUrl: recreate.checkoutUrl, items: [{ ...item, quantity, lineId: recreate.lineId }], isOpen: true });
               return { success: true };
             }
-            notifyCartError(recreate.errorKind, recreate.errorMessage);
+            notifyCartError(recreate.errorKind, recreate.errorMessage, 'update', retryUpdate);
             return { success: false };
           }
-          notifyCartError(result.errorKind, result.errorMessage);
+          notifyCartError(result.errorKind, result.errorMessage, 'update', retryUpdate);
           return { success: false };
         } catch (error) {
           console.error('Failed to update quantity:', error);
-          notifyCartError('network', error instanceof Error ? error.message : String(error));
+          notifyCartError('network', error instanceof Error ? error.message : String(error), 'update', retryUpdate);
           return { success: false };
         } finally {
           set({ isLoading: false });
@@ -432,6 +539,7 @@ export const useCartStore = create<CartStore>()(
         const { items, cartId, clearCart } = get();
         const item = items.find(i => i.variantId === variantId);
         if (!item?.lineId || !cartId) return { success: false };
+        const retryRemove = () => { void get().removeItem(variantId); };
         set({ isLoading: true });
         try {
           const result = await removeLineFromShopifyCart(cartId, item.lineId);
@@ -447,11 +555,11 @@ export const useCartStore = create<CartStore>()(
             clearCart();
             return { success: true };
           }
-          notifyCartError(result.errorKind, result.errorMessage);
+          notifyCartError(result.errorKind, result.errorMessage, 'remove', retryRemove);
           return { success: false };
         } catch (error) {
           console.error('Failed to remove item:', error);
-          notifyCartError('network', error instanceof Error ? error.message : String(error));
+          notifyCartError('network', error instanceof Error ? error.message : String(error), 'remove', retryRemove);
           return { success: false };
         } finally {
           set({ isLoading: false });
