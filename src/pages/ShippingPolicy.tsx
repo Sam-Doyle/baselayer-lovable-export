@@ -17,18 +17,17 @@ import { LEGAL } from "@/config/legal";
  * No carrier is named on purpose. Naming one you don't always use is a false
  * statement, and the customer gets the carrier from the tracking email anyway.
  *
- * The shipping charges below mirror rules that live in Shopify admin (the
- * shipping profile rate plus the two automatic free-shipping discounts), not
- * anything this codebase enforces. Checkout is the authority; this page is a
- * representation of it. If the admin rules change, change LEGAL's shipping
- * fields in the same pass.
+ * The shipping charge below mirrors a rule that lives in Shopify admin (the US
+ * shipping profile's rate), not anything this codebase enforces. Checkout is the
+ * authority; this page is a representation of it. If the admin rule changes,
+ * change LEGAL.freeShippingOnAllOrders in the same pass.
  */
 
 const ShippingPolicy = () => {
   useCanonical();
   useMetaTags({
     title: "Shipping Policy | Base Layer",
-    description: `Free US shipping over $${LEGAL.freeShippingThreshold} or on any subscription, order processing times, tracking, and how we handle lost or damaged packages.`,
+    description: "Free US shipping on every order, order processing times, tracking, and how we handle lost or damaged packages.",
   });
 
   return (
@@ -56,10 +55,9 @@ const ShippingPolicy = () => {
             <section>
               <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-3 text-foreground">Shipping Costs</h2>
               <p>
-                Standard shipping is free on orders of ${LEGAL.freeShippingThreshold} or more, and free on every
-                Subscribe &amp; Save order regardless of order value. Orders below ${LEGAL.freeShippingThreshold} that
-                are not subscriptions are charged a flat ${LEGAL.flatShippingRate.toFixed(2)} for standard shipping.
-                The exact amount is shown at checkout before you pay.
+                Standard shipping is free on every order. There is no minimum, no threshold, and no
+                separate shipping charge at checkout. The price you see on the product page is the
+                price you pay, plus any sales tax your state requires.
               </p>
               <p className="mt-3">
                 We currently ship to addresses within the United States, including Alaska and Hawaii. We do not ship to PO

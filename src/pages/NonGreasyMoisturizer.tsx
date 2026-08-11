@@ -10,7 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import routineGraphic from "@/assets/generated-creatives/content_visual_routine_graphic_1772738778419.png";
 import absorptionDiagram from "@/assets/generated-creatives/content_visual_absorption_diagram_1772738792625.png";
 import { merchantOfferFields } from "@/config/merchantSchema";
-import { LEGAL } from "@/config/legal";
+import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 
 /* ── Structured Data ────────────────────────────────────────────── */
 
@@ -76,7 +76,7 @@ const faqs = [
   {
     question: "Is there a subscription?",
     answer:
-      `Not unless you pick one. Buying once is the default. One bottle is $38 plus $${LEGAL.flatShippingRate.toFixed(2)} shipping. The 2-pack is $68 and ships free.`,
+      "Not unless you pick one. Buying once is the default. One bottle is $38, the 2-pack is $68, and shipping is free either way. If you do subscribe, the first bottle is the same $38 and every one after that is $34.",
   },
 ];
 
@@ -162,7 +162,7 @@ const NonGreasyMoisturizer = () => {
             </div>
 
             <p className="font-body text-xs text-muted-foreground">
-              Zero fragrance. Zero residue. Free shipping over ${LEGAL.freeShippingThreshold}.
+              Zero fragrance. Zero residue. {FREE_SHIPPING_PHRASE}.
             </p>
           </div>
         </section>

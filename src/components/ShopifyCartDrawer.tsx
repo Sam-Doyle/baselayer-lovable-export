@@ -4,7 +4,6 @@ import { X, Minus, Plus, Trash2, ExternalLink, Loader2, ShoppingCart } from "luc
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
 import { BUY_TIERS, buildCartItem } from "@/config/product";
-import { LEGAL } from "@/config/legal";
 
 const ShopifyCartDrawer = () => {
   const { items, isOpen, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart, toggleCart } = useCartStore();
@@ -33,9 +32,9 @@ const ShopifyCartDrawer = () => {
   //
   // This fires less often now that the 2-pack is the PDP default — a single
   // bottle is a deliberate downgrade, not the path of least resistance. It's
-  // kept because that remaining cart is the only one on the site that pays
-  // shipping, which makes it the one where the upsell has a hard number behind
-  // it rather than a vague "save $8": $38 + $5.95 vs $68 shipped.
+  // kept because the shopper who took that downgrade is the one with the most
+  // contribution left on the table ($21.10 vs $38.73), and $8 off a second
+  // bottle is the cheapest way to close the gap.
   const tier2 = BUY_TIERS.find(t => t.id === 2 && t.variantGid !== null);
   const singleBottleLine = items.length === 1 && items[0].quantity === 1 && !items[0].sellingPlanId && items[0].variantId === BUY_TIERS[0].variantGid ? items[0] : null;
   const upsellTier = tier2 && singleBottleLine ? tier2 : null;
@@ -108,8 +107,14 @@ const ShopifyCartDrawer = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-xs font-bold uppercase tracking-wide truncate">{item.product.node.title}</p>
                     <p className={`text-xs ${item.sellingPlanId ? "text-brand font-medium" : "text-muted-foreground"}`}>{item.variantTitle}</p>
+                    {/*
+                      Renewal price, not the price of the line above it. The first
+                      delivery bills at the one-time price and only renewals get
+                      the discount, so quoting item.price here would understate
+                      what auto-renews.
+                    */}
                     {subTier && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Auto-renews {subTier.duration} at ${subTier.price}. Pause or cancel anytime.</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Auto-renews {subTier.duration} at ${subTier.renewalPrice ?? subTier.price}. Pause or cancel anytime.</p>
                     )}
                     <p className="font-body text-xs mt-0.5">${parseFloat(item.price.amount).toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
@@ -137,9 +142,9 @@ const ShopifyCartDrawer = () => {
                   disabled={isLoading || isSyncing}
                   className="w-full text-left border border-brand/40 bg-brand/5 rounded px-4 py-3 hover:bg-brand/10 transition-colors"
                 >
-                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-brand">Add a second bottle — free shipping</span>
+                  <span className="font-heading text-xs font-bold uppercase tracking-wide text-brand">Add a second bottle — save $8</span>
                   <span className="block font-body text-xs text-muted-foreground mt-0.5">
-                    12 weeks for $68 shipped, instead of $38 plus ${LEGAL.flatShippingRate.toFixed(2)} shipping
+                    12 weeks for $68 instead of $76. Same free shipping either way.
                   </span>
                 </button>
               )}

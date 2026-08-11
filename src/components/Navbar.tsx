@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
-import { LEGAL } from "@/config/legal";
+import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -36,12 +36,12 @@ const Navbar = () => {
       {/* Universal Offer Banner */}
       <div className="bg-[#1A2F4C] text-[#FFFFFF] text-center h-[36px] font-body uppercase w-full flex items-center justify-center px-4 shadow-sm relative z-50">
         {/*
-          Threshold interpolated from LEGAL, not typed inline. This bar is the
+          Phrase interpolated from LEGAL, not typed inline. This bar is the
           most-seen shipping claim on the site — if it and checkout disagree,
           this is the line a customer screenshots.
         */}
-        <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase hidden sm:inline leading-none mt-[1px]">FREE SHIPPING OVER ${LEGAL.freeShippingThreshold} · 30-DAY KEEP-THE-BOTTLE GUARANTEE · $38 FOUNDING PRICE</span>
-        <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase sm:hidden leading-none mt-[1px]">$38 FOUNDING PRICE · FREE SHIPPING OVER ${LEGAL.freeShippingThreshold}</span>
+        <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase hidden sm:inline leading-none mt-[1px]">{FREE_SHIPPING_PHRASE.toUpperCase()} · 30-DAY KEEP-THE-BOTTLE GUARANTEE · $38 FOUNDING PRICE</span>
+        <span className="font-heading font-semibold text-white tracking-[0.12em] text-[12px] uppercase sm:hidden leading-none mt-[1px]">$38 FOUNDING PRICE · {FREE_SHIPPING_PHRASE.toUpperCase()}</span>
       </div>
 
       {/*

@@ -46,17 +46,20 @@ export const LEGAL = {
   shipsInternationally: false,
 
   /*
-   * Shipping charges. These are the on-site representation of rules that
-   * actually live in Shopify admin — the shipping profile rate and the two
-   * automatic free-shipping discounts. If admin and these numbers disagree,
-   * the site is making a deceptive shipping representation, so change them
-   * together or not at all.
+   * Shipping charges. This is the on-site representation of a rule that
+   * actually lives in Shopify admin — the US shipping profile's rate. If admin
+   * and this flag disagree, the site is making a deceptive shipping
+   * representation, so change them together or not at all.
+   *
+   * A $50 free-shipping threshold with a $5.95 flat rate below it was built and
+   * then reversed before it went live. The reason it lost: $38 + $5.95 and a
+   * flat $44 collect the same contribution to within four cents, so the fee
+   * bought no margin a price change couldn't — it only added a second line item
+   * at checkout, on the cheapest tier, for a brand whose whole pitch is that it
+   * doesn't play billing games. If shipping ever needs to be paid for, raise the
+   * bottle price instead of reintroducing a threshold.
    */
-  freeShippingThreshold: 50,
-  /** Charged only when neither free-shipping condition is met (single bottle). */
-  flatShippingRate: 5.95,
-  /** Subscription orders ship free regardless of order value. */
-  subscriptionShipsFree: true,
+  freeShippingOnAllOrders: true,
 
   // Guarantee — must stay consistent with on-site marketing claims.
   guaranteeDays: 30,
@@ -74,9 +77,10 @@ export const LEGAL = {
 export const GUARANTEE_WINDOW_PHRASE = `${LEGAL.guaranteeDays} days from the date of ${LEGAL.guaranteeStart}`;
 
 /**
- * "Free shipping over $50" — the short marketing form, used in the announcement
- * bar, hero, and PDP trust lines. Every one of those places used to read "Free
- * shipping" flat. Import this rather than retyping the threshold; a stale $35
- * or $75 in one banner is exactly the mismatch the FTC rule punishes.
+ * The short marketing form, used in the announcement bar, hero, PDP trust line,
+ * and landing page. Import this rather than retyping it: if shipping ever stops
+ * being unconditional, one edit here has to be able to correct every banner at
+ * once. A stale "free shipping" in one place is exactly the mismatch the FTC
+ * Mail, Internet, or Telephone Order Merchandise Rule punishes.
  */
-export const FREE_SHIPPING_PHRASE = `Free shipping over $${LEGAL.freeShippingThreshold}`;
+export const FREE_SHIPPING_PHRASE = "Free shipping";
