@@ -187,26 +187,31 @@ function escapeAttr(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Replace a meta tag's content, tolerating attribute wrapping across lines
+// and self-closing " />" endings — index.html has both, and a rigid regex
+// silently no-ops (every page then ships the homepage default).
+function replaceMetaTag(html: string, attr: "name" | "property", key: string, content: string): string {
+  const re = new RegExp(`<meta\\s+${attr}="${key}"\\s+content="[^"]*"\\s*/?>`);
+  return html.replace(re, `<meta ${attr}="${key}" content="${content}">`);
+}
+
 function injectMeta(html: string, page: PageMeta): string {
   const ogImage = page.ogImage || `${BASE_URL}/og-image.jpg`;
   const ogType = page.ogType || "website";
   const canonicalUrl = `${BASE_URL}${page.path}`;
 
   html = html.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(page.title)}</title>`);
-  html = html.replace(
-    /<meta name="description" content="[^"]*">/,
-    `<meta name="description" content="${escapeAttr(page.description)}">`
-  );
-  html = html.replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escapeAttr(page.title)}">`);
-  html = html.replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escapeAttr(page.description)}">`);
-  html = html.replace(/<meta property="og:type" content="[^"]*">/, `<meta property="og:type" content="${escapeAttr(ogType)}">`);
-  html = html.replace(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${escapeAttr(ogImage)}">`);
-  html = html.replace(/<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${escapeAttr(page.title)}">`);
-  html = html.replace(/<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${escapeAttr(page.description)}">`);
-  html = html.replace(/<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${escapeAttr(ogImage)}">`);
+  html = replaceMetaTag(html, "name", "description", escapeAttr(page.description));
+  html = replaceMetaTag(html, "property", "og:title", escapeAttr(page.title));
+  html = replaceMetaTag(html, "property", "og:description", escapeAttr(page.description));
+  html = replaceMetaTag(html, "property", "og:type", escapeAttr(ogType));
+  html = replaceMetaTag(html, "property", "og:image", escapeAttr(ogImage));
+  html = replaceMetaTag(html, "name", "twitter:title", escapeAttr(page.title));
+  html = replaceMetaTag(html, "name", "twitter:description", escapeAttr(page.description));
+  html = replaceMetaTag(html, "name", "twitter:image", escapeAttr(ogImage));
 
   // Update og:image:alt and og:site_name for social crawlers
-  html = html.replace(/<meta property="og:image:alt" content="[^"]*">/, `<meta property="og:image:alt" content="${escapeAttr(page.title)} - Base Layer Men's Skincare">`);
+  html = replaceMetaTag(html, "property", "og:image:alt", `${escapeAttr(page.title)} - Base Layer Men's Skincare`);
 
   // Add canonical URL
   if (!html.includes('rel="canonical"')) {

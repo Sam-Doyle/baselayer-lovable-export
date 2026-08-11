@@ -7,6 +7,44 @@ import { urlFor } from "@/lib/sanity";
 import type { BlockContent } from "@/lib/sanity";
 
 /**
+ * Slugify heading text into an anchor id. Shared by the h2/h3 block
+ * renderers below (which stamp the id on the element) and by
+ * `extractHeadings` (which pages use to build "In This Guide" jump-link
+ * lists) so the two always agree without any cross-file bookkeeping.
+ * Pure string transform — safe under SSR/prerendering.
+ */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-+|-+$)/g, "");
+}
+
+function blockPlainText(block: any): string {
+  if (!block?.children) return "";
+  return (block.children as any[])
+    .filter((child: any) => child._type === "span")
+    .map((child: any) => child.text || "")
+    .join("");
+}
+
+/**
+ * Pull the h2-level headings out of a Portable Text body, in document
+ * order, with the same anchor ids the h2 block renderer will stamp on
+ * the rendered headings. Used to build "In This Guide" TOC blocks.
+ */
+export function extractHeadings(
+  value: BlockContent | undefined | null
+): Array<{ id: string; text: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((block: any) => block._type === "block" && block.style === "h2")
+    .map((block: any) => ({ id: slugify(blockPlainText(block)), text: blockPlainText(block) }))
+    .filter((h) => h.text);
+}
+
+/**
  * Custom Portable Text components for Base Layer Skin.
  *
  * Handles:
@@ -18,30 +56,42 @@ import type { BlockContent } from "@/lib/sanity";
 const components: Partial<PortableTextReactComponents> = {
   // ── Block-level ─────────────────────────────────────────────
   block: {
-    h2: ({ children }) => (
-      <h2 className="text-2xl font-bold mt-10 mb-4">{children}</h2>
+    h2: ({ children, value }) => (
+      <h2
+        id={slugify(blockPlainText(value))}
+        className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide mt-12 mb-4 pb-2 border-b border-border scroll-mt-28"
+      >
+        {children}
+      </h2>
     ),
-    h3: ({ children }) => (
-      <h3 className="text-xl font-semibold mt-8 mb-3">{children}</h3>
+    h3: ({ children, value }) => (
+      <h3
+        id={slugify(blockPlainText(value))}
+        className="font-heading text-xl md:text-2xl font-bold uppercase tracking-wide mt-9 mb-3 scroll-mt-28"
+      >
+        {children}
+      </h3>
     ),
     h4: ({ children }) => (
-      <h4 className="text-lg font-semibold mt-6 mb-2">{children}</h4>
+      <h4 className="font-heading text-lg font-semibold uppercase mt-6 mb-2 scroll-mt-28">{children}</h4>
     ),
     blockquote: ({ children }) => (
-      <blockquote className="border-l-4 border-border pl-4 italic my-6 text-muted-foreground">
-        {children}
+      <blockquote className="border-l-2 border-primary pl-6 my-8">
+        <p className="font-heading text-xl md:text-2xl font-bold leading-snug not-italic">
+          {children}
+        </p>
       </blockquote>
     ),
-    normal: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+    normal: ({ children }) => <p className="mb-5 leading-relaxed">{children}</p>,
   },
 
   // ── Lists ───────────────────────────────────────────────────
   list: {
     bullet: ({ children }) => (
-      <ul className="list-disc pl-6 mb-4 space-y-1">{children}</ul>
+      <ul className="list-disc pl-6 mb-5 space-y-2 marker:text-muted-foreground">{children}</ul>
     ),
     number: ({ children }) => (
-      <ol className="list-decimal pl-6 mb-4 space-y-1">{children}</ol>
+      <ol className="list-decimal pl-6 mb-5 space-y-2 marker:text-muted-foreground">{children}</ol>
     ),
   },
   listItem: {

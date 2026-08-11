@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getArticleBySlug } from "@/lib/queries";
-import PortableText from "@/components/PortableText";
+import PortableText, { extractHeadings } from "@/components/PortableText";
 import { trackEvent } from "@/lib/analytics";
 import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema, buildArticleSchema } from "@/components/SEO";
@@ -67,6 +67,7 @@ const ArticleDetail = () => {
   }, [article]);
 
   const art = article as any;
+  const headings = art?.body ? extractHeadings(art.body) : [];
   const title = art?.metaTitle || (article ? `${article.title} | Base Layer` : "Article | Base Layer");
   const description = art?.metaDescription || toPlainText(art?.excerpt) || art?.extractableSummary || "";
   const imageUrl = art?.heroImage?.asset?.url || (slug ? articleHeroImages[slug] : undefined) || environmentSink;
@@ -178,6 +179,23 @@ const ArticleDetail = () => {
                 </div>
               )}
 
+              {/* In This Guide — jump links for long articles */}
+              {headings.length >= 4 && (
+                <nav aria-label="Table of contents" className="bg-card border border-border rounded-lg p-6 mb-8">
+                  <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-muted-foreground mb-3">In This Guide</h2>
+                  <ol className="font-body text-sm space-y-2">
+                    {headings.map((h, i) => (
+                      <li key={h.id}>
+                        <a href={`#${h.id}`} className="text-foreground/80 hover:text-foreground underline-offset-4 hover:underline">
+                          <span className="text-muted-foreground tabular-nums mr-2">{i + 1}.</span>
+                          {h.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              )}
+
               {imageUrl && (
                 <div className="mb-10 rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                   <img
@@ -194,7 +212,7 @@ const ArticleDetail = () => {
               <div className="min-h-[300px]">
                 <PortableText
                   value={art.body}
-                  className="prose prose-invert max-w-none font-body prose-headings:font-heading prose-headings:uppercase prose-headings:tracking-wide prose-a:text-primary prose-p:text-foreground/70 prose-li:text-foreground/70"
+                  className="max-w-[70ch] font-body"
                 />
               </div>
 

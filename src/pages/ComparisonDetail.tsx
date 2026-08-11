@@ -6,10 +6,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getComparisonBySlug } from "@/lib/queries";
-import PortableText from "@/components/PortableText";
+import PortableText, { extractHeadings } from "@/components/PortableText";
 import { trackEvent } from "@/lib/analytics";
 import { buttonVariants } from "@/components/ui/button";
-import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema, buildArticleSchema } from "@/components/SEO";
+import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema, buildArticleSchema, buildItemListSchema, BASE_URL } from "@/components/SEO";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { isPortableText, toPlainText } from "@/lib/utils";
 import comparisonChart from "@/assets/generated-creatives/content_visual_comparison_chart_1772738708119.png";
@@ -40,6 +40,7 @@ const ComparisonDetail = () => {
   useCanonical();
 
   const comp = comparison as any;
+  const headings = comp?.body ? extractHeadings(comp.body) : [];
   const title = comp?.metaTitle || (comp ? `${comp.title} | Base Layer` : "Compare | Base Layer");
   const description = comp?.metaDescription || toPlainText(comp?.intro) || "";
   useMetaTags({ title, description });
@@ -65,6 +66,13 @@ const ComparisonDetail = () => {
             { name: comp.title },
           ]),
           ...(comp.faqs?.length ? [buildFaqSchema(comp.faqs)] : []),
+          ...(comp.comparisonTable?.length ? [buildItemListSchema(
+            comp.title,
+            comp.comparisonTable.map((row: any) => ({
+              name: row.productName,
+              ...(row.productName?.includes("Base Layer") ? { url: `${BASE_URL}/face-cream` } : {}),
+            })),
+          )] : []),
         ]} />
       )}
       <Navbar />
@@ -89,10 +97,37 @@ const ComparisonDetail = () => {
               </p>
               {comp.intro && (
                 isPortableText(comp.intro) ? (
-                  <PortableText value={comp.intro} className="font-body text-muted-foreground mb-8" />
+                  <PortableText value={comp.intro} className="max-w-[70ch] font-body text-muted-foreground mb-8" />
                 ) : (
-                  <p className="font-body text-muted-foreground mb-8">{comp.intro}</p>
+                  <p className="max-w-[70ch] font-body text-muted-foreground mb-8">{comp.intro}</p>
                 )
+              )}
+
+              {/* Key Takeaways — liftable summary (mirrors ArticleDetail) */}
+              {comp.extractableSummary && comp.extractableSummary !== comp.intro && (
+                <div className="bg-card border border-border rounded-lg p-6 mb-8">
+                  <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-muted-foreground mb-3">Key Takeaways</h2>
+                  <p className="font-body text-sm text-muted-foreground leading-relaxed">
+                    {comp.extractableSummary}
+                  </p>
+                </div>
+              )}
+
+              {/* In This Guide — jump links for longer comparisons */}
+              {headings.length >= 4 && (
+                <nav aria-label="Table of contents" className="bg-card border border-border rounded-lg p-6 mb-10 max-w-[70ch]">
+                  <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-muted-foreground mb-3">In This Guide</h2>
+                  <ol className="font-body text-sm space-y-2">
+                    {headings.map((h, i) => (
+                      <li key={h.id}>
+                        <a href={`#${h.id}`} className="text-foreground/80 hover:text-foreground underline-offset-4 hover:underline">
+                          <span className="text-muted-foreground tabular-nums mr-2">{i + 1}.</span>
+                          {h.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
               )}
 
               {/* Visual comparison banner */}
@@ -122,23 +157,26 @@ const ComparisonDetail = () => {
                     <table className="w-full border-collapse text-left font-body text-xs">
                       <thead>
                         <tr className="bg-card border-b border-border">
-                          <th className="px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[18%]">Product</th>
-                          <th className="px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[8%]">Price</th>
-                          <th className="px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[7%] text-center">Rating</th>
-                          <th className="px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[30%]">Pros</th>
-                          <th className="px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[30%]">Cons</th>
+                          <th className="sticky top-24 z-10 bg-card px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[18%]">Product</th>
+                          <th className="sticky top-24 z-10 bg-card px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[8%]">Price</th>
+                          <th className="sticky top-24 z-10 bg-card px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[7%] text-center">Rating</th>
+                          <th className="sticky top-24 z-10 bg-card px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[30%]">Pros</th>
+                          <th className="sticky top-24 z-10 bg-card px-3 py-2.5 font-heading text-[10px] uppercase tracking-wide w-[30%]">Cons</th>
                         </tr>
                       </thead>
                       <tbody>
                         {comp.comparisonTable.map((row: any) => {
                           const isBaseLayer = row.productName?.toLowerCase().includes("base layer") || row.brand?.toLowerCase().includes("base layer");
                           return (
-                            <tr key={row._key} className={`border-b border-border ${isBaseLayer ? "bg-primary/5" : ""}`}>
+                            <tr key={row._key} className={`border-b border-border ${isBaseLayer ? "bg-primary/5 border-l-2 border-l-primary" : ""}`}>
                               <td className="px-3 py-3 align-top">
-                                <span className="font-heading font-bold text-sm leading-tight block">
+                                <span className="font-heading font-bold text-sm leading-tight flex items-center gap-2 flex-wrap">
                                   {isBaseLayer ? (
                                     <Link to="/face-cream" className="hover:underline underline-offset-4">{row.productName}</Link>
                                   ) : row.productName}
+                                  {isBaseLayer && (
+                                    <span className="bg-primary text-primary-foreground text-[9px] font-heading font-bold uppercase tracking-wide px-1.5 py-0.5 shrink-0">Our Pick</span>
+                                  )}
                                 </span>
                                 {row.brand && <span className="text-muted-foreground text-[10px] block mt-0.5">{row.brand}</span>}
                               </td>
@@ -187,11 +225,14 @@ const ComparisonDetail = () => {
                     {comp.comparisonTable.map((row: any) => {
                       const isBaseLayer = row.productName?.toLowerCase().includes("base layer") || row.brand?.toLowerCase().includes("base layer");
                       return (
-                        <div key={row._key} className={`bg-card p-4 rounded-lg border ${isBaseLayer ? "border-primary/30 ring-1 ring-primary/10" : "border-border"}`}>
+                        <div key={row._key} className={`bg-card p-4 rounded-lg border ${isBaseLayer ? "border-primary/30 border-l-2 border-l-primary ring-1 ring-primary/10" : "border-border"}`}>
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <h3 className="font-heading font-bold text-sm">
+                              <h3 className="font-heading font-bold text-sm flex items-center gap-2 flex-wrap">
                                 {isBaseLayer ? <Link to="/face-cream" className="hover:underline">{row.productName}</Link> : row.productName}
+                                {isBaseLayer && (
+                                  <span className="bg-primary text-primary-foreground text-[9px] font-heading font-bold uppercase tracking-wide px-1.5 py-0.5 shrink-0">Our Pick</span>
+                                )}
                               </h3>
                               {row.brand && <p className="font-body text-[10px] text-muted-foreground">{row.brand}</p>}
                             </div>
@@ -240,7 +281,7 @@ const ComparisonDetail = () => {
               })()}
 
               {/* Body content */}
-              <PortableText value={comp.body} className="prose prose-invert max-w-none font-body prose-headings:font-heading prose-p:text-foreground/70 prose-li:text-foreground/70 mb-12" />
+              <PortableText value={comp.body} className="max-w-[70ch] font-body mb-12" />
 
               {/* Slug-specific comparison visual */}
               {slug && comparisonSlugImages[slug] && (
@@ -272,11 +313,16 @@ const ComparisonDetail = () => {
                 </div>
               )}
 
-              {/* Verdict */}
+              {/* Verdict — CMS field is a plain string on some docs; guard like intro,
+                  otherwise PortableText renders an error div and the section is empty */}
               {comp.verdict && (
                 <section className="mb-12 bg-card p-6 rounded-lg border border-border">
                   <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-4">Our Verdict</h2>
-                  <PortableText value={comp.verdict} className="prose prose-invert max-w-none font-body" />
+                  {isPortableText(comp.verdict) ? (
+                    <PortableText value={comp.verdict} className="max-w-[70ch] font-body" />
+                  ) : (
+                    <div className="max-w-[70ch] font-body whitespace-pre-line">{comp.verdict}</div>
+                  )}
                 </section>
               )}
 

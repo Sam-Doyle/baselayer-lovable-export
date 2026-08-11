@@ -371,6 +371,7 @@ export async function getComparisonBySlug(
       title,
       "slug": slug,
       "intro": coalesce(intro, extractableSummary),
+      extractableSummary,
       body[] {
         ...,
         markDefs[] {

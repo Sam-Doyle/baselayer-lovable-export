@@ -116,12 +116,23 @@ export function buildBreadcrumbSchema(items: { name: string; path?: string }[]) 
   };
 }
 
-// ── FAQ Schema builder (DISABLED) ───────────────────────────────────
-// FAQPage rich results restricted to gov/healthcare since Aug 2023.
-// Returns null — FAQ content still renders on-page for users and AI.
+// ── FAQ Schema builder ──────────────────────────────────────────────
+// FAQPage *rich results* have been restricted to gov/healthcare since
+// Aug 2023, but the JSON-LD itself remains a standard extraction signal
+// for AI search (Google AI Overviews, Perplexity, ChatGPT search) —
+// emitted for citability, not for the visual snippet.
 
-export function buildFaqSchema(_faqs: { question: string; answer: string }[]) {
-  return null;
+export function buildFaqSchema(faqs: { question: string; answer: string }[]) {
+  if (!faqs.length) return null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
 }
 
 // ── Article Schema builder ──────────────────────────────────────────
@@ -159,7 +170,7 @@ export function buildArticleSchema(article: {
 
 export function buildItemListSchema(
   name: string,
-  items: { name: string; url: string }[],
+  items: { name: string; url?: string }[],
 ) {
   return {
     "@context": "https://schema.org",
@@ -168,7 +179,7 @@ export function buildItemListSchema(
     itemListElement: items.map((item, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      url: item.url,
+      ...(item.url ? { url: item.url } : {}),
       name: item.name,
     })),
   };
