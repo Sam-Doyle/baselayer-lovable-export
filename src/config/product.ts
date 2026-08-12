@@ -35,9 +35,14 @@ const SELLING_PLAN_GID: string | null = "gid://shopify/SellingPlan/2934145095";
  * At $35 the contribution is $18.19 on COGS $10 plus ~$5.50 landed shipping and
  * 2.9% + $0.30 in fees — 52.0% margin, breakeven ROAS 1.93x.
  *
- * This number must match the selling plan in Shopify admin: a single pricing
- * policy, $3.00 off the $38 variant, no initial/recurring split. If admin bills
- * anything other than $35 the site is misrepresenting the price.
+ * This number must match the selling plan in Shopify admin, which is the only
+ * place the price is actually set — the Storefront token here is read-only and
+ * cannot change it. The plan carries a single fixed-price policy with
+ * orderCount null, meaning it applies to every delivery forever.
+ *
+ * `npm run verify:pricing` reads the live plan and every variant and fails if
+ * either disagrees with this file. Run it after any pricing change in admin.
+ * It exists because this comment once claimed a price nobody had checked.
  */
 const SUBSCRIBE_PRICE = 35;
 
@@ -101,7 +106,26 @@ export const AVAILABLE_TIERS = BUY_TIERS.filter(
 export const DEFAULT_TIER =
   AVAILABLE_TIERS.find(t => t.id === 2) ?? AVAILABLE_TIERS[0];
 
-/** Build the CartItem payload the cart store expects for a given tier. */
+/**
+ * Homepage $38 CTAs must land on the single-bottle tier they advertise.
+ * Direct PDP visits keep the higher-value default tier selected.
+ */
+export function getInitialTier(offer: string | null): BuyTier {
+  if (offer === "single") {
+    return AVAILABLE_TIERS.find(t => t.id === 1) ?? DEFAULT_TIER;
+  }
+  return DEFAULT_TIER;
+}
+
+/**
+ * Build the CartItem payload the cart store expects for a given tier.
+ *
+ * The price here is a seed, not the truth. It renders for the few hundred
+ * milliseconds between the click and Shopify's cart response, after which the
+ * store overwrites it with the line's real `cost.amountPerQuantity`. Keep it in
+ * sync with Shopify anyway (see verify:pricing) so the seed never flashes a
+ * different number than the one that replaces it.
+ */
 export function buildCartItem(tier: BuyTier) {
   return {
     product: {

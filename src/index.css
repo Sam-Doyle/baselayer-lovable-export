@@ -1,3 +1,7 @@
+@import '@fontsource/montserrat/700.css';
+@import '@fontsource/montserrat/800.css';
+@import '@fontsource/montserrat/900.css';
+
 /* Self-hosted fonts */
 @font-face {
   font-family: 'Inter';
@@ -22,10 +26,6 @@
   font-display: swap;
   src: url('/fonts/inter-600.woff2') format('woff2');
 }
-
-@import '@fontsource/montserrat/700.css';
-@import '@fontsource/montserrat/800.css';
-@import '@fontsource/montserrat/900.css';
 
 /* Keep Montserrat as swap (not optional) — the min-height reservations
    on hero content prevent CLS, while swap ensures the headline renders
@@ -59,7 +59,7 @@
     --muted: 0 0% 90%;
     --muted-foreground: 120 5% 45%;
 
-    --accent: 15 95% 54%;
+    --accent: 18 95% 54%;
     /* Ascent Orange: #F95D1A */
     --accent-foreground: 60 14% 96%;
 
@@ -68,14 +68,14 @@
 
     --border: 0 0% 85%;
     --input: 0 0% 85%;
-    --ring: 15 95% 54%;
+    --ring: 18 95% 54%;
     /* Ascent Orange ring for focus */
 
     --radius: 0rem;
     /* Industrial: No rounded corners */
 
     /* Custom tokens for this build */
-    --accent-technical: 15 95% 54%;
+    --accent-technical: 18 95% 54%;
 
     --sidebar-background: 60 14% 96%;
     --sidebar-foreground: 120 5% 12%;
@@ -84,7 +84,7 @@
     --sidebar-accent: 0 0% 90%;
     --sidebar-accent-foreground: 120 5% 12%;
     --sidebar-border: 0 0% 85%;
-    --sidebar-ring: 15 95% 54%;
+    --sidebar-ring: 18 95% 54%;
 
     --font-heading: 'Montserrat', sans-serif;
     --font-body: 'Inter', sans-serif;

@@ -4,16 +4,32 @@ import { toast } from 'sonner';
 import { storefrontApiRequest, ShopifyHttpError, ShopifyProduct } from '@/lib/shopify';
 import { trackEvent } from '@/lib/analytics';
 
+export interface Money { amount: string; currencyCode: string }
+
 export interface CartItem {
   lineId: string | null;
   product: ShopifyProduct;
   variantId: string;
   variantTitle: string;
-  price: { amount: string; currencyCode: string };
+  /**
+   * Unit price. Seeded from local config when the line is built (so the toast
+   * and the drawer have something to render before the round-trip lands), then
+   * overwritten with Shopify's `cost.amountPerQuantity` on every cart response.
+   * After the first successful mutation this is Shopify's number, not ours —
+   * which is the point: a selling plan or variant repriced in admin can no
+   * longer disagree with what the cart shows.
+   */
+  price: Money;
   quantity: number;
   selectedOptions: Array<{ name: string; value: string }>;
   /** Shopify selling plan GID — present only for subscription lines */
   sellingPlanId?: string | null;
+}
+
+/** Cart-level money straight from Shopify. Null until a cart response lands. */
+export interface CartCost {
+  subtotalAmount: Money;
+  totalAmount: Money;
 }
 
 function toLineInput(item: CartItem) {
@@ -33,6 +49,8 @@ interface CartStore {
   items: CartItem[];
   cartId: string | null;
   checkoutUrl: string | null;
+  /** Shopify's own subtotal/total. Render this, never a local sum. */
+  cost: CartCost | null;
   isOpen: boolean;
   isLoading: boolean;
   isSyncing: boolean;
@@ -45,7 +63,47 @@ interface CartStore {
   toggleCart: (open?: boolean) => void;
 }
 
-const CART_QUERY = `query cart($id: ID!) { cart(id: $id) { id totalQuantity } }`;
+/*
+ * One field set for every cart-returning operation, so no code path can end up
+ * holding a cart whose prices came from somewhere other than Shopify.
+ *
+ * `cost.subtotalAmount` is what the drawer's Subtotal renders and
+ * `lines[].cost.amountPerQuantity` is what each line renders. Both used to be
+ * computed locally from src/config/product.ts, which meant the site would
+ * happily advertise a price Shopify had no intention of charging — exactly what
+ * happened when the Subscribe & Save plan sat at $34 in admin while every
+ * surface here said $35.
+ *
+ * `sellingPlanAllocation.sellingPlan.id` comes back so a subscription line and a
+ * one-time line of the same variant can be told apart when matching Shopify's
+ * lines to ours; `merchandise.id` alone can't.
+ *
+ * The mutations return the full set (not just `cart { id }`) because a cart
+ * mutation is the cheapest moment to learn the real price — asking again
+ * afterwards would be a second round-trip for something Shopify already sent.
+ */
+const CART_FIELDS = `
+  id
+  checkoutUrl
+  totalQuantity
+  cost {
+    subtotalAmount { amount currencyCode }
+    totalAmount { amount currencyCode }
+  }
+  lines(first: 100) {
+    edges {
+      node {
+        id
+        quantity
+        cost { amountPerQuantity { amount currencyCode } }
+        merchandise { ... on ProductVariant { id } }
+        sellingPlanAllocation { sellingPlan { id } }
+      }
+    }
+  }
+`;
+
+const CART_QUERY = `query cart($id: ID!) { cart(id: $id) { ${CART_FIELDS} } }`;
 
 // `code` is requested (in addition to the existing `field`/`message`) so
 // failures can be classified into user-facing buckets (quantity/stock limit
@@ -55,10 +113,7 @@ const CART_QUERY = `query cart($id: ID!) { cart(id: $id) { id totalQuantity } }`
 const CART_CREATE_MUTATION = `
   mutation cartCreate($input: CartInput!) {
     cartCreate(input: $input) {
-      cart {
-        id checkoutUrl
-        lines(first: 100) { edges { node { id merchandise { ... on ProductVariant { id } } } } }
-      }
+      cart { ${CART_FIELDS} }
       userErrors { code field message }
     }
   }
@@ -67,7 +122,7 @@ const CART_CREATE_MUTATION = `
 const CART_LINES_ADD_MUTATION = `
   mutation cartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
     cartLinesAdd(cartId: $cartId, lines: $lines) {
-      cart { id lines(first: 100) { edges { node { id merchandise { ... on ProductVariant { id } } } } } }
+      cart { ${CART_FIELDS} }
       userErrors { code field message }
     }
   }
@@ -76,7 +131,7 @@ const CART_LINES_ADD_MUTATION = `
 const CART_LINES_UPDATE_MUTATION = `
   mutation cartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
     cartLinesUpdate(cartId: $cartId, lines: $lines) {
-      cart { id }
+      cart { ${CART_FIELDS} }
       userErrors { code field message }
     }
   }
@@ -85,11 +140,62 @@ const CART_LINES_UPDATE_MUTATION = `
 const CART_LINES_REMOVE_MUTATION = `
   mutation cartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
     cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-      cart { id }
+      cart { ${CART_FIELDS} }
       userErrors { code field message }
     }
   }
 `;
+
+/** A cart line as CART_FIELDS returns it. */
+interface ShopifyCartLine {
+  id: string;
+  quantity: number;
+  cost?: { amountPerQuantity?: Money };
+  merchandise?: { id?: string };
+  sellingPlanAllocation?: { sellingPlan?: { id?: string } } | null;
+}
+
+/** A cart as CART_FIELDS returns it. */
+interface ShopifyCart {
+  id: string;
+  checkoutUrl?: string;
+  totalQuantity?: number;
+  cost?: CartCost;
+  lines?: { edges?: Array<{ node: ShopifyCartLine }> };
+}
+
+function cartLines(cart: ShopifyCart | null | undefined): ShopifyCartLine[] {
+  return (cart?.lines?.edges || []).map(e => e.node);
+}
+
+/**
+ * Overwrite local line ids, quantities and unit prices with Shopify's.
+ *
+ * Match on lineId first (exact), falling back to variant + selling plan for a
+ * line we just created and don't have an id for yet. A local item Shopify
+ * doesn't know about is left alone rather than dropped — the caller has just
+ * added it optimistically and the next response will pick it up.
+ */
+function reconcileItems(items: CartItem[], cart: ShopifyCart | null | undefined): CartItem[] {
+  const lines = cartLines(cart);
+  if (lines.length === 0) return items;
+  return items.map(item => {
+    const line =
+      (item.lineId && lines.find(l => l.id === item.lineId)) ||
+      lines.find(l =>
+        l.merchandise?.id === item.variantId &&
+        (l.sellingPlanAllocation?.sellingPlan?.id || null) === (item.sellingPlanId || null)
+      );
+    if (!line) return item;
+    const unit = line.cost?.amountPerQuantity;
+    return {
+      ...item,
+      lineId: line.id,
+      quantity: typeof line.quantity === 'number' ? line.quantity : item.quantity,
+      price: unit?.amount ? { amount: unit.amount, currencyCode: unit.currencyCode } : item.price,
+    };
+  });
+}
 
 function formatCheckoutUrl(checkoutUrl: string): string {
   try {
@@ -281,6 +387,8 @@ interface CreateCartResult {
   cartId?: string;
   checkoutUrl?: string;
   lineId?: string;
+  /** The cart Shopify returned, carrying the authoritative line and cart costs. */
+  cart?: ShopifyCart;
   errorKind?: CartErrorKind;
   errorMessage?: string;
 }
@@ -295,12 +403,12 @@ async function createShopifyCart(item: CartItem): Promise<CreateCartResult> {
     if (userErrors.length > 0) {
       return { success: false, errorKind: classifyUserErrors(userErrors), errorMessage: userErrors.map(e => e.message).join('; ') };
     }
-    const cart = data?.data?.cartCreate?.cart;
+    const cart: ShopifyCart = data?.data?.cartCreate?.cart;
     const lineId = cart?.lines?.edges?.[0]?.node?.id;
     if (!cart?.checkoutUrl || !lineId) {
       return { success: false, errorKind: 'other', errorMessage: 'Shopify returned no cart or checkout URL.' };
     }
-    return { success: true, cartId: cart.id, checkoutUrl: formatCheckoutUrl(cart.checkoutUrl), lineId };
+    return { success: true, cartId: cart.id, checkoutUrl: formatCheckoutUrl(cart.checkoutUrl), lineId, cart };
   } catch (error) {
     return { success: false, errorKind: 'network', errorMessage: error instanceof Error ? error.message : String(error) };
   }
@@ -310,6 +418,8 @@ async function createShopifyCart(item: CartItem): Promise<CreateCartResult> {
 interface LineMutationResult {
   success: boolean;
   lineId?: string;
+  /** The cart Shopify returned, carrying the authoritative line and cart costs. */
+  cart?: ShopifyCart;
   cartNotFound?: boolean;
   errorKind?: CartErrorKind;
   errorMessage?: string;
@@ -326,9 +436,15 @@ async function addLineToShopifyCart(cartId: string, item: CartItem): Promise<Lin
     if (userErrors.length > 0) {
       return { success: false, cartNotFound: false, errorKind: classifyUserErrors(userErrors), errorMessage: userErrors.map(e => e.message).join('; ') };
     }
-    const lines = data?.data?.cartLinesAdd?.cart?.lines?.edges || [];
-    const newLine = lines.find((l: { node: { id: string; merchandise: { id: string } } }) => l.node.merchandise.id === item.variantId);
-    return { success: true, lineId: newLine?.node?.id };
+    const cart: ShopifyCart = data?.data?.cartLinesAdd?.cart;
+    // Match the selling plan too: adding the subscription while the one-time
+    // line of the same variant is already in the cart would otherwise latch
+    // onto the wrong line and price the subscription at the one-time rate.
+    const newLine = cartLines(cart).find(l =>
+      l.merchandise?.id === item.variantId &&
+      (l.sellingPlanAllocation?.sellingPlan?.id || null) === (item.sellingPlanId || null)
+    );
+    return { success: true, lineId: newLine?.id, cart };
   } catch (error) {
     return { success: false, cartNotFound: false, errorKind: 'network', errorMessage: error instanceof Error ? error.message : String(error) };
   }
@@ -345,7 +461,7 @@ async function updateShopifyCartLine(cartId: string, lineId: string, quantity: n
     if (userErrors.length > 0) {
       return { success: false, cartNotFound: false, errorKind: classifyUserErrors(userErrors), errorMessage: userErrors.map(e => e.message).join('; ') };
     }
-    return { success: true };
+    return { success: true, cart: data?.data?.cartLinesUpdate?.cart };
   } catch (error) {
     return { success: false, cartNotFound: false, errorKind: 'network', errorMessage: error instanceof Error ? error.message : String(error) };
   }
@@ -362,7 +478,7 @@ async function removeLineFromShopifyCart(cartId: string, lineId: string): Promis
     if (userErrors.length > 0) {
       return { success: false, cartNotFound: false, errorKind: classifyUserErrors(userErrors), errorMessage: userErrors.map(e => e.message).join('; ') };
     }
-    return { success: true };
+    return { success: true, cart: data?.data?.cartLinesRemove?.cart };
   } catch (error) {
     return { success: false, cartNotFound: false, errorKind: 'network', errorMessage: error instanceof Error ? error.message : String(error) };
   }
@@ -374,6 +490,7 @@ export const useCartStore = create<CartStore>()(
       items: [],
       cartId: null,
       checkoutUrl: null,
+      cost: null,
       isOpen: false,
       isLoading: false,
       isSyncing: false,
@@ -425,7 +542,13 @@ export const useCartStore = create<CartStore>()(
           if (!cartId) {
             const result = await createShopifyCart({ ...item, lineId: null });
             if (result.success) {
-              set({ cartId: result.cartId, checkoutUrl: result.checkoutUrl, items: [{ ...item, lineId: result.lineId }], isOpen: true });
+              set({
+                cartId: result.cartId,
+                checkoutUrl: result.checkoutUrl,
+                items: reconcileItems([{ ...item, lineId: result.lineId }], result.cart),
+                cost: result.cart?.cost ?? null,
+                isOpen: true,
+              });
               return { success: true };
             }
             notifyCartError(result.errorKind, result.errorMessage, 'add', retryAdd);
@@ -437,7 +560,11 @@ export const useCartStore = create<CartStore>()(
             const newQuantity = existingItem.quantity + item.quantity;
             const result = await updateShopifyCartLine(cartId, existingItem.lineId, newQuantity);
             if (result.success) {
-              set({ items: get().items.map(i => i.variantId === item.variantId ? { ...i, quantity: newQuantity } : i), isOpen: true });
+              set({
+                items: reconcileItems(get().items.map(i => i.variantId === item.variantId ? { ...i, quantity: newQuantity } : i), result.cart),
+                cost: result.cart?.cost ?? get().cost,
+                isOpen: true,
+              });
               return { success: true };
             }
             if (result.cartNotFound) {
@@ -448,7 +575,13 @@ export const useCartStore = create<CartStore>()(
               clearCart();
               const recreate = await createShopifyCart({ ...existingItem, quantity: newQuantity, lineId: null });
               if (recreate.success) {
-                set({ cartId: recreate.cartId, checkoutUrl: recreate.checkoutUrl, items: [{ ...existingItem, quantity: newQuantity, lineId: recreate.lineId }], isOpen: true });
+                set({
+                  cartId: recreate.cartId,
+                  checkoutUrl: recreate.checkoutUrl,
+                  items: reconcileItems([{ ...existingItem, quantity: newQuantity, lineId: recreate.lineId }], recreate.cart),
+                  cost: recreate.cart?.cost ?? null,
+                  isOpen: true,
+                });
                 return { success: true };
               }
               notifyCartError(recreate.errorKind, recreate.errorMessage, 'add', retryAdd);
@@ -460,7 +593,11 @@ export const useCartStore = create<CartStore>()(
 
           const result = await addLineToShopifyCart(cartId, { ...item, lineId: null });
           if (result.success) {
-            set({ items: [...get().items, { ...item, lineId: result.lineId ?? null }], isOpen: true });
+            set({
+              items: reconcileItems([...get().items, { ...item, lineId: result.lineId ?? null }], result.cart),
+              cost: result.cart?.cost ?? get().cost,
+              isOpen: true,
+            });
             return { success: true };
           }
           if (result.cartNotFound) {
@@ -468,7 +605,13 @@ export const useCartStore = create<CartStore>()(
             clearCart();
             const recreate = await createShopifyCart({ ...item, lineId: null });
             if (recreate.success) {
-              set({ cartId: recreate.cartId, checkoutUrl: recreate.checkoutUrl, items: [{ ...item, lineId: recreate.lineId }], isOpen: true });
+              set({
+                cartId: recreate.cartId,
+                checkoutUrl: recreate.checkoutUrl,
+                items: reconcileItems([{ ...item, lineId: recreate.lineId }], recreate.cart),
+                cost: recreate.cart?.cost ?? null,
+                isOpen: true,
+              });
               return { success: true };
             }
             notifyCartError(recreate.errorKind, recreate.errorMessage, 'add', retryAdd);
@@ -505,7 +648,10 @@ export const useCartStore = create<CartStore>()(
         try {
           const result = await updateShopifyCartLine(cartId, item.lineId, quantity);
           if (result.success) {
-            set({ items: get().items.map(i => i.variantId === variantId ? { ...i, quantity } : i) });
+            set({
+              items: reconcileItems(get().items.map(i => i.variantId === variantId ? { ...i, quantity } : i), result.cart),
+              cost: result.cart?.cost ?? get().cost,
+            });
             return { success: true };
           }
           if (result.cartNotFound) {
@@ -514,7 +660,13 @@ export const useCartStore = create<CartStore>()(
             clearCart();
             const recreate = await createShopifyCart({ ...item, quantity, lineId: null });
             if (recreate.success) {
-              set({ cartId: recreate.cartId, checkoutUrl: recreate.checkoutUrl, items: [{ ...item, quantity, lineId: recreate.lineId }], isOpen: true });
+              set({
+                cartId: recreate.cartId,
+                checkoutUrl: recreate.checkoutUrl,
+                items: reconcileItems([{ ...item, quantity, lineId: recreate.lineId }], recreate.cart),
+                cost: recreate.cart?.cost ?? null,
+                isOpen: true,
+              });
               return { success: true };
             }
             notifyCartError(recreate.errorKind, recreate.errorMessage, 'update', retryUpdate);
@@ -545,7 +697,11 @@ export const useCartStore = create<CartStore>()(
           const result = await removeLineFromShopifyCart(cartId, item.lineId);
           if (result.success) {
             const newItems = get().items.filter(i => i.variantId !== variantId);
-            newItems.length === 0 ? clearCart() : set({ items: newItems });
+            if (newItems.length === 0) {
+              clearCart();
+            } else {
+              set({ items: reconcileItems(newItems, result.cart), cost: result.cart?.cost ?? get().cost });
+            }
             return { success: true };
           }
           if (result.cartNotFound) {
@@ -566,9 +722,17 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      clearCart: () => set({ items: [], cartId: null, checkoutUrl: null, isOpen: false }),
+      clearCart: () => set({ items: [], cartId: null, checkoutUrl: null, cost: null, isOpen: false }),
       getCheckoutUrl: () => get().checkoutUrl,
 
+      /*
+       * Runs every time the drawer opens. Besides dropping a cart Shopify no
+       * longer has, this is what repairs a cart restored from localStorage: the
+       * prices persisted alongside it could be weeks old, and a price changed in
+       * admin since then would otherwise sit in the drawer until checkout
+       * contradicted it. Re-reading the cart makes the drawer agree with the
+       * checkout page it hands off to.
+       */
       syncCart: async () => {
         const { cartId, isSyncing, clearCart } = get();
         if (!cartId || isSyncing) return;
@@ -576,8 +740,13 @@ export const useCartStore = create<CartStore>()(
         try {
           const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
           if (!data) return;
-          const cart = data?.data?.cart;
-          if (!cart || cart.totalQuantity === 0) clearCart();
+          const cart: ShopifyCart = data?.data?.cart;
+          if (!cart || cart.totalQuantity === 0) { clearCart(); return; }
+          set({
+            items: reconcileItems(get().items, cart),
+            cost: cart.cost ?? get().cost,
+            checkoutUrl: cart.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : get().checkoutUrl,
+          });
         } catch (error) { console.error('Failed to sync cart:', error); }
         finally { set({ isSyncing: false }); }
       },
@@ -585,7 +754,7 @@ export const useCartStore = create<CartStore>()(
     {
       name: 'shopify-cart',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ items: state.items, cartId: state.cartId, checkoutUrl: state.checkoutUrl }),
+      partialize: (state) => ({ items: state.items, cartId: state.cartId, checkoutUrl: state.checkoutUrl, cost: state.cost }),
     }
   )
 );

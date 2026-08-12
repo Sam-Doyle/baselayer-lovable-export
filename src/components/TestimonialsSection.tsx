@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import StarRating from "@/components/StarRating";
 import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 
@@ -62,6 +62,8 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
 const TestimonialsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const { pathname } = useLocation();
+  const productHref = pathname === "/" ? "/face-cream?offer=single" : "/face-cream";
 
   useEffect(() => {
     const ref = sectionRef.current;
@@ -116,14 +118,14 @@ const TestimonialsSection = () => {
         {/* Bottom CTA Block */}
         <div className="mt-[48px] text-center flex flex-col items-center">
           <p className="font-body text-[14px] text-[#ABB3BB] mb-4 leading-none">
-            30-day guarantee — hate it, keep the bottle, full refund.
+            30-day money-back guarantee. Keep the bottle.
           </p>
 
           <Link
-            to="/face-cream"
+            to={productHref}
             className="inline-flex items-center justify-center px-[36px] py-[14px] bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto mt-2"
           >
-            GET STARTED · $38 →
+            GET BASE LAYER · $38 →
           </Link>
         </div>
 

@@ -6,16 +6,23 @@ import { trackEvent } from "@/lib/analytics";
  * STICKY MOBILE CTA (homepage)
  *
  * Mirrors the proven `md:hidden fixed bottom-0` bar from
- * src/pages/FaceCream.tsx, adapted for the homepage where there's no
- * buy-box CTA ref to observe. Instead it reveals after the user has
- * scrolled roughly one full viewport height — enough to clear the
- * hero's CTA (min-h-[60vh] on mobile, plus copy/badges) without
- * needing a shared ref into HeroSection.
+ * src/pages/FaceCream.tsx. It observes the homepage's primary CTA and
+ * appears only after that button has moved above the viewport, preventing
+ * two competing purchase controls from being visible at once.
  */
 const StickyMobileCTA = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    const heroCta = document.getElementById("hero-primary-cta");
+    if (heroCta && "IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(([entry]) => {
+        setVisible(!entry.isIntersecting && entry.boundingClientRect.bottom < 0);
+      });
+      observer.observe(heroCta);
+      return () => observer.disconnect();
+    }
+
     let ticking = false;
     const handleScroll = () => {
       if (ticking) return;
@@ -44,19 +51,19 @@ const StickyMobileCTA = () => {
       {/*
         Routes to the PDP for the same reason as the hero CTA: this bar is the
         persistent catcher for mobile cold traffic, which is where most paid
-        clicks land. Sending it straight to cart would lock those conversions to
-        the $38 default and skip the view_item/ViewContent signal entirely.
+        clicks land. The offer query makes the PDP open on the same $38 single
+        bottle promised by this button, while preserving the PDP view signal.
         bg-brand is the site-wide CTA orange (5.12:1 with white, AA pass). No
         hover shade — this component is md:hidden, so hover never fires.
       */}
       <Link
-        to="/face-cream"
+        to="/face-cream?offer=single"
         onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "home_sticky_mobile" })}
         aria-label="Get Base Layer Performance Daily Face Cream — founding price $38"
         tabIndex={visible ? 0 : -1}
         className="shrink-0 bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] uppercase px-[24px] py-[14px] rounded-[4px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C]"
       >
-        GRAB YOURS &middot; $38 &rarr;
+        GET BASE LAYER &middot; $38 &rarr;
       </Link>
     </div>
   );

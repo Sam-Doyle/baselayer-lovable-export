@@ -7,8 +7,9 @@ import { trackEvent } from "@/lib/analytics";
  * Reusable band-style CTA for closing conversion gaps between
  * persuasion sections (ingredients, testimonials, etc).
  *
- * Routes to /face-cream via trackEvent("select_item", { source }) on click,
- * same as the hero and sticky-mobile CTAs. Every GRAB YOURS CTA on the site
+ * Routes to the PDP's single-bottle offer via trackEvent("select_item",
+ * { source }) on click,
+ * same as the hero and sticky-mobile CTAs. Every purchase CTA on the site
  * sends visitors to the PDP rather than adding to cart directly — a direct
  * add locks the conversion to the $38 default tier and skips the PDP's
  * view_item / Meta ViewContent signal.
@@ -59,7 +60,7 @@ const MidPageCTA = ({ headline, subhead, ctaLabel, source, theme = "dark" }: Mid
           what mobile sees when hover never fires.
         */}
         <Link
-          to="/face-cream"
+          to="/face-cream?offer=single"
           onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source })}
           className="inline-block text-center shrink-0 px-8 py-4 bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >

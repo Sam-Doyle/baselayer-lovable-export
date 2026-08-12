@@ -102,9 +102,113 @@ beforeEach(() => {
     items: [],
     cartId: null,
     checkoutUrl: null,
+    cost: null,
     isOpen: false,
     isLoading: false,
     isSyncing: false,
+  });
+});
+
+/*
+ * The site advertised $35 for a subscription Shopify was going to charge $34
+ * for, because every price the cart drawer rendered came from
+ * src/config/product.ts and nothing ever asked Shopify. These tests are the
+ * check on that: what the shopper sees in the cart has to be what Shopify said,
+ * even when — especially when — the local number disagrees.
+ */
+describe("cartStore — prices come from Shopify, not from local config", () => {
+  const shopifyPricedCart = (unitAmount: string, subtotal: string, lineId = "gid://shopify/CartLine/1", quantity = 1) => ({
+    id: "gid://shopify/Cart/1",
+    checkoutUrl: "https://example.myshopify.com/checkout",
+    totalQuantity: quantity,
+    cost: {
+      subtotalAmount: { amount: subtotal, currencyCode: "USD" },
+      totalAmount: { amount: subtotal, currencyCode: "USD" },
+    },
+    lines: {
+      edges: [{
+        node: {
+          id: lineId,
+          quantity,
+          cost: { amountPerQuantity: { amount: unitAmount, currencyCode: "USD" } },
+          merchandise: { id: testItem.variantId },
+          sellingPlanAllocation: null,
+        },
+      }],
+    },
+  });
+
+  it("overwrites the seeded config price with the line price Shopify returns", async () => {
+    // testItem carries 38.00 from config; Shopify says 34.00. Shopify wins.
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: { cartCreate: { cart: shopifyPricedCart("34.00", "34.00"), userErrors: [] } },
+    });
+
+    await useCartStore.getState().addItem(testItem);
+
+    expect(useCartStore.getState().items[0].price.amount).toBe("34.00");
+    expect(useCartStore.getState().cost.subtotalAmount.amount).toBe("34.00");
+  });
+
+  it("takes the subtotal from Shopify rather than multiplying the line price out", async () => {
+    // A quantity-2 line at 34.00 that Shopify subtotals at 60.00 — a volume
+    // rule or cart discount we don't model locally. The drawer must show
+    // Shopify's 60.00, not the 68.00 a local sum would produce.
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: { cartCreate: { cart: shopifyPricedCart("34.00", "60.00", "gid://shopify/CartLine/1", 2), userErrors: [] } },
+    });
+
+    await useCartStore.getState().addItem({ ...testItem, quantity: 2 });
+
+    expect(useCartStore.getState().cost.subtotalAmount.amount).toBe("60.00");
+  });
+
+  it("repairs a stale price restored from localStorage when the drawer syncs", async () => {
+    // The cart was persisted when the plan billed 38.00; admin has since moved
+    // it to 35.00. Opening the drawer calls syncCart, which must correct it —
+    // otherwise the shopper reads one price here and pays another at checkout.
+    useCartStore.setState({
+      cartId: "gid://shopify/Cart/1",
+      items: [{ ...testItem, lineId: "gid://shopify/CartLine/1", price: { amount: "38.00", currencyCode: "USD" } }],
+    });
+    mockStorefrontApiRequest.mockResolvedValueOnce({ data: { cart: shopifyPricedCart("35.00", "35.00") } });
+
+    await useCartStore.getState().syncCart();
+
+    expect(useCartStore.getState().items[0].price.amount).toBe("35.00");
+    expect(useCartStore.getState().cost.subtotalAmount.amount).toBe("35.00");
+  });
+
+  it("matches the subscription line to its own selling plan, not the one-time line of the same variant", async () => {
+    // Both lines are the same variant; only sellingPlanAllocation tells them
+    // apart. Matching on merchandise id alone would price the subscription at
+    // the one-time rate.
+    useCartStore.setState({ cartId: "gid://shopify/Cart/1", items: [{ ...testItem, lineId: "gid://shopify/CartLine/1" }] });
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: {
+        cartLinesAdd: {
+          cart: {
+            id: "gid://shopify/Cart/1",
+            cost: { subtotalAmount: { amount: "73.00", currencyCode: "USD" }, totalAmount: { amount: "73.00", currencyCode: "USD" } },
+            lines: {
+              edges: [
+                { node: { id: "gid://shopify/CartLine/1", quantity: 1, cost: { amountPerQuantity: { amount: "38.00", currencyCode: "USD" } }, merchandise: { id: testItem.variantId }, sellingPlanAllocation: null } },
+                { node: { id: "gid://shopify/CartLine/2", quantity: 1, cost: { amountPerQuantity: { amount: "35.00", currencyCode: "USD" } }, merchandise: { id: testItem.variantId }, sellingPlanAllocation: { sellingPlan: { id: "gid://shopify/SellingPlan/9" } } } },
+              ],
+            },
+          },
+          userErrors: [],
+        },
+      },
+    });
+
+    await useCartStore.getState().addItem({ ...testItem, sellingPlanId: "gid://shopify/SellingPlan/9" });
+
+    const items = useCartStore.getState().items;
+    expect(items).toHaveLength(2);
+    expect(items.find(i => !i.sellingPlanId).price.amount).toBe("38.00");
+    expect(items.find(i => i.sellingPlanId === "gid://shopify/SellingPlan/9").price.amount).toBe("35.00");
+    expect(items.find(i => i.sellingPlanId === "gid://shopify/SellingPlan/9").lineId).toBe("gid://shopify/CartLine/2");
   });
 });
 

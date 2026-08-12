@@ -83,11 +83,11 @@ const OurOriginSection = () => {
                         {/* Conversion CTA */}
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                             <Link
-                                to="/face-cream"
+                                to="/face-cream?offer=single"
                                 onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "origin_section" })}
                                 className="inline-block px-8 py-4 bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors w-full sm:w-auto text-center"
                             >
-                                GRAB YOURS · $38
+                                GET BASE LAYER · $38
                             </Link>
                             <Link
                                 to="/face-cream"

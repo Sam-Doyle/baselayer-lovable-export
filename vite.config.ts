@@ -301,14 +301,15 @@ function prerenderPlugin(): Plugin {
         return `<link rel="preload" as="image" type="image/webp" imagesrcset="${srcset}" imagesizes="100vw" fetchpriority="high">`;
       }
 
-      const homeSrcset = heroSrcset("hero-product");
       const fcSrcset = heroSrcset("product-hero-rock");
 
-      // Preload for the hero-guy-orange image served from public/images/
-      const heroGuyOrangePreload = '<link rel="preload" as="image" type="image/webp" href="/images/hero-guy-orange-4k.webp" fetchpriority="high">';
+      const homeProductImage = findBuilt(/^hero-mountain-packshot-v2-[^.]+\.webp$/);
+      const homeProductPreload = homeProductImage
+        ? `<link rel="preload" as="image" type="image/webp" href="/assets/${homeProductImage}" fetchpriority="high">`
+        : "";
 
       const heroPreloadForPage: Record<string, string> = {
-        "/": preloadTag(homeSrcset) || heroGuyOrangePreload,
+        "/": homeProductPreload,
         "/face-cream": preloadTag(fcSrcset),
         "/matte-moisturizer-for-men": preloadTag(fcSrcset),
         "/non-greasy-moisturizer-for-men": preloadTag(fcSrcset),
@@ -326,13 +327,15 @@ function prerenderPlugin(): Plugin {
         return `<picture><source type="image/webp" srcset="${srcset}" sizes="100vw"><img src="/assets/${fallback}" alt="${altText}" width="1200" height="800" fetchpriority="high" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></picture>`;
       }
 
-      const homeHeroPicture = heroPictureTag("hero-product", "Base Layer face cream");
+      const homeHeroPicture = homeProductImage
+        ? `<img src="/assets/${homeProductImage}" alt="Base Layer Daily Face Cream bottle and carton on Colorado alpine granite" width="1536" height="1536" fetchpriority="high">`
+        : "";
       const fcHeroPicture = heroPictureTag("product-hero-rock", "Base Layer face cream");
 
       // ── LCP Optimization 3: Above-the-fold skeletons ───────────
       // Bake real hero content into the HTML so LCP paints with FCP,
       // before React hydrates. Saves ~500-1000ms on mobile.
-      const homeSkeleton = `<div style="min-height:100svh;background:#0a0a0a;position:relative;display:flex;align-items:center;overflow:hidden;padding-top:80px">${homeHeroPicture}<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.9),rgba(0,0,0,.65),rgba(0,0,0,.3))"></div><div style="position:relative;z-index:10;width:100%;max-width:36rem;padding:0 1.5rem;margin:0 auto"><p style="font-family:Inter,sans-serif;font-size:.6875rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.7);margin:0 0 .75rem;text-align:center">Better skin for men who don't want a routine.</p><h1 style="font-family:'DM Sans',sans-serif;font-size:2rem;font-weight:900;text-transform:uppercase;line-height:.9;letter-spacing:-.025em;margin:0 0 1.25rem;color:#fff;text-align:center">ONE FACE CREAM.<br>15 SECONDS.<br>NO SHINE.</h1><p style="font-family:Inter,sans-serif;font-size:.9375rem;color:rgba(255,255,255,.8);line-height:1.6;margin:0 auto;max-width:28rem;text-align:center">You don't need a shelf full of products. One pump, 15 seconds, and you're out the door — hydrated, matte, no greasy residue.</p></div></div>`;
+      const homeSkeleton = `<style>#bl-home-skeleton{min-height:100svh;background:#F2EFE8;padding-top:96px;display:flex;flex-direction:column;overflow:hidden}#bl-home-visual{height:226px;position:relative;overflow:hidden;order:1;background:#D8D3CA}#bl-home-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 48%}#bl-home-copy{order:2;padding:28px 20px;color:#1A2F4C}#bl-home-copy p{font-family:Inter,sans-serif}#bl-home-copy h1{font-family:Montserrat,sans-serif;font-size:clamp(40px,10.8vw,60px);font-weight:900;text-transform:uppercase;line-height:.91;letter-spacing:-.05em;word-spacing:.1em;margin:0;color:#1A2F4C}@media(min-width:769px){#bl-home-skeleton{display:grid;grid-template-columns:1.02fr .98fr;min-height:100svh}#bl-home-visual{order:2;height:calc(100svh - 96px)}#bl-home-visual img{object-position:center}#bl-home-copy{order:1;padding:64px 80px;display:flex;flex-direction:column;justify-content:center}#bl-home-copy h1{font-size:clamp(60px,5.2vw,82px)}}</style><div id="bl-home-skeleton"><div id="bl-home-visual">${homeHeroPicture}</div><div id="bl-home-copy"><p style="font-size:11px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:rgba(26,47,76,.65);margin:0 0 12px">Daily Face Moisturizer</p><h1>ONE STEP.<br>ZERO SHINE.</h1><p style="font-size:16px;line-height:1.55;color:rgba(26,47,76,.78);max-width:560px;margin:20px 0 0">Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Put it on in 15 seconds. Forget it's there.</p></div></div>`;
 
       const fcSkeleton = `<div style="min-height:100vh;background:#0a0a0a;position:relative;overflow:hidden;padding-top:88px">${fcHeroPicture}<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.7))"></div><div style="position:relative;z-index:10;max-width:80rem;margin:0 auto;padding:2rem 1.5rem;text-align:center"><h1 style="font-family:'DM Sans',sans-serif;font-size:2rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#ebebeb;margin:0 0 1rem">Best Men's Face Moisturizer</h1><p style="font-family:Inter,sans-serif;font-size:1.5rem;font-weight:700;color:#ebebeb;margin:0">$38</p></div></div>`;
 
@@ -488,7 +491,7 @@ function prerenderPlugin(): Plugin {
         // Inject correct hero image preload for this page — early in <head>
         // so the browser discovers it before render-blocking CSS/JS.
         // First, strip any generic hero preload from the source template.
-        html = html.replace(/\s*<link rel="preload" as="image"[^>]*hero-guy-orange[^>]*>\n?/g, "");
+        html = html.replace(/\s*<link rel="preload" as="image"[^>]*(?:hero-guy-orange|hero-product-mountain|product-in-hand|hero-mountain-packshot-v2)[^>]*>\n?/g, "");
         const hPreload = heroPreloadForPage[page.path] || "";
         if (hPreload) {
           html = html.replace(

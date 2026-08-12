@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCartStore } from "@/stores/cartStore";
-import { AVAILABLE_TIERS, DEFAULT_TIER, buildCartItem } from "@/config/product";
+import { AVAILABLE_TIERS, buildCartItem, getInitialTier } from "@/config/product";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect, useState, useRef } from "react";
@@ -97,8 +97,10 @@ const PRODUCT_RATING = { rating: 0, count: 0 };
 const pullQuoteTestimonial = testimonials.find((t) => t.name.startsWith("Sean")) ?? testimonials[0];
 
 const FaceCream = () => {
+  const [searchParams] = useSearchParams();
+  const initialTier = getInitialTier(searchParams.get("offer"));
   const [activeImage, setActiveImage] = useState(0);
-  const [quantity, setQuantity] = useState(DEFAULT_TIER.id);
+  const [quantity, setQuantity] = useState(() => initialTier.id);
   const [showStickyBottom, setShowStickyBottom] = useState(false);
   const ctaRef = useRef<HTMLButtonElement>(null);
   const addItem = useCartStore(s => s.addItem);
@@ -178,7 +180,7 @@ const FaceCream = () => {
               {GALLERY.map((img, idx) => (
                 <div key={idx} className={`absolute inset-0 transition-opacity duration-300 ${activeImage === idx ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
                   {img.type === "image" ? (
-                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover bg-[#E2E8F0]" {...(idx === 0 ? { loading: "eager" as const, fetchPriority: "high" as const } : { loading: "lazy" as const })} width={1024} height={1024} />
+                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover bg-[#E2E8F0]" {...(idx === 0 ? { loading: "eager" as const, fetchpriority: "high" } : { loading: "lazy" as const })} width={1024} height={1024} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] p-4 text-center text-[#ABB3BB] text-sm">
                       [Placeholder: {img.alt}]
@@ -218,7 +220,7 @@ const FaceCream = () => {
               {GALLERY.map((img, idx) => (
                 <div key={idx} className="w-full h-full flex-shrink-0 snap-center relative">
                   {img.type === "image" ? (
-                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover" {...(idx === 0 ? { loading: "eager" as const, fetchPriority: "high" as const } : { loading: "lazy" as const })} width={1024} height={1024} />
+                    <img src={img.src} alt={img.alt} className="w-full h-full object-cover" {...(idx === 0 ? { loading: "eager" as const, fetchpriority: "high" } : { loading: "lazy" as const })} width={1024} height={1024} />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] p-4 text-center text-[#ABB3BB]">
                       [Placeholder: {img.alt}]

@@ -1,14 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" width="150" height="100">
-  <defs>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800amp;display=swap');
-      .brand-text {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 800;
-        font-size: 56px;
-        letter-spacing: 0.02em;
-      }
-    </style>
-  </defs>
-  <text x="50%" y="50%" text-anchor="middle" dy=".35em" class="brand-text" fill="#1A2F4C">BL<tspan fill="#F95D1A">.</tspan></text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <rect width="100" height="100" fill="#1A2F4C"/>
+  <g transform="translate(-10.15 9.48) scale(0.81)">
+    <g fill="#FFFFFF">
+      <path transform="translate(27.3440 69.6000) scale(0.056000 -0.056000)" d="M70 0V700H428Q566 700 634.0 649.0Q702 598 702 517Q702 467 677.0 427.5Q652 388 607 365Q667 344 701.5 300.0Q736 256 736 192Q736 101 662.5 50.5Q589 0 448 0ZM266 143H432Q536 143 536 214Q536 285 432 285H266ZM266 422H402Q502 422 502 490Q502 557 402 557H266Z"/>
+      <path transform="translate(71.5280 69.6000) scale(0.056000 -0.056000)" d="M70 0V700H268V157H602V0Z"/>
+    </g>
+    <g fill="#F95D1A">
+      <path transform="translate(106.8080 69.6000) scale(0.056000 -0.056000)" d="M141 -9Q93 -9 60.0 23.0Q27 55 27 104Q27 155 60.0 185.5Q93 216 141 216Q190 216 222.5 185.5Q255 155 255 104Q255 55 222.5 23.0Q190 -9 141 -9Z"/>
+    </g>
+  </g>
 </svg>

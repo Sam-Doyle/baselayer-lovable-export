@@ -13,7 +13,7 @@ const FAQSection = lazy(() => import("@/components/FAQSection"));
 const WhyMensSkinSection = lazy(() => import("@/components/WhyMensSkinSection"));
 const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
 const Footer = lazy(() => import("@/components/Footer"));
-const PressBanner = lazy(() => import("@/components/PressBanner"));
+const ProofStrip = lazy(() => import("@/components/ProofStrip"));
 const IngredientsShowcase = lazy(() => import("@/components/IngredientsShowcase"));
 const ScrollProgressBar = lazy(() => import("@/components/ScrollProgressBar"));
 
@@ -60,33 +60,13 @@ const Index = () => {
       <StickyMobileCTA />
 
       <Suspense fallback={null}>
-        <PressBanner />
+        <ProofStrip />
         <WhyMensSkinSection />
-        {/*
-          Closes the page's only real CTA dead zone. Measured on the built
-          page at a 963px viewport, the hero button sat at y=735 and the next
-          ask at y=3357 — 2622px, or 2.7 screens, spanning PressBanner,
-          WhyMensSkinSection, and IngredientsShowcase. Every other gap on the
-          page is ~0.8-0.9 screens. This band splits the outlier roughly in
-          half; it is not filling a gap that was already fine.
-
-          theme="dark" is load-bearing, not decorative: WhyMensSkinSection and
-          IngredientsShowcase are both bg-[#E8E4DC], so the light band
-          (#F5F5F5) would read as a continuation of the sand on both sides and
-          disappear. Navy is the only value here that separates them.
-        */}
-        <MidPageCTA
-          headline="ONE STEP. TWO MINUTES. DONE."
-          subhead="30-day guarantee. Hate it? Keep the bottle."
-          ctaLabel="GRAB YOURS · $38 →"
-          source="home_post_why"
-          theme="dark"
-        />
         <IngredientsShowcase />
         <MidPageCTA
           headline="EVERYTHING YOUR SKIN NEEDS. NOTHING IT DOESN'T."
           subhead="6 active ingredients. Clinical concentrations. Limited founding batch at $38."
-          ctaLabel="GRAB YOURS · $38 →"
+          ctaLabel="GET BASE LAYER · $38 →"
           source="home_mid_ingredients"
           theme="dark"
         />
@@ -94,20 +74,6 @@ const Index = () => {
         <div className="content-auto">
           <FAQSection />
         </div>
-        {/*
-          Sits after the FAQ and before OurOriginSection, not at the page end:
-          OurOriginSection already closes with its own "GRAB YOURS · $38" button,
-          so putting this last would stack two near-identical $38 asks back to
-          back with no persuasion content between them. Here it fills the real
-          gap — the long testimonials-through-FAQ stretch with no CTA.
-        */}
-        <MidPageCTA
-          headline="FOUNDING BATCH. LIMITED RUN."
-          subhead="30-day guarantee. Hate it? Keep the bottle."
-          ctaLabel="GRAB YOURS · $38 →"
-          source="home_post_faq"
-          theme="light"
-        />
         <div className="content-auto">
           <OurOriginSection />
         </div>

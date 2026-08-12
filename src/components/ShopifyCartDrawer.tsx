@@ -5,17 +5,27 @@ import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
 import { BUY_TIERS, buildCartItem } from "@/config/product";
 
+/** "$35" for a round number, "$34.50" otherwise. For prices sitting inside a sentence. */
+const inlinePrice = (amount: string) => `$${parseFloat(amount).toFixed(2).replace(/\.00$/, "")}`;
+
 const ShopifyCartDrawer = () => {
-  const { items, isOpen, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart, toggleCart } = useCartStore();
+  const { items, cost, isOpen, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart, toggleCart } = useCartStore();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (parseFloat(item.price.amount) * item.quantity), 0);
+  /*
+   * Shopify's own subtotal, not a sum we computed. The fallback only covers the
+   * blink between an optimistic add and the cart response landing — once a cart
+   * exists, `cost` is whatever the checkout page will charge.
+   */
+  const totalPrice = cost
+    ? parseFloat(cost.subtotalAmount.amount)
+    : items.reduce((sum, item) => sum + (parseFloat(item.price.amount) * item.quantity), 0);
 
   useEffect(() => { if (isOpen) syncCart(); }, [isOpen, syncCart]);
 
   const handleCheckout = () => {
     const checkoutUrl = getCheckoutUrl();
     if (checkoutUrl) {
-      const total = items.reduce((sum, i) => sum + parseFloat(i.price.amount) * i.quantity, 0);
+      const total = totalPrice;
       trackEvent("begin_checkout", {
         content_ids: ["base-layer-face-cream"],
         value: total,
@@ -108,13 +118,18 @@ const ShopifyCartDrawer = () => {
                     <p className="font-heading text-xs font-bold uppercase tracking-wide truncate">{item.product.node.title}</p>
                     <p className={`text-xs ${item.sellingPlanId ? "text-brand font-medium" : "text-muted-foreground"}`}>{item.variantTitle}</p>
                     {/*
-                      Every delivery bills the same $35, so the renewal price is
-                      subTier.price. Stating it anyway rather than leaving it
-                      implied: an auto-renewing charge has to be disclosed before
-                      checkout, not discovered on the bank statement.
+                      The plan bills the same amount every delivery, so the
+                      renewal price is the line price — and the line price is
+                      Shopify's, so this sentence can't promise a renewal figure
+                      the subscription won't actually charge. Cadence still comes
+                      from config; the storefront cart doesn't expose it.
+
+                      Stating it at all rather than leaving it implied: an
+                      auto-renewing charge has to be disclosed before checkout,
+                      not discovered on the bank statement.
                     */}
                     {subTier && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Auto-renews {subTier.duration} at ${subTier.price}. Pause or cancel anytime.</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Auto-renews {subTier.duration} at {inlinePrice(item.price.amount)}. Pause or cancel anytime.</p>
                     )}
                     <p className="font-body text-xs mt-0.5">${parseFloat(item.price.amount).toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">

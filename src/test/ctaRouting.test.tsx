@@ -9,13 +9,11 @@ import MatteMoisturizer from "@/pages/MatteMoisturizer";
 import Navbar from "@/components/Navbar";
 import LandingPage from "@/pages/LandingPage";
 
-// Site-wide policy under test: every buy-intent CTA that ships — hero, sticky
-// mobile bar, mid-page bands, the origin section, every content-page CTA, the
-// navbar GET STARTED, and the /lp landing page — must route to the PDP
-// (/face-cream) rather than adding to cart directly. A direct add locks the
-// conversion to DEFAULT_TIER (now the $68 2-pack), skips the tier choice the
-// PDP exists to present and its view_item / Meta ViewContent signal, and (for
-// deep-scroll CTAs specifically)
+// Site-wide policy under test: every buy-intent CTA routes to the PDP rather
+// than adding to cart directly. Homepage CTAs include offer=single so the PDP
+// honors the $38 price on the button; other routes preserve the PDP's global
+// default. Both paths retain view_item / Meta ViewContent before add-to-cart.
+// For deep-scroll CTAs, a direct add also
 // fires Meta AddToCart with no preceding ViewContent. These tests exist to stop
 // any of these buttons being "simplified" back to a direct add-to-cart call.
 //
@@ -36,8 +34,13 @@ vi.mock("@/lib/analytics", () => ({
 // useEarlyAccess().openModal() or the cart store directly), the test fails
 // instead of silently passing.
 const mockAddItem = vi.fn();
+const mockToggleCart = vi.fn();
 vi.mock("@/stores/cartStore", () => ({
-  useCartStore: { getState: () => ({ addItem: mockAddItem, isLoading: false }) },
+  useCartStore: Object.assign(
+    (selector: (state: { items: never[]; toggleCart: typeof mockToggleCart }) => unknown) =>
+      selector({ items: [], toggleCart: mockToggleCart }),
+    { getState: () => ({ addItem: mockAddItem, isLoading: false }) },
+  ),
 }));
 
 const mockOpenModal = vi.fn();
@@ -61,13 +64,14 @@ beforeAll(() => {
 beforeEach(() => {
   mockTrackEvent.mockClear();
   mockAddItem.mockClear();
+  mockToggleCart.mockClear();
   mockOpenModal.mockClear();
 });
 
-/** Shared assertion: a GRAB YOURS link routes to the PDP and never touches the cart. */
-function expectPdpLinkNoCartAdd(link: Element | null, source: string) {
+/** Shared assertion: a purchase link routes to the PDP and never touches the cart. */
+function expectPdpLinkNoCartAdd(link: Element | null, source: string, expectedHref = "/face-cream") {
   expect(link).not.toBeNull();
-  expect(link).toHaveAttribute("href", "/face-cream");
+  expect(link).toHaveAttribute("href", expectedHref);
 
   fireEvent.click(link as Element);
 
@@ -83,14 +87,14 @@ function expectPdpLinkNoCartAdd(link: Element | null, source: string) {
 describe("CTA funnel routing", () => {
   it("HeroSection primary CTA links to the PDP and never calls the add-to-cart path", () => {
     const { getByRole } = render(<HeroSection />, { wrapper: MemoryRouter });
-    const link = getByRole("link", { name: /grab yours/i });
-    expectPdpLinkNoCartAdd(link, "hero");
+    const link = getByRole("link", { name: /get base layer/i });
+    expectPdpLinkNoCartAdd(link, "hero", "/face-cream?offer=single");
   });
 
   it("StickyMobileCTA links to the PDP and never calls the add-to-cart path", () => {
     const { container } = render(<StickyMobileCTA />, { wrapper: MemoryRouter });
-    const link = container.querySelector('a[href="/face-cream"]');
-    expectPdpLinkNoCartAdd(link, "home_sticky_mobile");
+    const link = container.querySelector('a[href="/face-cream?offer=single"]');
+    expectPdpLinkNoCartAdd(link, "home_sticky_mobile", "/face-cream?offer=single");
   });
 
   it("MidPageCTA links to the PDP and never calls the add-to-cart path, passing through its source prop", () => {
@@ -98,19 +102,19 @@ describe("CTA funnel routing", () => {
       <MidPageCTA
         headline="Test Headline"
         subhead="Test subhead"
-        ctaLabel="GRAB YOURS · $38 →"
+        ctaLabel="GET BASE LAYER · $38 →"
         source="home_post_why"
       />,
       { wrapper: MemoryRouter }
     );
-    const link = getByRole("link", { name: /grab yours/i });
-    expectPdpLinkNoCartAdd(link, "home_post_why");
+    const link = getByRole("link", { name: /get base layer/i });
+    expectPdpLinkNoCartAdd(link, "home_post_why", "/face-cream?offer=single");
   });
 
   it("OurOriginSection CTA links to the PDP and never calls the add-to-cart path", () => {
     const { getByRole } = render(<OurOriginSection />, { wrapper: MemoryRouter });
-    const link = getByRole("link", { name: /grab yours/i });
-    expectPdpLinkNoCartAdd(link, "origin_section");
+    const link = getByRole("link", { name: /get base layer/i });
+    expectPdpLinkNoCartAdd(link, "origin_section", "/face-cream?offer=single");
   });
 
   it("A content page (MatteMoisturizer) GRAB YOURS CTA links to the PDP and never calls the add-to-cart path", () => {
@@ -121,14 +125,22 @@ describe("CTA funnel routing", () => {
     expectPdpLinkNoCartAdd(links[0], "matte_moisturizer_hero");
   });
 
-  it("Navbar GET STARTED routes to the PDP on both desktop and mobile", () => {
-    const { getAllByRole } = render(<Navbar />, { wrapper: MemoryRouter });
-    // The mobile dropdown is always mounted (it animates via max-h), so both
-    // the desktop and mobile CTAs are in the tree regardless of viewport.
-    const links = getAllByRole("link", { name: /get started/i });
+  it("Navbar GET BASE LAYER routes to the matching homepage offer on desktop and mobile", () => {
+    const firstRender = render(<Navbar />, { wrapper: MemoryRouter });
+    // Both controls remain mounted for responsive layout even when visually
+    // hidden, so query the DOM rather than the accessibility tree.
+    const links = Array.from(firstRender.container.querySelectorAll('a[href="/face-cream?offer=single"]'))
+      .filter((link) => link.textContent?.includes("GET BASE LAYER"));
     expect(links).toHaveLength(2);
-    expectPdpLinkNoCartAdd(links[0], "navbar");
-    expectPdpLinkNoCartAdd(links[1], "navbar_mobile");
+    expectPdpLinkNoCartAdd(links[0], "navbar", "/face-cream?offer=single");
+    firstRender.unmount();
+
+    // Clicking the first link changes MemoryRouter's location and intentionally
+    // removes the homepage-only query from Navbar, so mount fresh for mobile.
+    const secondRender = render(<Navbar />, { wrapper: MemoryRouter });
+    const mobileLink = Array.from(secondRender.container.querySelectorAll('a[href="/face-cream?offer=single"]'))
+      .filter((link) => link.textContent?.includes("GET BASE LAYER"))[1];
+    expectPdpLinkNoCartAdd(mobileLink, "navbar_mobile", "/face-cream?offer=single");
   });
 
   it("LandingPage (/lp) CTA routes to the PDP — the coldest traffic on the site", () => {

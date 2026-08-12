@@ -1,178 +1,74 @@
-import { useEffect, useRef } from "react";
+import { Check, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import { trackEvent } from "@/lib/analytics";
+import mountainPackshot from "@/assets/generated-creatives/hero-mountain-packshot-v2.webp";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { trackEvent } from "@/lib/analytics";
 
 const HeroSection = () => {
-  const heroImgRef = useRef<HTMLImageElement>(null);
-
-  // Defer cinematic pan animation until after image loads (post-LCP)
-  useEffect(() => {
-    const img = heroImgRef.current;
-    if (!img) return;
-    const startAnimation = () => {
-      img.classList.add("animate-cinematic-pan");
-    };
-    if (img.complete) {
-      startAnimation();
-    } else {
-      img.addEventListener("load", startAnimation, { once: true });
-      return () => img.removeEventListener("load", startAnimation);
-    }
-  }, []);
-
   return (
-    <section className="relative w-full min-h-[60vh] md:min-h-[70vh] lg:min-h-[85vh] bg-[#1A2F4C] overflow-hidden flex items-center">
-      {/* Background "Video" Simulation (Slow Pan Static Image fallback) */}
-      <div className="absolute inset-0 z-0 bg-[#1A2F4C]">
-        <picture>
-          <source
-            type="image/webp"
-            media="(max-width: 768px)"
-            srcSet="/images/hero-product-mountain-mobile.webp"
-            sizes="100vw"
-          />
-          <source
-            type="image/webp"
-            media="(min-width: 769px)"
-            srcSet="/images/hero-product-mountain.webp"
-            sizes="100vw"
-          />
-          <source
-            type="image/png"
-            media="(max-width: 768px)"
-            srcSet="/images/hero-product-mountain-mobile.png"
-            sizes="100vw"
-          />
+    <section className="w-full bg-[#F2EFE8] pt-[96px]">
+      <div className="mx-auto grid min-h-[calc(100svh-96px)] max-w-[1440px] md:grid-cols-[1.02fr_0.98fr]">
+        <div className="relative order-1 h-[226px] overflow-hidden bg-[#D8D3CA] sm:h-[300px] md:order-2 md:h-auto md:min-h-[650px]">
           <img
-            ref={heroImgRef}
-            src="/images/hero-product-mountain.png"
-            alt="Base Layer product in alpine environment"
-            sizes="100vw"
-            fetchPriority="high"
+            src={mountainPackshot}
+            alt="Base Layer Daily Face Cream bottle and carton on Colorado alpine granite"
+            width={1536}
+            height={1536}
+            {...{ fetchpriority: "high" }}
             loading="eager"
             decoding="async"
-            className="absolute inset-0 w-full h-full object-cover object-[70%_center] md:object-[65%_center] lg:object-[center_right]"
+            sizes="(max-width: 768px) 100vw, 49vw"
+            className="absolute inset-0 h-full w-full object-cover object-[center_51%] md:object-center"
           />
-        </picture>
-        {/* Gradient overlays to ensure text readability */}
-        {/*
-          Mobile stacks copy over the photo, so the scrim runs vertically: heaviest at the
-          top behind the white/70 eyebrow and headline, easing toward the CTA so the
-          product shot still reads. Worst case (blown-out photo) the 17px subhead sits at
-          4.89:1 on the 0.72 stop — AA pass. md+ puts copy in a left column, so the scrim
-          turns horizontal and clears the product on the right.
-        */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(26,47,76,0.85)_0%,rgba(26,47,76,0.72)_45%,rgba(26,47,76,0.45)_100%)] md:bg-[linear-gradient(to_right,rgba(26,47,76,0.80)_0%,rgba(26,47,76,0.50)_30%,rgba(26,47,76,0.15)_50%,transparent_60%)]"></div>
-      </div>
+        </div>
 
-      <div className="relative z-10 w-full max-w-[1440px] mx-auto px-6 md:px-12 pt-[80px] md:pt-[120px]">
-        <div className="max-w-[500px] min-h-[420px] md:min-h-[480px] lg:min-h-[520px]">
+        <div className="order-2 flex bg-[#F2EFE8] px-5 py-7 sm:px-8 sm:py-10 md:order-1 md:items-center md:px-12 md:py-16 lg:px-16 xl:px-20">
+          <div className="w-full max-w-[610px]">
+            <p className="mb-3 font-body text-[10px] font-semibold uppercase tracking-[0.25em] text-[#1A2F4C]/75 md:text-[11px]">
+              DAILY FACE MOISTURIZER
+            </p>
 
-          {/* Eyebrow Label */}
-          <div className="animate-fade-in-up mb-4">
-            <span className="font-heading text-[11px] uppercase tracking-[0.2em] font-normal text-white/70">
-              BUILT IN COLORADO FOR HARSH ELEMENTS
-            </span>
-          </div>
+            <h1 className="font-heading text-[clamp(40px,10.8vw,60px)] font-black uppercase leading-[0.91] tracking-[-0.05em] text-[#1A2F4C] [word-spacing:0.1em] md:text-[clamp(60px,5.2vw,82px)]">
+              ONE STEP<span className="text-[#1A2F4C]/25">.</span><br />
+              ZERO SHINE<span className="text-[#1A2F4C]/25">.</span>
+            </h1>
 
-          {/* Primary Headline */}
-          <h1 className="animate-fade-in-up font-heading text-[clamp(36px,6vw,84px)] font-black tracking-tighter text-white uppercase leading-[1.05] mb-6">
-            ONE CREAM<span className="text-white/40">.</span><br />
-            15 SECONDS<span className="text-white/40">.</span><br />
-            DONE<span className="text-white/40">.</span>
-          </h1>
+            <p className="mt-4 max-w-[560px] font-body text-[15px] leading-[1.5] text-[#1A2F4C]/78 sm:text-[16px] md:mt-6 md:text-[18px] md:leading-[1.6]">
+              Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Put it on in 15 seconds. Forget it&apos;s there.
+            </p>
 
-          {/* Subheading */}
-          <p
-            className="animate-fade-in-up font-body text-[17px] sm:text-lg md:text-xl text-white/90 leading-relaxed mb-10 max-w-lg"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Sun, wind, dry air, bad sleep. Your face takes a beating every day. One layer fixes it in 15 seconds flat. No routines. No shine. Nobody will know you're wearing it.
-          </p>
+            <a
+              href="#testimonials"
+              className="mt-4 inline-flex min-h-7 items-center gap-2 font-body text-[12px] font-semibold text-[#1A2F4C] underline decoration-[#1A2F4C]/30 underline-offset-4 transition-colors hover:text-brand-accent md:mt-6 md:text-[13px]"
+            >
+              <Check className="h-4 w-4 text-brand-accent" strokeWidth={2.75} aria-hidden="true" />
+              50 early testers &middot; Read their results
+            </a>
 
-          {/* Primary Buy CTA */}
-          <div
-            className="animate-fade-in-up w-full max-w-[460px] pb-12"
-            style={{ animationDelay: "0.2s" }}
-          >
-            <div className="flex flex-col w-full">
-              {/* Price Block */}
-              <div className="flex items-start gap-2 mb-3 md:mb-4">
-                <span className="font-body text-[16px] text-white opacity-60 line-through mt-1.5 mr-1">$48</span>
-                <span className="font-heading font-bold text-[28px] text-white leading-none">$38</span>
-                <span className="font-body text-[12px] text-white opacity-70 tracking-[0.1em] uppercase mt-2 block">Founding Price</span>
-              </div>
+            <div className="mt-5 flex items-end gap-3 md:mt-7">
+              <span className="font-heading text-[32px] font-black leading-none text-[#1A2F4C] md:text-[38px]">$38</span>
+              <span className="pb-0.5 font-body text-[13px] text-[#1A2F4C]/75 line-through md:text-[14px]">$48</span>
+              <span className="pb-0.5 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1A2F4C]/75 md:text-[11px]">Founding price</span>
+            </div>
 
-              {/*
-                Routes to the PDP rather than adding to cart directly. Cold traffic
-                landing on the hero has read one paragraph; /face-cream is where the
-                tier selector ($68 2-bottle, $32 subscribe) and the ingredient/FAQ
-                detail live, and it's the only place view_item / Meta ViewContent
-                fires. Adding to cart straight from here locks every hero conversion
-                to the $38 default and hands Meta an AddToCart with no preceding
-                ViewContent, which degrades delivery and starves retargeting.
-                Every other GRAB YOURS CTA on the site — deep-scroll bands included —
-                routes to the PDP the same way, so this signal integrity holds
-                everywhere, not just at the top of the page.
-              */}
-              <Link
-                to="/face-cream"
-                onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "hero" })}
-                className="inline-block text-center w-full sm:w-auto sm:min-w-[280px] px-8 py-[14px] bg-brand text-white font-heading font-black tracking-[0.1em] text-[13px] uppercase hover:bg-[#1A2F4C] transition-all duration-300 rounded-[4px] whitespace-nowrap"
-              >
-                GRAB YOURS &middot; $38 &rarr;
-              </Link>
+            <Link
+              id="hero-primary-cta"
+              to="/face-cream?offer=single"
+              onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "hero" })}
+              className="mt-4 inline-flex min-h-[54px] w-full items-center justify-center bg-brand px-6 py-4 text-center font-heading text-[13px] font-black uppercase tracking-[0.11em] text-white transition-colors hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C] sm:w-auto sm:min-w-[320px] md:mt-5 md:text-[14px]"
+            >
+              GET BASE LAYER &middot; $38 &rarr;
+            </Link>
 
-              {/* Trust Micro-Copy */}
-              <p className="font-body text-[12px] text-white opacity-60 mt-3 hidden sm:block">
-                {FREE_SHIPPING_PHRASE} &middot; 30-day guarantee &middot; No subscription required
+            <div className="mt-4 space-y-1.5 font-body text-[12px] leading-[1.45] text-[#1A2F4C]/75 md:text-[13px]">
+              <p className="flex items-center gap-2">
+                <Check className="h-4 w-4 shrink-0 text-brand-accent" strokeWidth={2.5} aria-hidden="true" />
+                {FREE_SHIPPING_PHRASE} &middot; No subscription required
               </p>
-              <p className="font-body text-[12px] text-white opacity-70 mt-2 hidden sm:block">Hate it? Keep the bottle. Full refund.</p>
-
-              {/* Mobile exact recreation */}
-              <div className="sm:hidden mt-3 text-left">
-                <p className="font-body text-[12px] text-white opacity-60 mb-2">
-                  {FREE_SHIPPING_PHRASE} &middot; 30-day guarantee<br />No subscription required
-                </p>
-                <p className="font-body text-[12px] text-white opacity-70">Hate it? Keep the bottle. Full refund.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Premium Gear Spec Badges (Technical SVG row) */}
-          <div
-            className="animate-fade-in-up flex flex-wrap sm:flex-nowrap items-center justify-start gap-4 sm:gap-10 text-left border-t border-white/20 pt-6 pb-10 md:pb-14 mt-8 md:mt-12 max-w-[500px]"
-            style={{ animationDelay: "0.3s" }}
-          >
-            {/* Badge 1 */}
-            <div className="flex flex-col gap-2 min-w-[30%] sm:min-w-0">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" className="text-white">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-              <span className="font-heading font-semibold text-[10px] tracking-[0.15em] text-white/80 uppercase">
-                ONE STEP
-              </span>
-            </div>
-
-            {/* Badge 2 */}
-            <div className="flex flex-col gap-2 min-w-[30%] sm:min-w-0 sm:border-l sm:border-white/20 sm:pl-10">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" className="text-white">
-                <circle cx="12" cy="12" r="10" /><path d="M12 2v20" /><path d="M2 12h20" />
-              </svg>
-              <span className="font-heading font-semibold text-[10px] tracking-[0.15em] text-white/80 uppercase">
-                LAB TESTED
-              </span>
-            </div>
-
-            {/* Badge 3 */}
-            <div className="flex flex-col gap-2 min-w-[30%] sm:min-w-0 sm:border-l sm:border-white/20 sm:pl-10">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" className="text-white">
-                <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
-              </svg>
-              <span className="font-heading font-semibold text-[10px] tracking-[0.15em] text-white/80 uppercase">
-                ANTI-AGING DEFENSE
-              </span>
+              <p className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-brand-accent" strokeWidth={2.25} aria-hidden="true" />
+                30-day money-back guarantee. Keep the bottle. Full refund.
+              </p>
             </div>
           </div>
         </div>

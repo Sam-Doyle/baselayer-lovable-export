@@ -40,29 +40,28 @@ const CookieConsentBanner = () => {
     <div
       role="region"
       aria-label="Cookie consent"
-      className="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1A2F4C]/15 bg-[#F7F4EE] shadow-[0_-6px_24px_rgba(26,47,76,0.10)]"
     >
-      <div className="max-w-[1440px] mx-auto px-6 py-5 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
-        <p className="font-body text-sm text-foreground leading-relaxed flex-1">
-          We use cookies required to run the Site, and — only with your permission — cookies for analytics and
-          advertising (Google Analytics, Meta Pixel). "Reject" keeps only the required cookies. See our{" "}
-          <Link to="/privacy-policy" className="text-foreground underline underline-offset-4 hover:no-underline">
-            Privacy Policy
-          </Link>{" "}
-          for details.
+      <div className="mx-auto flex max-w-[1200px] flex-col items-stretch gap-1.5 px-4 py-2 md:flex-row md:items-center md:gap-6 md:px-8 md:py-3">
+        <p className="flex-1 font-body text-[12px] leading-[1.45] text-[#1A2F4C]/80 md:text-[13px]">
+          Optional cookies help us improve the site and measure ads. Required cookies stay on.{" "}
+          <Link to="/privacy-policy" className="font-semibold text-[#1A2F4C] underline underline-offset-3 hover:no-underline">
+            Privacy details
+          </Link>
+          .
         </p>
-        <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
+        <div className="grid w-full shrink-0 grid-cols-2 gap-2 md:w-auto">
           <button
             type="button"
             onClick={() => handleChoice("rejected")}
-            className="flex-1 md:flex-none font-heading text-xs font-bold uppercase tracking-[0.1em] px-6 py-3 rounded-[4px] border-2 border-foreground text-foreground bg-background hover:bg-muted transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+            className="min-h-11 border-2 border-[#1A2F4C] bg-[#F7F4EE] px-5 py-2 font-heading text-[11px] font-bold uppercase tracking-[0.1em] text-[#1A2F4C] transition-colors hover:bg-[#E9E5DD] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C]"
           >
             Reject
           </button>
           <button
             type="button"
             onClick={() => handleChoice("accepted")}
-            className="flex-1 md:flex-none font-heading text-xs font-bold uppercase tracking-[0.1em] px-6 py-3 rounded-[4px] bg-brand text-white hover:bg-brand-hover transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground"
+            className="min-h-11 border-2 border-brand bg-brand px-5 py-2 font-heading text-[11px] font-bold uppercase tracking-[0.1em] text-white transition-colors hover:border-brand-hover hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C]"
           >
             Accept
           </button>
