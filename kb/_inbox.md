@@ -48,3 +48,20 @@ audio/UGC feel). Enforces a cost quote before firing, a hard budget cap (default
 and logs every job to `generations/log.jsonl`. Venv at `~/.config/ad-creative-engine/venv`.
 Requires a FAL_KEY. Brand foundation files wired at `brand/brand-dna.md`,
 `brand/brand-voice.md`, `brand/icp-cards.md` as routers into `brand/references/` and `kb/wiki/`.
+
+---
+date: 2026-08-12
+category: technical
+source: live verification of baselayerskin.co after deploy 3aca582
+confidence: high
+target_article: seo-strategy
+---
+Advertorials are kept out of the prerender and the sitemap, but that is not a noindex.
+None of the four pages under `src/pages/advertorials/` emit `<meta name="robots">`, and
+`robots.txt` disallows only `/checkout`. Verified live: `/article/peptide-stack` returns 200
+with a self-referencing canonical and no robots directive. Sitemap exclusion only stops
+discovery through the sitemap — Google can still index these from ad clicks, referrals, or
+external links. For paid presell pages carrying a "paid partnership" disclosure that is
+probably not the intended posture. Serving them via `/article/*  /__shell.html  200` means a
+`Disallow: /article/` line in robots.txt, or a noindex through `useMetaTags`, would be the
+enforcement. Decide before scaling spend to these URLs.
