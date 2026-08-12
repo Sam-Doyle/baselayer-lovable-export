@@ -2,9 +2,9 @@
 title: Launch Timeline & GTM
 domain: brand
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
-sources: [FAQSection.tsx, Checkout.tsx, SoldOutModal.tsx, EarlyAccessModal.tsx, HeroSection.tsx, StickyCartBar.tsx, GuaranteeSection.tsx, ProductSection.tsx, ExitIntentPopup.tsx, operations/BASE_LAYER_GTM_PLAN.md]
+last_compiled: 2026-08-12
+revision: 2
+sources: [FAQSection.tsx, Checkout.tsx, SoldOutModal.tsx, EarlyAccessModal.tsx, HeroSection.tsx, StickyCartBar.tsx, GuaranteeSection.tsx, ProductSection.tsx, ExitIntentPopup.tsx, operations/BASE_LAYER_GTM_PLAN.md, checkout browser test + Supabase count query]
 codePaths:
   - ~/baselayer-lovable-export/src/components/FAQSection.tsx
   - ~/baselayer-lovable-export/src/components/SoldOutModal.tsx
@@ -191,6 +191,18 @@ The site is in **pre-launch / waitlist mode**. There is no live checkout -- the 
 | Ideal price point | EarlyAccessModal survey ($28 / $38 / $45 options) |
 | Product preference | EarlyAccessModal survey (one moisturizer / 2-step AM / full 3-4 step system) |
 | Reserve intent | EarlyAccessModal reserve toggle |
+
+---
+
+## Positioning & Waitlist Update (2026-07-07, checkout browser test + Supabase count query)
+
+**Subscribe & Save repositioning:** Subscribe & Save was added as an OPTIONAL tier alongside the 1-bottle/$38 and 2-bottle/$68 options. All absolute "no subscription" copy was reconciled to "no subscription required" / "never locked in"; FAQ answers were rewritten accordingly. The anti-subscription WEDGE (see `kb/wiki/ad-strategy.md` and `kb/wiki/customer-insights.md` Objection 7) is retained, but reframed as anti-*forced*-subscription rather than anti-subscription absolutely. **Open item:** Sanity CMS articles (e.g. `no-subscription-model`) and comparison pages may still carry the old absolute claims — needs a CMS content pass.
+
+**Real waitlist count vs. displayed floor:** As of 2026-07-07 the real waitlist was **13 emails** (Supabase count). This is well below the `WaitlistCounter` component's configurable display floor of 387 documented above — the floor exists precisely to avoid showing low early numbers, so this is not a contradiction of that mechanism, just a data point on how early the list still was at this date.
+
+**Social proof claim removal (superseded, see also `kb/wiki/customer-insights.md`):** All "1,000+ reviews" / "4.8-star" claims were removed sitewide as of 2026-07-07 and replaced with true "Founding Batch 01 = 1,000 bottles" scarcity framing (production-run count, not review count). `kb/wiki/customer-insights.md`'s Social Proof Data Points table (as compiled 2026-04-03) predates this change and has been marked superseded there as of 2026-08-12, once code-level confirmation surfaced (see `customer-insights.md` for the correction).
+
+**Testimonial authenticity flag:** Testimonial cards (Sean/Marcus/Cooper, see `kb/wiki/customer-insights.md`) were kept through this copy pass but their authenticity is unverified — founder must confirm real testers or replace before further reliance on these quotes as social proof.
 
 ---
 

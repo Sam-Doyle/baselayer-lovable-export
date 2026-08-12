@@ -2,9 +2,9 @@
 title: SEO Strategy
 domain: marketing
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
-sources: [SEO.tsx, generate-sitemap.mjs, robots.txt, netlify.toml, SEO_AUDIT_REPORT.md, SEO_OPTIMIZATION_PLAN.md, KEYWORD_OPTIMIZATION_REPORT.md, INTERNAL_LINKING_VISUAL_MAP.md, content/CLAUDE.md]
+last_compiled: 2026-08-12
+revision: 2
+sources: [SEO.tsx, generate-sitemap.mjs, robots.txt, netlify.toml, SEO_AUDIT_REPORT.md, SEO_OPTIMIZATION_PLAN.md, KEYWORD_OPTIMIZATION_REPORT.md, INTERNAL_LINKING_VISUAL_MAP.md, content/CLAUDE.md, Search Console API, GA4 API, /seo-os:tech-debt crawl, /seo-os:backlinks SERP sweep, 3-agent content improvement pass]
 codePaths:
   - ~/baselayer-lovable-export/src/components/SEO.tsx
   - ~/baselayer-lovable-export/scripts/generate-sitemap.mjs
@@ -63,7 +63,7 @@ The `useMetaTags` hook dynamically sets per-page:
 | Article | `/articles/:slug` pages | `buildArticleSchema()` builder |
 | BreadcrumbList | Multiple pages | `buildBreadcrumbSchema()` builder |
 | ItemList | Index pages (articles, ingredients, etc.) | `buildItemListSchema()` builder |
-| FAQPage | DISABLED | `buildFaqSchema()` returns null (restricted to gov/healthcare since Aug 2023) |
+| FAQPage | ⚠️ SUPERSEDED 2026-08-11 — see below | `buildFaqSchema()` returns null (restricted to gov/healthcare since Aug 2023) — **as compiled 2026-04-03. Corrected 2026-08-11 (3-agent content improvement pass): `buildFaqSchema()` was found hardcoded to return null and has been re-enabled for AI-search extraction.** See "Site-Wide Meta Injection Bug Fix" below. |
 
 **Organization schema details:**
 - Name: "Base Layer"
@@ -286,6 +286,51 @@ HOMEPAGE
 | CLS (articles) | 0.236 | <0.1 |
 
 ---
+
+---
+
+## SEO Baseline & Technical Audit (2026-08-10)
+
+*Routing note: these four findings arrived tagged `target_article: seo baseline / organic search`, which has no dedicated article — routed here as the closest existing fit.*
+
+### Organic Search Baseline (Search Console API, sc-domain:baselayerskin.co, confidence: high)
+
+Zero recorded search impressions for baselayerskin.co over the trailing 6 months (Feb–Aug 2026). Site is starting organic search from scratch. GA4 property: `properties/526066920` (account "Base Layer Skin", `385687789`).
+
+### Root Cause of Zero Impressions (GSC URL inspection + sitemaps API, /seo-os:dashboard run, confidence: high)
+
+**No sitemap had ever been submitted to Search Console** (0 sitemaps registered), and Google last crawled the homepage 2026-07-01 (40 days stale at time of finding). The homepage itself IS indexed ("Submitted and indexed", robots allowed, fetch OK). Rich results status: Product snippets PASS, Review snippets PASS (4 reviews detected). Merchant listings have 3 warnings — missing `shippingDetails`, `hasMerchantReturnPolicy`, `validFrom` in the Product/Offer schema. **Fix:** generate + submit sitemap.xml, patch the Offer schema fields (see Tech-Debt Audit below for the code-level detail).
+
+### GA4 Traffic Snapshot (GA4 API, properties/526066920, confidence: medium)
+
+Last 28 days (Jul 14–Aug 10): 40 total sessions — Direct 31, Organic Search 3 (100% engagement; non-Google since GSC shows 0 clicks, likely Bing/DDG), Organic Social 2, Referral 1. Top pages: `/` (17), `/face-cream` (6), `/skin-concerns/post-shave-irritation` (4). Article and ingredient pages are already receiving trickle traffic. **Action:** also submit the sitemap to Bing Webmaster Tools, not just Google.
+
+### Tech-Debt Audit (2026-08-10, /seo-os:tech-debt live crawl of all 59 sitemap URLs + repo inspection, confidence: high)
+
+Site is structurally clean: 0 redirect chains, 0 canonical errors, 0 noindex, 0 4xx; prerendered HTML has correct canonicals; www/http variants 301 correctly; trailing-slash duplicates are neutralized by canonicals. A valid 59-URL `sitemap.xml` IS live and referenced in `robots.txt` — the only submission gap is that it was never submitted to GSC via API (blocked: our OAuth scope is `webmasters.readonly` by design; manual UI submit required).
+
+**Two real defects found:**
+1. **Soft-404:** the SPA fallback `/* /index.html 200` in `public/_redirects` serves the homepage shell at unknown URLs instead of a real 404. Fix: prerender `404.html` + `/* /404.html 404`.
+2. **Duplicated Offer schema gaps:** the product Offer schema is duplicated across 5 page files (`FaceCream.tsx`, `Index.tsx`, `ProductDetail.tsx`, `MatteMoisturizer.tsx`, `NonGreasyMoisturizer.tsx`) and all five are missing `shippingDetails`, `hasMerchantReturnPolicy`, `validFrom`.
+
+Tickets logged at `runs/tech-debt-2026-08-10.md`.
+
+## Link Building / Backlinks (2026-08-10, SERP sweep via /seo-os:backlinks, confidence: medium)
+
+No Ahrefs access — targets are SERP-derived. **Tier 1 niche DTC reviewers** that hand-test competitor brands: The Adult Man (has a Geologie vs Tiege vs Lumin head-to-head), Fin vs Fin (DTC comparison specialist), Honest Brand Reviews, ReadySleek, Dapper & Groomed (over-40 tested roundup), The Modest Man, The Dermatology Review, Effortless Gent. **Free listings:** Skinsort ingredient DB, Trustpilot claim. **Parked until review corpus exists:** big pubs (Forbes Vetted, CNN, Rolling Stone). **Key unlock:** an affiliate program before any outreach — all Tier 1 sites monetize via affiliate. **Ignore** these competitor-owned fake roundups found in the sweep: striveskin, henkeys, rawdog. Full list at `runs/backlinks-2026-08-10.md`.
+
+## Site-Wide Meta Injection Bug Fix (2026-08-11, 3-agent content improvement pass — copy editor / designer / SEO, confidence: high)
+
+**Root bug:** `injectMeta()` in `vite.config.ts` had rigid regexes that failed on multi-line and self-closing meta tags — as a result, **every page shipped the homepage's meta description/OG/Twitter tags to crawlers since launch**, not its own.
+
+**Also fixed in the same pass:**
+- `buildFaqSchema()` was hardcoded to return `null` — re-enabled for AI-search extraction (supersedes the FAQPage row in the JSON-LD table above).
+- Comparison page "Our Verdict" section rendered empty (a plain string was being passed to the PortableText renderer, which expects Portable Text blocks).
+- Comparison page `extractableSummary` field was never rendered at all — now rendered as a Key Takeaways block.
+- ItemList schema was missing on index pages that should have carried it.
+- Comparison schema type has no `author` field — an E-E-A-T gap worth closing.
+
+**Content integrity findings from the same pass:** the over-40 article had fabricated competitor absorption times (reframed to a label-based formula-weight analysis in drafts); the "we tested 10+" `metaDescription` was false on two counts (actually 5 products, and no formal testing was done). Also flagged: the brand doc `~/BaseLayer/brand/_brand-context.md` describes a dark monochrome visual identity, but the live site is a light theme with navy/orange — that doc is stale (see `kb/wiki/brand-identity.md` for the compiled brand system, which reflects the live site).
 
 ## See Also
 

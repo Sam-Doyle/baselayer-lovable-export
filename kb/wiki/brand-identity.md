@@ -217,7 +217,7 @@ DONE.
 
 ### Design System Note
 
-Two design systems exist in the brand assets. The production site (`baselayer-lovable-export`) uses the **monochrome dark system** from `_brand-context.md` and `identity/identity.md`. The formal brand guidelines (`BaseLayer_Brand_Guidelines.md`) define an **Alpine Navy + Summit Orange system**. The live HeroSection uses Alpine Navy (`#1A2F4C`) as the background with Summit Orange (`#F35D1A`) for the CTA and input focus ring, indicating the production site is a hybrid. When in doubt, match what the live code does.
+Two design systems exist in the brand assets. The production site (`baselayer-lovable-export`) uses the **monochrome dark system** from `_brand-context.md` and `identity/identity.md`. The formal brand guidelines (`BaseLayer_Brand_Guidelines.md`) define an **Alpine Navy + Ascent Orange system**. The live HeroSection uses Alpine Navy (`#1A2F4C`) as the background with Ascent Orange (`#F95D1A`) for the CTA and input focus ring, indicating the production site is a hybrid. When in doubt, match what the live code does.
 
 ### Color System (Production Site -- Monochrome Dark)
 
@@ -243,18 +243,18 @@ Two design systems exist in the brand assets. The production site (`baselayer-lo
 | Green | `#22C55E` | Success states only |
 | Red | `#EF4444` | Friction/problem accent only |
 
-### Color System (Brand Guidelines -- Alpine Navy + Summit Orange)
+### Color System (Brand Guidelines -- Alpine Navy + Ascent Orange)
 
 | Role | Name | Hex | Usage |
 |---|---|---|---|
 | Primary | Alpine Navy | `#1A2F4C` | Backgrounds, headlines, primary text, logo |
-| Accent | Summit Orange | `#F35D1A` | Logo period, CTAs, interactive states |
+| Accent | Ascent Orange | `#F95D1A` | Logo period, CTAs, interactive states |
 | Neutral | Glacier Grey | `#ABB3BB` | Borders, secondary text, dividers |
 | Background | White | `#FFFFFF` | Page backgrounds, cards, labels |
 | Dark extended | Deep Slate | `#0F1A2A` | Video backgrounds, overlay gradients |
 | Dark extended | Stone | `#2C3E50` | Secondary dark surfaces |
 
-**Color hierarchy rule:** 70% Alpine Navy + White, 20% Glacier Grey, 10% Summit Orange. Orange is surgical, not decorative -- max 2 placements per screen.
+**Color hierarchy rule:** 70% Alpine Navy + White, 20% Glacier Grey, 10% Ascent Orange. Orange is surgical, not decorative -- max 2 placements per screen.
 
 ### Color Rules (Universal)
 
@@ -317,7 +317,7 @@ BADGE:       font-body text-[11px] tracking-[0.25em] uppercase text-muted-foregr
 ### Primary Wordmark
 
 **Format:** `BASE LAYER.` -- two words, always uppercase, always with terminal period.
-**Signature element:** Square orange period (Summit Orange `#F35D1A`). Non-negotiable -- always present in full-color applications. Square, not circle.
+**Signature element:** Round orange period (Ascent Orange `#F95D1A`). Non-negotiable -- always present in full-color applications. Circle, not square -- it is Montserrat 800's own period. Corrected 2026-08-12: this entry previously said "square, not circle" and named the orange `#F35D1A`. The square period described a broken PNG export (a fallback system font renders a square period), not the real mark; `#F35D1A` is retired in favor of the single brand orange `#F95D1A`.
 
 ### Logo Variants
 
@@ -332,8 +332,9 @@ BADGE:       font-body text-[11px] tracking-[0.25em] uppercase text-muted-foregr
 | `logo_single_color_white.png` | Mono white -- reversed single-color |
 | `logo_icon.png` | "BL." monogram -- favicon, app icon, small formats |
 | `logo_alpine_navy_presentation.png` | Presentation decks, title slides |
+| `logo_stacked_*` (7 files) | Two-line lockup, same color variants -- square/portrait placements |
 
-**Note:** The production site (`identity.md`) references `src/assets/logo-white.png` as the web logo -- always white on black or black on white, with horizontal rules as part of the mark.
+**Note:** The production site uses `src/assets/logo-white.png` and `public/logo.png`, both cut from the master pack. Superseded 2026-08-12: an earlier thin-weight wordmark with horizontal rules above and below was in use across `brand/assets/logo/` and `public/lovable-uploads/`. It was not the real mark (wrong weight, no period) and has been deleted. Every logo file now derives from the outlined Montserrat 800 pack.
 
 ### Logo Hierarchy
 
@@ -350,7 +351,7 @@ Minimum clear zone: cap height of the "B" on all four sides.
 
 - Rotate, skew, or distort
 - Change letter or word spacing
-- Replace square period with circle or other shape
+- Replace the round period with a square or other shape
 - Use lowercase or mixed case
 - Place on busy backgrounds without container variant
 - Add shadows, outlines, gradients, or effects
@@ -438,4 +439,4 @@ Before delivering any brand output, verify:
 3. **Photography:** Real skin texture visible? No stock aesthetic? Dramatic lighting? No white backgrounds?
 4. **Product accuracy:** Correct price ($38 founding / $48 retail)? Correct claims (15 seconds, matte, fragrance-free)? No unsubstantiated claims?
 5. **Compliance:** No "clinically proven" without trial data? Cosmetic classification (not drug)? Claims use "helps", "supports", "designed to" language?
-6. **Logo:** Orange period present? Square, not circle? Clear space maintained? No effects or distortions?
+6. **Logo:** Orange period present and round? Wordmark at Montserrat 800 (heavy), not a lighter weight? Clear space maintained? No effects or distortions?

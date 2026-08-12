@@ -32,3 +32,6 @@ dist-ssr
 
 # TypeScript incremental build info (from `npm run typecheck`)
 *.tsbuildinfo
+
+# ad-creative-engine working outputs (regenerable; videos are large)
+generations/

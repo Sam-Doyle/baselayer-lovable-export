@@ -2,9 +2,9 @@
 title: Ad & Marketing Strategy
 domain: marketing
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
-sources: [ads/AI_CREATIVE_SYSTEM.md, ads/CLAUDE.md, marketing/ads/, marketing/strategy/, marketing/social/, advertorial/, content/CLAUDE.md]
+last_compiled: 2026-08-12
+revision: 2
+sources: [ads/AI_CREATIVE_SYSTEM.md, ads/CLAUDE.md, marketing/ads/, marketing/strategy/, marketing/social/, advertorial/, content/CLAUDE.md, /last30days research (hawky.ai, prooflytics, adamigo.ai, dtcroas.com, usedaymark.io, shopify-fee-calc.com, Eightx, Shopify MER blog), subagent research (native statics), Sam interview]
 codePaths:
   - ~/BaseLayer/ads/AI_CREATIVE_SYSTEM.md
   - ~/BaseLayer/ads/CLAUDE.md
@@ -73,6 +73,18 @@ codePaths:
 | CPA increase | 2x historical | Meta flags "Creative Fatigue" |
 | Refresh cadence (small audience) | Every 3-4 days | High-budget, narrow audience |
 | Refresh cadence (broad audience) | Every 2-3 weeks | Larger audiences sustain longer |
+
+---
+
+## 2026 Paid Acquisition Benchmarks (2026-08-11, /last30days research, confidence: medium)
+
+### ROAS Benchmarks by Channel
+
+Google Ads median ~3.5-3.7x (Shopping 4-8x), Meta ~1.86-2.2x (2-4x on direct attribution), TikTok ~1.4x. Beauty & personal care industry benchmark ~4.2x. Meta B2C is strongly seasonal: 4-5x in Q4, 2-2.5x in Jan/Feb, 3-3.5x in summer. **Caveat:** attribution windows are not comparable across platforms (Google 30-day click vs. Meta 7-day click + 1-day view), so raw platform ROAS cannot be ranked head-to-head. (Source: hawky.ai, prooflytics, adamigo.ai, dtcroas.com — full raw output at `kb/raw/research/2026-08-11-shopify-apps-and-roas-benchmarks.md`.)
+
+### Breakeven Math (the number that actually matters for a new store)
+
+Breakeven ROAS = 1 / gross margin. A DTC skincare brand at 65% gross margin and $55 AOV breaks even at ~1.5x; at 35% COGS with Shopify Payments it lands ~2.0-2.5x. Breakeven blended MER = 1 / contribution margin (30% CM → MER 3.3; 40% CM → 2.5). Healthy blended MER target is 3.0-5.0. **Base Layer needs its own version of this calculated from real COGS + shipping + Shopify fees before any spend target is set** — see the "Pricing & Shipping Threshold Economics" section of `kb/wiki/conversion-learnings.md` for the current best estimate. (Source: usedaymark.io, shopify-fee-calc.com, Eightx, Shopify MER blog.)
 
 ---
 
@@ -166,6 +178,23 @@ codePaths:
 
 ---
 
+## Native Static Ads Research (2026-08-12, subagent research, confidence: medium)
+
+**Source:** native static ads for skincare/DTC Meta 2026 — full output at `runs/static-to-advertorial-plan-2026-08-12.md`.
+
+- Statics are 64.8% of DTC ad volume and acquire customers ~28% cheaper than video (video gets 73% more clicks but lower intent), per a Curtis Howland 67,852-ad study.
+- Platform-native formats (Notes-app posts, screenshots) get 30-40% lower CPMs.
+- Founder-led skincare creative converts 5.8-7.1% vs. 3.2% cold average (consistent with the Social Content Strategy data point above) and fatigues slowest (6-12 months).
+- 56% of US consumers compare ingredient lists before buying (Bigeye 2026) — reinforces the ingredient-transparency angle already core to this brand's positioning.
+- **Meta skincare compliance additions:** "treats X" is flagged; "helps/supports/visibly reduces" clears. Second-person personal attributes ("your acne") are disallowed. Dramatic before/after is prohibited. (Extends the Compliance Checklist below.)
+- **Testing cadence:** two clocks running simultaneously — new concepts every 1-2 weeks, variants within winners weekly, 7-day learning window. **Skincare-specific fatigue rule:** skincare fatigues faster than the DTC average, so kill winners on >20-25% decay from peak performance, not on a calendar schedule (refines the generic Creative Fatigue Thresholds table above, which is calendar/frequency-based).
+
+## Peptide-Maxxing Ad Angle (2026-08-12, Sam interview, confidence: high)
+
+The "peptide maxxing" static ad hook and its landing page deliberately target different people. The slang belongs to the young looksmaxxing crowd and earns the click; the buying audience is aging-concerned men 30-45 (see Aging-Concerned 35+ segment above) for whom peptides are a mechanism, not an identity. So the slang stays in the ad creative and the page opens in editorial voice. **Practical rule:** the page should name the gap out loud (the men doing the most reading are a decade away from the changes they're chasing) rather than pretend the ad's audience and the page's audience are the same. See `kb/wiki/conversion-learnings.md` for the paired objection-handling decisions for this creative angle.
+
+---
+
 ## AI Creative System (Google PMax / Shopping)
 
 **Source:** `~/BaseLayer/ads/AI_CREATIVE_SYSTEM.md`
@@ -221,7 +250,7 @@ RATING: "4.8"
 **Tool:** Google Stitch for initial design, then Claude Code for production refinement
 
 **Design system:**
-- **Colors:** Alpine Navy #1A2F4C (headlines, hero), Summit Orange #F35D1A (CTAs only, max 2 per screen), Glacier Grey #ABB3BB (borders), White #FFFFFF (background)
+- **Colors:** Alpine Navy #1A2F4C (headlines, hero), Ascent Orange #F95D1A (CTAs only, max 2 per screen), Glacier Grey #ABB3BB (borders), White #FFFFFF (background)
 - **Typography:** Montserrat Bold ALL CAPS for headlines, Inter for body
 - **Rule:** 70% Navy+White, 20% Grey, 10% Orange. Orange is surgical, never decorative.
 
@@ -234,7 +263,9 @@ RATING: "4.8"
 6. Ingredient evidence grid (6 ingredients with concentrations)
 7. Results timeline (Day 1 / Week 2 / Month 2 / Month 3+)
 8. Social proof (tester quotes, "50 testers. 0 refund requests.")
-9. Offer section ($38 founding / $48 retail, 30-day guarantee, free shipping >$50)
+9. Offer section (30-day guarantee, free shipping — see pricing note below)
+
+> ⚠️ **Pricing in this outline is stale (flagged 2026-08-12).** Live tiers are $38 single / $68 2-pack / $35 Subscribe & Save, and shipping is free on *all* orders — the ">$50" threshold was removed in commit `fb4814a`. Read `BUY_TIERS` in `src/config/product.ts` and `FREE_SHIPPING_PHRASE` in `src/config/legal.ts` rather than these numbers. (2026-08-12, git log + code)
 10. FAQ accordion
 
 **Voice rules:** Short, punchy, declarative. Lead with benefits. Use real numbers. Never: "curated", "elevated", "luxury", "clinically proven".
@@ -332,8 +363,8 @@ Founder-led content + UGC demos + self-aware humor, optimized for saves/shares (
 - 1,000 units (first production run)
 - Founding price: $38 (retail: $48)
 - 30-day money-back guarantee
-- Free shipping over $50
-- No subscription
+- ~~Free shipping over $50~~ → **Free shipping on all orders** (threshold removed 2026-08-12, commit `fb4814a`)
+- ~~No subscription~~ → a $35 Subscribe & Save tier now exists (`BUY_TIERS` id 3, "NO LOCK-IN")
 
 **Urgency mechanism:** "1,000 units. Founding batch. When they're gone, they're gone."
 

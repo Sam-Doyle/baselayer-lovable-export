@@ -2,9 +2,9 @@
 title: Customer Insights & Objections
 domain: brand
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
-sources: [TestimonialsSection, FAQSection, FaceCream.tsx, research/audience/icp-core.md, research/audience/objection-bank.md, research/audience/segments.md, research/REDDIT_SENTIMENT_AND_REAL_DISCUSSIONS.md]
+last_compiled: 2026-08-12
+revision: 2
+sources: [TestimonialsSection, FAQSection, FaceCream.tsx, research/audience/icp-core.md, research/audience/objection-bank.md, research/audience/segments.md, research/REDDIT_SENTIMENT_AND_REAL_DISCUSSIONS.md, subagent code audit]
 ---
 
 ## Target Customer Profile
@@ -102,6 +102,7 @@ Objections sourced from FAQ components (homepage FAQSection + FaceCream.tsx prod
 - **FAQ source:** "How is this different from CeraVe or Nivea?" -- "Base Layer is a treatment product. Niacinamide at 5% actively reduces oil production. Copper peptide at 1% stimulates collagen synthesis."
 - **Reddit sentiment on CeraVe:** "Gold standard for the price. Don't expect luxury, but it works." Concerns: "Not specifically for men," "Doesn't address aging," "Doesn't control oil enough," "Feels heavy."
 - **Rebuttal pattern:** Upgrade positioning -- not a replacement for CeraVe (which validates the category), but a step up with active treatment ingredients at clinical doses.
+- **Compliance flag (2026-08-12, subagent code audit):** The FAQ copy quoted above ("Copper peptide at 1% stimulates collagen synthesis") is still live in `FaceCream.tsx` and uses "stimulates collagen synthesis" -- a banned phrase per `kb/wiki/brand-identity.md`'s banned-words list and `kb/wiki/product-formula.md`'s per-ingredient claim restrictions (Copper Peptide: never say "rebuilds collagen" / "regenerates cells"). It also repeats the pre-existing 1% vs. 0.03% concentration discrepancy already flagged in `kb/wiki/product-formula.md`. Compliance fix pending as of 2026-08-12.
 
 ### Objection 7: "I don't want a subscription trap"
 - **Frequency:** Moderate and rising. Major backlash against Lumin, Tiege Hanley.
@@ -148,9 +149,9 @@ Data points currently deployed across the site:
 
 | Data point | Location | Usage |
 |------------|----------|-------|
-| **4.8/5 rating** | Buy box, TestimonialsSection CTA, bottom CTA | Star rating with TrustpilotStars component |
-| **1,000+ men** | TestimonialsSection CTA ("4.8/5 from 1,000+ men") | Volume proof |
-| **1,000+ reviews** | Buy box ("4.8/5 (1,000+ reviews)") | Review count |
+| **4.8/5 rating** ⚠️ SUPERSEDED | Buy box, TestimonialsSection CTA, bottom CTA | Star rating with TrustpilotStars component — **as compiled 2026-04-03. Corrected 2026-08-12 (subagent code audit): this claim is false.** Code truth is `PRODUCT_RATING = {rating: 0, count: 0}`. Sales opened 2026-08-10; only 3 FTC-disclosed testers exist (Sean/Marcus/Cooper — see Key Testimonial Themes above). Claims were reportedly removed sitewide as of 2026-07-07 (see `kb/wiki/launch-timeline.md`) but the false rating/count was still live in code as of 2026-08-12 per this audit — treat any "4.8/5" or "1,000+" copy found live on site as a compliance bug to fix, not as accurate social proof. |
+| **1,000+ men** ⚠️ SUPERSEDED | TestimonialsSection CTA ("4.8/5 from 1,000+ men") | Volume proof — see correction above. The true scarcity number is "Founding Batch 01 = 1,000 bottles" (production run size), not a customer or review count. |
+| **1,000+ reviews** ⚠️ SUPERSEDED | Buy box ("4.8/5 (1,000+ reviews)") | Review count — see correction above. |
 | **3 named testimonials** | TestimonialsSection | Sean (34), Marcus (28), Cooper (27) -- real names, ages, cities, skin types |
 | **All 5-star individual reviews** | TestimonialsSection cards | Each card shows full 5/5 stars |
 | **50 testers** | Referenced in brand context (not yet in site copy) | Beta validation proof point |

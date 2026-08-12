@@ -2,9 +2,9 @@
 title: Site Architecture
 domain: technical
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
-sources: [package.json, vite.config.ts, App.tsx, netlify.toml, tailwind.config.ts, tsconfig.json, analytics.ts, sanity.ts, netlify _redirects]
+last_compiled: 2026-08-12
+revision: 2
+sources: [package.json, vite.config.ts, App.tsx, netlify.toml, tailwind.config.ts, tsconfig.json, analytics.ts, sanity.ts, netlify _redirects, live Storefront API testing, production debugging, /last30days research, Sanity assets API]
 codePaths:
   - src/App.tsx
   - vite.config.ts
@@ -188,6 +188,8 @@ Three-tier tracking: GA4 (browser) + Meta Pixel (browser) + Meta Conversions API
 
 Sanity images use `@sanity/image-url` builder via `urlFor(source)` helper in `src/lib/sanity.ts`.
 
+**SVG support (2026-08-12, Sanity assets API + cdn.sanity.io):** Sanity accepts SVG image uploads (`POST /assets/images/{dataset}`), and the CDN serves them 200 even with `?w=&auto=format` transform params, so the existing PortableText image renderer works unchanged on SVG assets. Hand-built branded SVG comparison graphics (16:9 to match the renderer's crop) are the right tool for text-heavy article graphics — AI image generation garbles numbers/text.
+
 ### Build-Time Sanity Fetches
 
 The Vite prerender plugin fetches all published slugs from Sanity at build time to:
@@ -215,6 +217,36 @@ The Vite prerender plugin fetches all published slugs from Sanity at build time 
 ### Migrations
 
 Three migrations exist in `supabase/migrations/` (dated 2026-02-25).
+
+## Shopify Checkout Integration
+
+Base Layer's checkout runs through the Shopify Storefront API rather than the originally-planned Shopify Buy Button (see `kb/wiki/launch-timeline.md` for the pre-launch plan). Wired in and debugged July 2026.
+
+### Domain Conflict (2026-07-06, live Storefront API testing during checkout wiring)
+
+`baselayerskin.co` is set as the Shopify store's primary domain while DNS actually serves Netlify. As a result, Storefront-API `checkoutUrls` point at `baselayerskin.co/cart/c/*`, which the SPA swallows (no matching route), and `base-layer-skin.myshopify.com` 301s back to the apex, creating a redirect loop.
+
+**Fix requires Shopify admin action** (one of):
+1. Remove the apex domain from Shopify — checkout falls back to the myshopify domain, or
+2. Connect `shop.baselayerskin.co` as the Shopify primary domain — branded checkout, no Netlify conflict.
+
+**Interim mitigation:** Netlify `/cart/c/*` passthrough rules added as a backstop.
+
+**Also noted:** only one Shopify variant existed as of 2026-07-06 (1-bottle, $38); 2/3-bottle tiers were hidden in `src/config/product.ts` pending variant creation and GID pasting.
+
+### Netlify Deploy Gotchas (2026-07-08, production debugging — CSP fix never deployed)
+
+1. A `netlify.toml` copied into the publish dir (there was a stale duplicate in `public/`) takes precedence over `_headers` on deploy. Only the root `netlify.toml` + `public/_headers` should define headers — the duplicate has been deleted.
+2. `netlify deploy --prod` via the CLI hung indefinitely at deploy creation on multiple occasions (three deploys stuck in "new" state, 0 files attached, one for 51 minutes). **Reliable workaround:** zip `dist` and `POST` it directly to `api.netlify.com/api/v1/sites/<id>/deploys` with `Content-Type: application/zip`.
+3. Adding an option to a Shopify product **recreates all of its variants** — old variant GIDs die. Always re-fetch GIDs from the Storefront API after any structural product change.
+
+## Shopify App Stack Research (2026-08-11, /last30days research)
+
+**Note:** Base Layer is a headless custom storefront (this React/Vite site), not a Shopify theme, so most storefront-rendering Shopify apps (reviews widgets, upsell apps, popups) do not apply directly — only apps that operate server-side or at checkout are relevant.
+
+**Consensus minimum stack for a new DTC skincare store** (source: X merchant posts, Reddit app roundups, beauty app guides): reviews (Judge.me, cited 5-15% PDP conversion lift), email/SMS (Klaviyo, cited 10-30% incremental revenue once flows are tuned), subscriptions (Recharge / Loop / Skio), bundles for AOV. Beauty-specific finding: beauty buyers read reviews more than any other category, and filterable reviews (skin type, age, concern) outperform an unsegmented review block.
+
+**"App overload" narrative caveat (2026-08-11, X posts from @shabnam_774, @riyazmd774, @heyalexmoore, July 29–Aug 1 2026):** the loudest "app overload" narrative on X right now is largely affiliate promotion, not organic consensus — three accounts posted near-identical "one app for reviews, another for upsells, another for email..." copy within four days, all funneling toward all-in-one bundle apps (Vitals named explicitly). Treat as paid promotion. The one genuinely organic stack post in the window is @seempaq (86 likes), listing a real merchant stack: FoxSell Bundles, Zapiet, DiscountKit, Recheck, Judge.me.
 
 ## Deploy Pipeline (Netlify)
 

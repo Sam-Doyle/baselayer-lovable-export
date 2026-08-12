@@ -2,9 +2,9 @@
 title: Product Formula & Ingredients
 domain: product
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
-sources: [catalog.md, ingredient-database.md, compliance.md, FaceCream.tsx, IngredientDetail.tsx, INGREDIENT_SCIENCE_AND_COMPLIANCE_RESEARCH.md]
+last_compiled: 2026-08-12
+revision: 2
+sources: [catalog.md, ingredient-database.md, compliance.md, FaceCream.tsx, IngredientDetail.tsx, INGREDIENT_SCIENCE_AND_COMPLIANCE_RESEARCH.md, PubMed 36917520, aad.org]
 codePaths:
   - ~/BaseLayer/product/catalog.md
   - ~/BaseLayer/product/ingredient-database.md
@@ -45,6 +45,8 @@ codePaths:
 | 1 bottle | 6 weeks  | $38   | $38        | $10             |
 | 2 bottles | 12 weeks | $68  | $34        | $28             |
 | 3 bottles | 18 weeks | $89  | $29.67     | $55             |
+
+**Staleness flag (2026-08-12, subagent code audit during advertorial drafting):** This pricing table predates a Subscribe & Save tier at $35/delivery that has since shipped (see `kb/wiki/conversion-learnings.md` and recent pricing commits). This article has not yet been re-compiled against the current live pricing/subscription structure — treat the table above as historical (2026-04-03) rather than current, and verify against `src/config/product.ts` before using these numbers in new work.
 
 **MSRP basis:** $48/bottle post-launch retail.
 **Guarantee:** 30-day money-back, keep the bottle.
@@ -270,6 +272,12 @@ Source: catalog.md. Date: 2026-04-03.
 - Clean Ingredients
 
 Source: FaceCream.tsx, catalog.md, compliance.md. Date: 2026-04-03.
+
+---
+
+## Fragrance-Free Claim Substantiation
+
+**Reusable citation for all fragrance-free claims (2026-08-12, PubMed 36917520 — NACDG 2019-2020 patch test results, Dermatitis 2023 — + aad.org fragrance-free guidance page, both verified via live fetch):** NACDG 2019-2020 patch-test data shows fragrance mix I positive in 12.8% of patients tested, the third most common allergen identified. The American Academy of Dermatology explicitly advises "fragrance-free" (not "unscented") language for reactive skin. This citation is now used in the Caldera Lab comparison article's scienceNote block (see `kb/wiki/competitor-landscape.md`) and should be the default source for any fragrance-free claim substantiation going forward.
 
 ---
 

@@ -32,13 +32,12 @@ All brand imagery consolidated from the live site and source files.
 ## logo/
 | File | Size | Description |
 |---|---|---|
-| `logo-full.png` | 296 KB | Full logo (used for JSON-LD schema, public assets) |
-| `logo-white.png` | 24 KB | White logo for dark backgrounds |
-| `wordmark-on-black-1.png` | 312 KB | Wordmark lockup on black — variant 1 |
-| `wordmark-on-black-2.png` | 356 KB | Wordmark lockup on black — variant 2 |
-| `wordmark-on-black-3.png` | 372 KB | Wordmark lockup on black — variant 3 |
-| `favicon.svg` | 4 KB | SVG favicon |
-| `favicon.ico` | 20 KB | ICO favicon |
+| `logo-full.png` | 29 KB | Navy wordmark on white container (used for JSON-LD schema, public assets) |
+| `logo-white.png` | 19 KB | White wordmark + orange period, transparent — for dark backgrounds |
+| `favicon.svg` | 1 KB | SVG favicon — `BL.` monogram, white on Alpine Navy |
+| `favicon.ico` | 15 KB | ICO favicon (16/32/48) |
+
+> These are web-sized cuts of the master pack in `brand/logo_pack/` (outlined Montserrat 800, orange period). Don't hand-make new logo files — export from the pack.
 
 ## og/
 | File | Size | Description |

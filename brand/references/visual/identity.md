@@ -71,12 +71,12 @@ BADGE:       font-body text-[11px] tracking-[0.25em] uppercase text-muted-foregr
 5. Font weight carries hierarchy: 900 > 700 > 600 > 400. Don't use color for hierarchy.
 
 ## Logo Rules
-1. Always uppercase.
-2. Always white on black (or black on white in light contexts).
-3. Horizontal rules above and below are part of the mark — don't separate them.
+1. Always uppercase, always Montserrat 800 (heavy). Never a lighter weight.
+2. Always ends with the orange period. The only exception is the single-color variants, where the period matches the wordmark.
+3. White on dark, Alpine Navy on light. No horizontal rules — the wordmark stands alone.
 4. Minimum clear space: the height of the text on all sides.
 5. No gradients, shadows, or embellishments on the wordmark.
-6. Logo file: `src/assets/logo-white.png`
+6. Logo files: master pack in `brand/logo_pack/` (outlined SVG — no font needed). Web cuts: `src/assets/logo-white.png`, `public/logo.png`, `public/logo.svg`.
 
 ## Border Radius
 `0rem` — sharp corners everywhere. The brand is angular.

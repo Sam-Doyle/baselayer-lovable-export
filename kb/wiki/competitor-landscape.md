@@ -2,9 +2,9 @@
 title: Competitor Landscape
 domain: competitive
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
-sources: [ComparisonTable.tsx, ComparisonDetail.tsx, Comparisons.tsx, FaceCream.tsx, marketing/competitive/profiles.md, marketing/competitive/lumin-audit-2026-03-18.md, marketing/competitive/positioning-map.md, research/BASE_LAYER_MARKET_RESEARCH_2025-2026.md, research/REDDIT_SENTIMENT_AND_REAL_DISCUSSIONS.md, research/dtc-skincare.md, research/audience/objection-bank.md, research/BASE_LAYER_STRATEGIC_RECOMMENDATIONS.md]
+last_compiled: 2026-08-12
+revision: 2
+sources: [ComparisonTable.tsx, ComparisonDetail.tsx, Comparisons.tsx, FaceCream.tsx, marketing/competitive/profiles.md, marketing/competitive/lumin-audit-2026-03-18.md, marketing/competitive/positioning-map.md, research/BASE_LAYER_MARKET_RESEARCH_2025-2026.md, research/REDDIT_SENTIMENT_AND_REAL_DISCUSSIONS.md, research/dtc-skincare.md, research/audience/objection-bank.md, research/BASE_LAYER_STRATEGIC_RECOMMENDATIONS.md, calderalab.com sitemap crawl + SERP verification]
 codePaths:
   - ~/baselayer-lovable-export/src/components/ComparisonTable.tsx
   - ~/baselayer-lovable-export/src/pages/ComparisonDetail.tsx
@@ -42,6 +42,10 @@ Competitive intelligence for Base Layer Skin. Covers direct competitors, positio
 - **Fragrance-free**: Yes
 - **Our advantage**: 6 clinical actives vs. botanical oils. Less than half the price for 70% more product volume. Ingredient transparency with published concentrations.
 - **Source**: ComparisonTable.tsx (March 2026, verified via INCIDecoder)
+
+**Brand-name collision (2026-08-12, calderalab.com sitemap crawl of 210 URLs + live SERP verification, confidence: high; `runs/intent-map-caldera-proxy-2026-08-12.md`):** Caldera + Lab sells a *separate* moisturizer literally named **"The Base Layer"** ($65 one-time / $52 subscription, verified from PDP structured data 2026-08-12; their "The Regimen" set is $220). The SERP for "base layer moisturizer for men" is owned end-to-end by their product (Nordstrom #1, Amazon #2, calderalab.com #4) plus apparel base layers (Arc'teryx, Bass Pro). **This means Base Layer Skin's brand-adjacent queries are contested by a competitor's product name from day one — any ad spend that builds "base layer" recall leaks branded search to Caldera.** Defensive+offensive play: a Base Layer vs. Caldera Lab comparison page (the vs-series pattern already exists on this site; Caldera was the missing entry — see Gap in "CMS-Driven Comparison Pages" below).
+
+**Organic strategy read (2026-08-12, same crawl + 6 live SERP probes, confidence: high):** Caldera's growth engine is paid→quiz funnel, not SEO — of 110 static pages, ~85 are ad landers/quiz A/B variants (`special-offers-quiz-*`) vs. 57 blog articles mostly dated 2021 (legacy, under-defended). SERP performance pattern: their question-format articles rank ("serum before or after moisturizer" page 1 ~#6 vs. MedicalNewsToday; "skincare mistakes men make" #2 behind Schweiger Derm) but their listicle/guide formats don't ("best face serum for men" absent, Brickell #1; "best moisturizer for dry skin men" absent; "men's skincare routine over 40" absent — that SERP is all small DTC blogs). **Transferable lesson: question-format H2/titles are what rank for DTC skincare blogs** (see `kb/wiki/seo-strategy.md`). Their ~15 lifestyle articles (yoga, organic food, weight loss) are unranked bloat — validates Base Layer's tight moisturizer-centric content architecture.
 
 ### Kiehl's
 - **Price**: $63 / 2.5 oz (Age Defender Cream)
@@ -206,6 +210,8 @@ The site has dedicated VS comparison pages (Sanity CMS-driven, rendered by `Comp
 - Base Layer vs Neutrogena (`/comparisons/base-layer-vs-neutrogena`)
 - CeraVe vs Base Layer (`/comparisons/cerave-vs-base-layer`)
 - Best Men's Face Moisturizers Compared (`/comparisons/best-mens-face-moisturizers-compared`)
+
+**Gap (2026-08-12):** no Base Layer vs. Caldera Lab comparison page exists yet, despite Caldera being the brand-name-collision competitor (see Caldera Lab profile above) — highest-priority addition to this list.
 
 Each page includes: product comparison table (name, price, rating, pros, cons, key ingredients, best-for), intro/body portable text, verdict section, FAQs with schema markup, related articles, and related skin concerns.
 
