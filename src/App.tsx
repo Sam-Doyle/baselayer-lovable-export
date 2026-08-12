@@ -37,6 +37,7 @@ const Listicle = lazy(() => import("./pages/advertorials/Listicle"));
 const ListicleGirlfriend = lazy(() => import("./pages/advertorials/ListicleGirlfriend"));
 const OneBottleExperiment = lazy(() => import("./pages/advertorials/OneBottleExperiment"));
 const PeptideStack = lazy(() => import("./pages/advertorials/PeptideStack"));
+const ConcentrationTest = lazy(() => import("./pages/advertorials/ConcentrationTest"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
@@ -233,6 +234,7 @@ const App = () => {
               <Route path="/article/2-minute-routine" element={<Wrap><ListicleGirlfriend /></Wrap>} />
               <Route path="/article/one-bottle-experiment" element={<Wrap><OneBottleExperiment /></Wrap>} />
               <Route path="/article/peptide-stack" element={<Wrap><PeptideStack /></Wrap>} />
+              <Route path="/article/concentration-test" element={<Wrap><ConcentrationTest /></Wrap>} />
               <Route path="/privacy-policy" element={<Wrap><PrivacyPolicy /></Wrap>} />
               <Route path="/terms-of-service" element={<Wrap><TermsOfService /></Wrap>} />
               <Route path="/refund-policy" element={<Wrap><RefundPolicy /></Wrap>} />
