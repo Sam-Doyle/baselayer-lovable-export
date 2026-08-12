@@ -33,8 +33,10 @@ const AllInOneSkincare = lazy(() => import("./pages/AllInOneSkincare"));
 const About = lazy(() => import("./pages/About"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const LandingPage = lazy(() => import("./pages/LandingPage"));
-const Listicle = lazy(() => import("./pages/Listicle"));
-const ListicleGirlfriend = lazy(() => import("./pages/ListicleGirlfriend"));
+const Listicle = lazy(() => import("./pages/advertorials/Listicle"));
+const ListicleGirlfriend = lazy(() => import("./pages/advertorials/ListicleGirlfriend"));
+const OneBottleExperiment = lazy(() => import("./pages/advertorials/OneBottleExperiment"));
+const PeptideStack = lazy(() => import("./pages/advertorials/PeptideStack"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
@@ -229,6 +231,8 @@ const App = () => {
               <Route path="/lp" element={<Wrap><LandingPage /></Wrap>} />
               <Route path="/article/5-reasons" element={<Wrap><Listicle /></Wrap>} />
               <Route path="/article/2-minute-routine" element={<Wrap><ListicleGirlfriend /></Wrap>} />
+              <Route path="/article/one-bottle-experiment" element={<Wrap><OneBottleExperiment /></Wrap>} />
+              <Route path="/article/peptide-stack" element={<Wrap><PeptideStack /></Wrap>} />
               <Route path="/privacy-policy" element={<Wrap><PrivacyPolicy /></Wrap>} />
               <Route path="/terms-of-service" element={<Wrap><TermsOfService /></Wrap>} />
               <Route path="/refund-policy" element={<Wrap><RefundPolicy /></Wrap>} />
