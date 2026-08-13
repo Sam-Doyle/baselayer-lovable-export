@@ -245,8 +245,24 @@ function fireBrowserEvent({ eventName, eventId, payload }: QueuedBrowserEvent): 
 
     // GA4 via gtag() — fires properly with gtag.js (no GTM needed)
     if (typeof w.gtag === "function") {
+      /*
+       * `source`, `medium` and `campaign` are reserved in GA4: sent as event
+       * params they're read as a manual traffic source and written to the
+       * session, overwriting real acquisition data. Call sites use `source` to
+       * mean which CTA was clicked ("hero", "buy_box", "navbar"), so sessions
+       * that clicked anything were reporting sessionSource=buy_box — i.e. the
+       * sessions most likely to convert were the ones losing their ad
+       * attribution. Renamed here rather than at the ~20 call sites so Meta and
+       * Supabase keep receiving `source` unchanged, and so a new call site
+       * written in the existing style can't reintroduce it.
+       *
+       * cta_location needs registering as a custom dimension in GA4 Admin to be
+       * reportable; it's collected either way.
+       */
+      const { source, medium: _medium, campaign: _campaign, ...ga4Payload } = safePayload;
       w.gtag("event", GA4_EVENT_NAMES[eventName] ?? eventName, {
-        ...safePayload,
+        ...ga4Payload,
+        ...(source && { cta_location: source }),
         ...(GA4_ITEM_EVENTS.has(eventName) && { items: ga4Items(safePayload) }),
       });
     }
