@@ -88,7 +88,14 @@ const QUERY = `
     product(handle: $handle) {
       title
       variants(first: 30) {
-        edges { node { id title availableForSale price { amount currencyCode } } }
+        edges {
+          node {
+            id title availableForSale price { amount currencyCode }
+            sellingPlanAllocations(first: 10) {
+              edges { node { sellingPlan { id name } } }
+            }
+          }
+        }
       }
       sellingPlanGroups(first: 10) {
         edges {
@@ -220,6 +227,45 @@ function compare(declared, product) {
     rows.push([tier.label, money(tier.price), money(variantPrice), variant.title]);
     if (Math.abs(variantPrice - tier.price) >= 0.005) {
       problems.push(`${tier.label}: site says ${money(tier.price)}, Shopify charges ${money(variantPrice)}.`);
+    }
+  }
+
+  /*
+   * Everything above walks the tiers this repo declares and asks whether
+   * Shopify agrees. That can only catch a wrong price on an offer we know
+   * about — it is blind to an offer Shopify is making that we never declared.
+   *
+   * Which is a real failure mode, found live on 2026-08-13: the Subscribe &
+   * Save plan was attached to the whole product rather than the 1-bottle
+   * variant, so its fixed $35 policy also applied to the $68 2-pack. Two
+   * bottles for $35 a delivery, forever, was the cheapest way to buy the
+   * product and it never appeared on the PDP — the subscription tile hardcodes
+   * the single-bottle variant. It surfaced on Instagram Shop, which renders
+   * whatever the Storefront API offers.
+   *
+   * A fixed-price policy is the dangerous shape here because it ignores what
+   * the variant costs. Percentage and fixed-amount policies scale with the
+   * variant, so an accidental attachment is merely unintended, not ruinous.
+   */
+  const declaredPairs = new Set(
+    declared.tiers
+      .filter(t => t.variantGid && t.sellingPlanGid)
+      .map(t => `${t.variantGid}::${t.sellingPlanGid}`)
+  );
+
+  for (const { node: variant } of product.variants.edges) {
+    for (const { node: allocation } of variant.sellingPlanAllocations?.edges ?? []) {
+      const planId = allocation.sellingPlan.id;
+      if (declaredPairs.has(`${variant.id}::${planId}`)) continue;
+      const plan = plans.get(planId);
+      const variantPrice = Number(variant.price.amount);
+      const { price, note } = plan
+        ? planPrice(plan, variantPrice)
+        : { price: null, note: 'plan not readable on this product' };
+      const charge = price === null ? 'an unverifiable price' : money(price);
+      problems.push(
+        `"${variant.title}" (${money(variantPrice)}) is also sold on plan "${allocation.sellingPlan.name}" at ${charge} (${note}), which no tier in product.ts declares. Restrict the plan to its intended variants in Shopify admin.`
+      );
     }
   }
 
