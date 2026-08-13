@@ -44,7 +44,21 @@ async function getSupabase() {
 const FB_STANDARD_EVENTS: Record<string, { event: string; custom?: boolean; defaults?: Record<string, unknown> }> = {
   view_item: { event: "ViewContent", defaults: { content_type: "product", currency: "USD" } },
   add_to_cart: { event: "AddToCart", defaults: { content_type: "product", currency: "USD" } },
-  begin_checkout: { event: "InitiateCheckout", defaults: { currency: "USD" } },
+  /*
+   * Deliberately NOT InitiateCheckout. Shopify's own Meta pixel (web pixel
+   * 2039742535, installed via the Facebook & Instagram channel) fires the
+   * standard InitiateCheckout when the checkout page loads on
+   * shop.baselayerskin.co. This event fires on the Checkout button click a
+   * moment earlier, from a different origin with a different event id, so
+   * nothing dedupes them and Meta counted two InitiateCheckouts per shopper.
+   *
+   * Shopify's copy is the one to keep: it fires on the checkout actually
+   * opening rather than on an intent to open it, it carries Shopify's own cart
+   * data, and it shares a source with the Purchase that follows. So this
+   * becomes a custom event — still usable for a custom conversion or an
+   * audience, no longer polluting the standard one Meta optimizes against.
+   */
+  begin_checkout: { event: "CheckoutClick", custom: true, defaults: { currency: "USD" } },
   purchase_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Purchase Intent", value: DEFAULT_TIER.price, currency: "USD" } },
   reserve_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Reserve Intent", value: DEFAULT_TIER.price, currency: "USD" } },
   // Signups are a weaker signal than a product-page intent click, so they
@@ -73,6 +87,22 @@ const CAPI_EVENTS = new Set(["email_signup", "waitlist_signup", "begin_checkout"
  * beats eight places to forget.
  */
 const GA4_ITEM_EVENTS = new Set(["view_item", "add_to_cart", "begin_checkout"]);
+
+/**
+ * GA4 name overrides, for the same reason as the Meta mapping above.
+ *
+ * Shopify's GA4 tag (Google & YouTube channel → G-E1GTL9RHY0) sends its own
+ * `begin_checkout` from the checkout page, so leaving this one named
+ * `begin_checkout` double-counts the step and inflates the funnel's
+ * cart→checkout rate. Renaming here rather than at the call site keeps the
+ * internal event name aligned with the Meta table and the items logic.
+ *
+ * Ordering note: until that channel is connected, GA4 has no `begin_checkout`
+ * at all. Connect it in the same sitting as this ships.
+ */
+const GA4_EVENT_NAMES: Record<string, string> = {
+  begin_checkout: "checkout_click",
+};
 
 function ga4Items(payload: Record<string, unknown>): Record<string, unknown>[] {
   const ids = Array.isArray(payload.content_ids) ? payload.content_ids : [];
@@ -215,7 +245,7 @@ function fireBrowserEvent({ eventName, eventId, payload }: QueuedBrowserEvent): 
 
     // GA4 via gtag() — fires properly with gtag.js (no GTM needed)
     if (typeof w.gtag === "function") {
-      w.gtag("event", eventName, {
+      w.gtag("event", GA4_EVENT_NAMES[eventName] ?? eventName, {
         ...safePayload,
         ...(GA4_ITEM_EVENTS.has(eventName) && { items: ga4Items(safePayload) }),
       });
