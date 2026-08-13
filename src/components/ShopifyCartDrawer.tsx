@@ -22,6 +22,41 @@ const ShopifyCartDrawer = () => {
 
   useEffect(() => { if (isOpen) syncCart(); }, [isOpen, syncCart]);
 
+  /*
+   * Hands off to Shopify checkout through a real anchor click rather than a
+   * `window.location.href` assignment.
+   *
+   * GA4's cross-domain linker works by listening for clicks on anchors and
+   * forms and rewriting the href to carry a `_gl` parameter, which is how the
+   * client id survives the hop to another domain. A programmatic location
+   * assignment produces no click for that listener to see, so the linker never
+   * ran and shop.baselayerskin.co opened a fresh session that attributed
+   * itself to baselayerskin.co as a referral — the ad click stopped tying to
+   * the order. Listing both hostnames under GA4 Admin → Data Streams →
+   * Configure tag settings → Configure your domains is the other half of this
+   * and neither half works alone: without the domains configured gtag has no
+   * reason to decorate, and without a click there is nothing to decorate.
+   *
+   * Deliberately same-tab, i.e. no `target` — new tabs are unreliable inside
+   * the Instagram and TikTok in-app browsers this traffic lands in. That was
+   * the reason for the original location assignment and it still holds; a
+   * bare anchor navigates the current tab exactly the same way. Nothing here
+   * is popup-gated, so the in-app webview concern doesn't transfer.
+   *
+   * The anchor has to be in the document for the click to bubble as far as
+   * gtag's listener, and it's removed straight after because the navigation is
+   * already queued by the time `click()` returns.
+   */
+  const goToCheckout = (checkoutUrl: string) => {
+    const link = document.createElement("a");
+    link.href = checkoutUrl;
+    link.style.position = "absolute";
+    link.style.left = "-9999px";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleCheckout = () => {
     const checkoutUrl = getCheckoutUrl();
     if (checkoutUrl) {
@@ -32,8 +67,7 @@ const ShopifyCartDrawer = () => {
         currency: "USD",
         num_items: items.reduce((n, i) => n + i.quantity, 0),
       });
-      // Same-tab navigation: new tabs are unreliable inside the Instagram/TikTok in-app browsers
-      window.location.href = checkoutUrl;
+      goToCheckout(checkoutUrl);
     }
   };
 

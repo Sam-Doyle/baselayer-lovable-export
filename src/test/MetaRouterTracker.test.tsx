@@ -42,6 +42,28 @@ function renderTracker(initialPath = "/a") {
 let fetchMock: ReturnType<typeof vi.fn>;
 const originalFetch = global.fetch;
 
+/*
+ * With no stored decision, hasAnalyticsConsent() now answers from the
+ * visitor's timezone (see requiresOptIn() in src/lib/consent.ts): opt-in
+ * regions get nothing until they accept, everyone else is measured under
+ * notice plus opt-out. That makes the no-decision cases below geo-dependent,
+ * so they have to pin a timezone instead of inheriting whatever the machine
+ * running the suite happens to be set to — otherwise the same test passes in
+ * Denver and fails in Berlin.
+ *
+ * Stubbing Intl.DateTimeFormat wholesale is safe in this file because
+ * nothing under test formats a date; setConsent() timestamps with
+ * Date.toISOString(), which doesn't touch Intl.
+ */
+function pinTimezone(timeZone: string) {
+  vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
+    () => ({ resolvedOptions: () => ({ timeZone }) }) as unknown as Intl.DateTimeFormat
+  );
+}
+
+const OPT_IN_TZ = "Europe/Berlin";   // prior-consent region: no decision means no tracking
+const OPT_OUT_TZ = "America/Denver"; // notice plus opt-out: no decision means tracking runs
+
 beforeEach(() => {
   window.localStorage.clear();
   fetchMock = vi.fn().mockResolvedValue({ ok: true });
@@ -50,6 +72,7 @@ beforeEach(() => {
 
 afterEach(() => {
   global.fetch = originalFetch;
+  vi.restoreAllMocks();
 });
 
 function capiCalls() {
@@ -57,7 +80,8 @@ function capiCalls() {
 }
 
 describe("MetaRouterTracker — consent gate", () => {
-  it("no consent decision yet: a route change fires zero CAPI fetches", async () => {
+  it("no consent decision yet in an opt-in region: a route change fires zero CAPI fetches", async () => {
+    pinTimezone(OPT_IN_TZ);
     const router = renderTracker("/a");
     await act(async () => {
       await router.navigate("/b");
@@ -65,7 +89,17 @@ describe("MetaRouterTracker — consent gate", () => {
     expect(capiCalls()).toHaveLength(0);
   });
 
-  it("consent rejected: a route change fires zero CAPI fetches", async () => {
+  it("no consent decision yet outside an opt-in region: a route change fires, because the model there is notice plus opt-out", async () => {
+    pinTimezone(OPT_OUT_TZ);
+    const router = renderTracker("/a");
+    await act(async () => {
+      await router.navigate("/b");
+    });
+    expect(capiCalls()).toHaveLength(1);
+  });
+
+  it("consent rejected: a route change fires zero CAPI fetches, including where the default would have allowed it", async () => {
+    pinTimezone(OPT_OUT_TZ);
     setConsent("rejected");
     const router = renderTracker("/a");
     await act(async () => {
@@ -88,6 +122,9 @@ describe("MetaRouterTracker — consent gate", () => {
   });
 
   it("consent granted mid-session (after mount, no reload) starts firing on the next navigation — proves the gate reads consent at fire time, not a stale closure", async () => {
+    // Opt-in region, so "no decision" genuinely blocks and the transition to
+    // firing can only come from the accept below.
+    pinTimezone(OPT_IN_TZ);
     const router = renderTracker("/a"); // no decision yet
 
     await act(async () => {
