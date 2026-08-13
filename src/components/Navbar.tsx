@@ -48,7 +48,10 @@ const Navbar = () => {
   }, [pathname]);
 
   return (
-    <div className={`fixed inset-x-0 top-0 z-50 flex flex-col transition-transform duration-300 ${isScrolled ? "-translate-y-[28px]" : "translate-y-0"}`}>
+    <div
+      data-prerender-handoff-hide
+      className={`fixed inset-x-0 top-0 z-50 flex flex-col transition-transform duration-300 ${isScrolled ? "-translate-y-[28px]" : "translate-y-0"}`}
+    >
       <div className="relative z-50 flex h-[28px] w-full items-center justify-center bg-[#1A2F4C] px-4 text-center text-white shadow-sm">
         <span className="font-heading text-[10px] font-semibold uppercase leading-none tracking-[0.14em] sm:text-[11px]">
           {FREE_SHIPPING_PHRASE.toUpperCase()} ON EVERY U.S. ORDER

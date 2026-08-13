@@ -62,6 +62,7 @@ const StickyMobileCTA = () => {
 
   return (
     <div
+      data-prerender-handoff-hide
       className={`fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-[#E2E8F0] bg-white px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] transition-transform duration-300 md:hidden ${
         visible ? "translate-y-0" : "pointer-events-none translate-y-full"
       }`}

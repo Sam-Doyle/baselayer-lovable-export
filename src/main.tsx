@@ -1,7 +1,7 @@
 import { useLayoutEffect } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
-import { hideSnapshotConsentBanner } from "./lib/prerenderHandoff.ts";
+import { hideSnapshotConsentBanner, hideSnapshotFixedUi } from "./lib/prerenderHandoff.ts";
 import "./index.css";
 
 const root = document.getElementById("root");
@@ -30,6 +30,9 @@ if (prerenderSnapshot && window.location.pathname === "/") {
     // Once React is ready, only the live copy may remain visible; otherwise a
     // closed live banner exposes the inert snapshot banner underneath it.
     hideSnapshotConsentBanner(prerenderSnapshot);
+    // Fixed snapshot UI does not scroll with the shell and gets clipped into
+    // stale fragments under the live header. React owns all fixed UI now.
+    hideSnapshotFixedUi(prerenderSnapshot);
 
     // Keep the inert snapshot as a one-viewport visual shell instead of
     // deleting its nodes; deletion is scored as a layout shift even when an
