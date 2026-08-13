@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { storefrontApiRequest, ShopifyHttpError, ShopifyProduct } from '@/lib/shopify';
 import { trackEvent } from '@/lib/analytics';
+import { metaContentId } from '@/config/product';
 
 export interface Money { amount: string; currencyCode: string }
 
@@ -529,7 +530,7 @@ export const useCartStore = create<CartStore>()(
             if (!result.success) return;
             void trackEvent('add_to_cart', {
               content_name: 'Base Layer Face Cream',
-              content_ids: ['base-layer-face-cream'],
+              content_ids: [metaContentId(item.variantId)],
               value: Number(item.price.amount),
               currency: item.price.currencyCode,
               source: 'cart_error_retry',

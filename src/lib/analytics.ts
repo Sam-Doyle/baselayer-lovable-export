@@ -1,4 +1,5 @@
 import { hasAnalyticsConsent } from "@/lib/consent";
+import { DEFAULT_TIER, SINGLE_TIER, metaContentId } from "@/config/product";
 import type { Metric } from "web-vitals";
 
 interface MetaPixelFunction {
@@ -21,21 +22,72 @@ async function getSupabase() {
 }
 
 /**
- * Maps internal event names → Meta standard events with default params.
+ * Maps internal event names → Meta events with default params.
  * See https://www.facebook.com/business/help/402791146561655
+ *
+ * `custom: true` sends the event through fbq("trackCustom", …) instead of
+ * fbq("track", …). Meta has no standard event for "clicked a product CTA", and
+ * inventing one by reusing a standard name would corrupt the standard event's
+ * meaning for optimization. A custom event can still back a custom conversion,
+ * which is what these are for.
+ *
+ * Anything absent from this table reaches GA4 and Supabase but never Meta.
+ * That is deliberate for `cta_click`, which fires alongside `select_item` on
+ * the article, ingredient, comparison and skin-concern pages — mapping both
+ * would double-count a single click.
+ *
+ * Lead values come from src/config/product.ts rather than being written out
+ * here. They were hardcoded at 38 through a pricing change that made the
+ * 2-pack the PDP default, so Meta spent that window optimizing against a
+ * number the store had stopped charging.
  */
-const FB_STANDARD_EVENTS: Record<string, { event: string; defaults?: Record<string, unknown> }> = {
-  view_item: { event: "ViewContent", defaults: { content_type: "product" } },
+const FB_STANDARD_EVENTS: Record<string, { event: string; custom?: boolean; defaults?: Record<string, unknown> }> = {
+  view_item: { event: "ViewContent", defaults: { content_type: "product", currency: "USD" } },
   add_to_cart: { event: "AddToCart", defaults: { content_type: "product", currency: "USD" } },
   begin_checkout: { event: "InitiateCheckout", defaults: { currency: "USD" } },
-  purchase_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Purchase Intent", value: 38, currency: "USD" } },
-  email_signup: { event: "CompleteRegistration", defaults: { content_name: "Early Access Signup", value: 38, currency: "USD" } },
-  waitlist_signup: { event: "CompleteRegistration", defaults: { content_name: "Waitlist Signup", value: 38, currency: "USD" } },
-  reserve_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Reserve Intent", value: 38, currency: "USD" } },
+  purchase_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Purchase Intent", value: DEFAULT_TIER.price, currency: "USD" } },
+  reserve_intent: { event: "Lead", defaults: { content_type: "product", content_name: "Reserve Intent", value: DEFAULT_TIER.price, currency: "USD" } },
+  // Signups are a weaker signal than a product-page intent click, so they
+  // carry the single-bottle price rather than the preselected pack.
+  email_signup: { event: "CompleteRegistration", defaults: { content_name: "Early Access Signup", value: SINGLE_TIER.price, currency: "USD" } },
+  waitlist_signup: { event: "CompleteRegistration", defaults: { content_name: "Waitlist Signup", value: SINGLE_TIER.price, currency: "USD" } },
+  // Product CTA clicks. On a cold advertorial these are the only funnel step
+  // between the ad click and the PDP — without them Meta sees a PageView and
+  // then nothing until an AddToCart that most visitors never reach.
+  select_item: { event: "ProductCTAClick", custom: true },
+  advertorial_cta_click: { event: "AdvertorialCTAClick", custom: true },
+  listicle_cta_click: { event: "AdvertorialCTAClick", custom: true },
 };
 
 /** Events worth sending server-side via Conversions API for better attribution */
 const CAPI_EVENTS = new Set(["email_signup", "waitlist_signup", "begin_checkout", "purchase_intent", "add_to_cart", "reserve_intent", "view_item"]);
+
+/**
+ * Events that get a GA4 `items` array built for them.
+ *
+ * Every call site in this app passes Meta's parameter shape (content_ids,
+ * content_name, value). GA4 ignores all of it and reads `items`, so without
+ * this the Monetization and product reports are empty by construction even
+ * though the events themselves arrive. Derived here rather than at ~8 call
+ * sites: the inputs are already present in the payload, and one place to fix
+ * beats eight places to forget.
+ */
+const GA4_ITEM_EVENTS = new Set(["view_item", "add_to_cart", "begin_checkout"]);
+
+function ga4Items(payload: Record<string, unknown>): Record<string, unknown>[] {
+  const ids = Array.isArray(payload.content_ids) ? payload.content_ids : [];
+  const value = typeof payload.value === "number" ? payload.value : undefined;
+  return (ids.length ? ids : [metaContentId(DEFAULT_TIER.variantGid as string)]).map((id, i) => ({
+    item_id: String(id),
+    item_name: typeof payload.content_name === "string" ? payload.content_name : "Base Layer Face Cream",
+    item_brand: "Base Layer",
+    // Split the event value across the lines it covers, so item revenue sums
+    // back to the event's `value` instead of multiplying by the line count.
+    ...(value !== undefined && { price: Math.round((value / Math.max(ids.length, 1)) * 100) / 100 }),
+    quantity: 1,
+    index: i,
+  }));
+}
 
 function getSessionId(): string {
   // 1. Try to read the persistent cookie (survives IG browser closes)
@@ -122,6 +174,76 @@ function sendCAPI(
   }).catch(() => { });
 }
 
+/* ────────────────────────────────────────────────────────────────
+ * DEFERRED-SCRIPT QUEUE
+ *
+ * gtag.js and fbevents.js load behind requestIdleCallback with a 3s fallback
+ * (App.tsx), while pages fire their view_item from a mount effect. The effect
+ * always wins that race on a hard load, and this file used to check
+ * `typeof gtag === "function"` and silently drop the event when it lost.
+ *
+ * Measured on production before the fix: a cold load of /face-cream sent GA4
+ * exactly one hit, `en=page_view`. No view_item. Meta received ViewContent
+ * server-side only, because sendCAPI() is a plain fetch with no SDK to wait
+ * for. So the PDP — the money page — had zero browser-side ViewContent and
+ * GA4 had zero product views. It looked fine when clicking around the site,
+ * because an SPA route change into the PDP happens long after the scripts
+ * land. It only broke on hard landings, which is exactly what ad traffic is.
+ *
+ * MetaRouterTracker.tsx already solved the same race for its own PageView by
+ * polling; queueing is the better shape here because it preserves the eventId
+ * that the CAPI event already went out with, so pixel/CAPI dedup still holds
+ * however late the browser event fires.
+ * ──────────────────────────────────────────────────────────────── */
+
+interface QueuedBrowserEvent {
+  eventName: string;
+  eventId: string;
+  payload: Record<string, unknown>;
+}
+
+/* Bounded so a page where the scripts never arrive at all (bot, iframe,
+   blocked by an extension) can't grow this without limit. Twenty-five is far
+   more than the handful of events a page fires in its first three seconds. */
+const PENDING_CAP = 25;
+const pendingBrowserEvents: QueuedBrowserEvent[] = [];
+
+function fireBrowserEvent({ eventName, eventId, payload }: QueuedBrowserEvent): void {
+  try {
+    const w = window as any;
+    const { email: _email, ...safePayload } = payload;
+
+    // GA4 via gtag() — fires properly with gtag.js (no GTM needed)
+    if (typeof w.gtag === "function") {
+      w.gtag("event", eventName, {
+        ...safePayload,
+        ...(GA4_ITEM_EVENTS.has(eventName) && { items: ga4Items(safePayload) }),
+      });
+    }
+
+    // Meta Pixel — standard events with required params
+    const fbMapping = FB_STANDARD_EVENTS[eventName];
+    if (fbMapping && typeof w.fbq === "function") {
+      w.fbq(
+        fbMapping.custom ? "trackCustom" : "track",
+        fbMapping.event,
+        { ...fbMapping.defaults, ...payload },
+        { eventID: eventId },
+      );
+    }
+  } catch {
+    // silently ignore
+  }
+}
+
+/** Sends anything that was fired before gtag/fbq existed. Called at the end
+ *  of initAnalyticsScripts(), once both globals are defined. */
+function flushPendingBrowserEvents(): void {
+  while (pendingBrowserEvents.length) {
+    fireBrowserEvent(pendingBrowserEvents.shift() as QueuedBrowserEvent);
+  }
+}
+
 export async function trackEvent(eventName: string, payload: Record<string, unknown> = {}) {
   // Consent gate: until the visitor has explicitly accepted analytics
   // cookies (src/lib/consent.ts), every event is dropped here — nothing
@@ -135,23 +257,15 @@ export async function trackEvent(eventName: string, payload: Record<string, unkn
   // Generate a unique event_id for deduplication between pixel + CAPI
   const eventId = crypto.randomUUID();
 
-  // GA4 + Meta Pixel (browser-side)
-  try {
-    const w = window as any;
-
-    // GA4 via gtag() — fires properly with gtag.js (no GTM needed)
-    if (typeof w.gtag === "function") {
-      const { email: _email, ...safePayload } = payload;
-      w.gtag("event", eventName, safePayload);
-    }
-
-    // Meta Pixel — standard events with required params
-    const fbMapping = FB_STANDARD_EVENTS[eventName];
-    if (fbMapping && typeof w.fbq === "function") {
-      w.fbq("track", fbMapping.event, { ...fbMapping.defaults, ...payload }, { eventID: eventId });
-    }
-  } catch {
-    // silently ignore
+  // GA4 + Meta Pixel (browser-side). Fires now if the scripts have loaded,
+  // otherwise waits in the queue for initAnalyticsScripts() to flush it —
+  // see the DEFERRED-SCRIPT QUEUE note above.
+  const w = window as any;
+  const queued: QueuedBrowserEvent = { eventName, eventId, payload };
+  if (typeof w.gtag === "function" || typeof w.fbq === "function") {
+    fireBrowserEvent(queued);
+  } else if (pendingBrowserEvents.length < PENDING_CAP) {
+    pendingBrowserEvents.push(queued);
   }
 
   // Server-side Conversions API for high-value events
@@ -355,6 +469,12 @@ export function initAnalyticsScripts(): void {
     // Use the same event_id as the CAPI PageView for deduplication
     w.fbq("track", "PageView", {}, { eventID: (window as any).__BL_PV_EID });
   }
+
+  // Both globals exist now (gtag's stub is defined synchronously above, and
+  // fbq's queue accepts calls before fbevents.js lands), so anything that
+  // fired during the deferred window can go out. PageView first, then the
+  // queue, which keeps the sequence Meta expects.
+  flushPendingBrowserEvents();
 }
 
 /** Best-effort cleanup for a visitor who had accepted and then revokes via

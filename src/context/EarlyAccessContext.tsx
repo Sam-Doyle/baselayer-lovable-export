@@ -1,7 +1,7 @@
 import { createContext, useContext, useCallback, type ReactNode } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
-import { buildCartItem, DEFAULT_TIER } from "@/config/product";
+import { buildCartItem, DEFAULT_TIER, metaContentId } from "@/config/product";
 
 // Historically this context gated CTAs behind an email-capture modal
 // (waitlist era). The store is now live, so openModal() adds the real
@@ -33,7 +33,7 @@ export const EarlyAccessProvider = ({ children }: { children: ReactNode }) => {
       if (!result.success) return;
       trackEvent("add_to_cart", {
         content_name: "Base Layer Face Cream",
-        content_ids: ["base-layer-face-cream"],
+        content_ids: [metaContentId(DEFAULT_TIER.variantGid as string)],
         value: DEFAULT_TIER.price,
         currency: "USD",
         source: source || "unknown",

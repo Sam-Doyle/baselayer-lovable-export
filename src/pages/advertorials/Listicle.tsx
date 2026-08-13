@@ -31,7 +31,11 @@ const Listicle = () => {
   const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {
-    trackEvent('page_view', { page: 'listicle_5_reasons_v2', type: 'advertorial' });
+    // Named advertorial_view, not page_view: GA4 already receives a page_view
+    // for this route from the gtag config / MetaRouterTracker, and reusing the
+    // name here made the ad landers report roughly double the real pageviews.
+    // The params are the reason this event exists at all — keep them.
+    trackEvent('advertorial_view', { page: 'listicle_5_reasons_v2', type: 'advertorial' });
 
     const handleScroll = () => {
       if (window.scrollY > 800) {

@@ -2,7 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCartStore } from "@/stores/cartStore";
-import { AVAILABLE_TIERS, buildCartItem, getInitialTier } from "@/config/product";
+import { AVAILABLE_TIERS, buildCartItem, getInitialTier, metaContentId } from "@/config/product";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect, useState, useRef } from "react";
@@ -143,7 +143,7 @@ const FaceCream = () => {
       if (!result.success) return;
       trackEvent("add_to_cart", {
         content_name: "Base Layer Face Cream",
-        content_ids: ["base-layer-face-cream"],
+        content_ids: [metaContentId(selectedOption.variantGid as string)],
         value: selectedOption.price,
         currency: "USD",
         source,
@@ -161,10 +161,13 @@ const FaceCream = () => {
   });
 
   useEffect(() => {
+    // Value and ID come from the tier that's actually preselected, not a
+    // literal. This sent value 38 for the whole window in which the 2-pack
+    // was the PDP default, which is what Meta and GA4 were optimizing on.
     trackEvent("view_item", {
       content_name: "Base Layer Face Cream",
-      content_ids: ["base-layer-face-cream"],
-      value: 38.00,
+      content_ids: [metaContentId(initialTier.variantGid as string)],
+      value: initialTier.price,
       currency: "USD",
     });
 

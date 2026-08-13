@@ -15,20 +15,24 @@ import { LEGAL } from "@/config/legal";
  * choice), or the disclosure stops being accurate.
  *
  * CONSENT MECHANISM (see src/components/CookieConsentBanner.tsx and
- * src/lib/consent.ts): GA4, the Meta Pixel, Meta CAPI, and the bl_session
- * cookie are all off by default and only activate after a visitor clicks
- * Accept on the banner shown on first visit. Shopify's checkout cookies are
- * unaffected — they're strictly necessary to place an order and aren't
- * gated. The choice is stored in localStorage and can be changed at any
- * time via "Cookie Preferences" in the footer.
+ * src/lib/consent.ts): the model is region-dependent, and the copy below
+ * has to keep saying so.
  *
- * REMAINING GAP, flagged deliberately: the SPA route-change tracker
- * (src/analytics/MetaRouterTracker.tsx) sends a server-side Meta CAPI
- * PageView on every in-app navigation independent of this consent gate —
- * it was out of scope for the change that added consent gating and still
- * needs to be wired up to hasAnalyticsConsent(). Until that lands, treat
- * per-route CAPI PageViews as a known exception to the "nothing before
- * consent" claim above.
+ * In opt-in regions — the EEA, the UK and Switzerland, detected by timezone
+ * in requiresOptIn() — GA4, the Meta Pixel, Meta CAPI and the bl_session
+ * cookie are off until the visitor clicks Accept on the banner. Everywhere
+ * else, which is effectively all of this store's traffic, the model is
+ * notice plus opt-out: those tags run by default and the footer's "Cookie
+ * Preferences" link opens the same banner so Reject is always one click
+ * away. An explicit Reject is honored identically in both regions.
+ *
+ * Shopify's checkout cookies are unaffected either way — they're strictly
+ * necessary to place an order and aren't gated. The choice is stored in
+ * localStorage.
+ *
+ * If a tag is added, this file, the table below, and CONSENT_VERSION all
+ * move together. Nothing here may claim a stricter default than
+ * hasAnalyticsConsent() actually enforces.
  */
 
 const PrivacyPolicy = () => {
@@ -89,24 +93,31 @@ const PrivacyPolicy = () => {
                 using Supabase, our backend data platform.
               </p>
               <p className="mt-3">
-                <strong className="text-foreground">Automatically collected information.</strong> With your consent (see
-                Cookies &amp; Tracking Technologies below), we use Google Analytics 4 and the Meta (Facebook/Instagram)
-                advertising pixel to understand how visitors use the Site and to measure the performance of our
-                advertising. This includes pages viewed, links and buttons clicked, approximate location derived from IP
-                address, device and browser type, and referring source. With your consent, we also send certain purchase
-                and add-to-cart events to Meta server-side through the Meta Conversions API.
+                <strong className="text-foreground">Automatically collected information.</strong> Unless you turn it off
+                (see Cookies &amp; Tracking Technologies below), we use Google Analytics 4 and the Meta
+                (Facebook/Instagram) advertising pixel to understand how visitors use the Site and to measure the
+                performance of our advertising. This includes pages viewed, links and buttons clicked, approximate
+                location derived from IP address, device and browser type, and referring source. We also send certain
+                purchase and add-to-cart events to Meta server-side through the Meta Conversions API. Turning tracking
+                off stops all of it, browser-side and server-side alike.
               </p>
             </section>
 
             <section>
               <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-3 text-foreground">Cookies &amp; Tracking Technologies</h2>
               <p>
-                When you first visit the Site, a banner asks you to Accept or Reject cookies that aren't required to run
-                the Site. Both choices are one click and neither is preselected or visually favored over the other. Until
-                you choose, and if you choose Reject, only the cookies marked "Required" below are set — GA4, the Meta
-                Pixel, Meta CAPI, and the bl_session cookie all stay off. If you choose Accept, those load and the table
-                below is what they set. Durations are the values set by each provider and may change if a provider
-                updates its defaults.
+                What runs before you choose depends on where you are. If you're visiting from the European Economic
+                Area, the United Kingdom or Switzerland, a banner asks you to Accept or Reject on your first visit, and
+                nothing in the table below marked "Yes" is set until you Accept. Everywhere else, including the United
+                States, those cookies are set from your first visit and you can switch them off at any time using
+                "Cookie Preferences" in the footer, which opens the same banner.
+              </p>
+              <p className="mt-3">
+                Reject works identically wherever you are: choose it and GA4, the Meta Pixel, Meta CAPI and the
+                bl_session cookie all stop, leaving only the cookies marked "Required" below. Accept and Reject are one
+                click each, and neither is preselected or visually favored over the other. Your choice is stored on your
+                device and you can change it as often as you like. Durations below are the values set by each provider
+                and may change if a provider updates its defaults.
               </p>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-left text-sm border-collapse">
@@ -116,7 +127,7 @@ const PrivacyPolicy = () => {
                       <th className="py-2 pr-4 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Set by</th>
                       <th className="py-2 pr-4 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Purpose</th>
                       <th className="py-2 pr-4 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Duration</th>
-                      <th className="py-2 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Requires consent?</th>
+                      <th className="py-2 font-heading text-xs uppercase tracking-wide text-foreground font-bold">Can you turn it off?</th>
                     </tr>
                   </thead>
                   <tbody>

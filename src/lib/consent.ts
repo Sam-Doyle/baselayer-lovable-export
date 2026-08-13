@@ -52,11 +52,61 @@ export function getStoredConsent(): ConsentRecord | null {
   }
 }
 
-/** True only once the visitor has explicitly accepted analytics/advertising
- *  cookies under the current CONSENT_VERSION. This is the single gate that
- *  GA4, the Meta Pixel, Meta CAPI, and the bl_session cookie must pass. */
+/*
+ * Timezones that put a visitor somewhere with a prior-consent (opt-in) law:
+ * the EEA, the UK, and Switzerland. `Europe/*` covers almost all of it in one
+ * prefix and over-includes a few non-EEA countries (Moscow, Istanbul, Kyiv),
+ * which is the harmless direction to be wrong in — the cost is showing a
+ * banner to someone who didn't need one. The explicit entries below are EEA
+ * territories that don't sit under the Europe/ prefix: Iceland and the Faroes,
+ * the Spanish and Portuguese Atlantic islands, Svalbard, and the French
+ * overseas departments, which are part of the EU proper.
+ *
+ * Timezone rather than an IP lookup because it needs no network call, no
+ * third-party geo service, and no processing of the visitor's IP — asking the
+ * browser what clock it keeps is the least invasive way to answer this.
+ * It's a heuristic: a European on a US-set laptop sees no banner, and a
+ * traveller sees one. Both are recoverable through the footer's Cookie
+ * Preferences link, which reaches the banner from anywhere.
+ */
+const OPT_IN_ZONES = new Set([
+  "Atlantic/Reykjavik", "Atlantic/Faroe", "Atlantic/Canary",
+  "Atlantic/Madeira", "Atlantic/Azores", "Arctic/Longyearbyen",
+  "America/Martinique", "America/Guadeloupe", "America/Cayenne",
+  "Indian/Reunion", "Indian/Mayotte",
+]);
+
+/** True when the visitor looks to be somewhere that requires opt-in consent
+ *  before analytics/advertising tags may load. Elsewhere — the US, which is
+ *  effectively all of this store's traffic — the model is notice plus
+ *  opt-out: tags run by default and the footer's Cookie Preferences link
+ *  turns them off. Fails toward opt-in if the timezone can't be read. */
+export function requiresOptIn(): boolean {
+  if (!isBrowser()) return false;
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) return true;
+    return tz.startsWith("Europe/") || OPT_IN_ZONES.has(tz);
+  } catch {
+    return true;
+  }
+}
+
+/** The single gate that GA4, the Meta Pixel, Meta CAPI, and the bl_session
+ *  cookie must pass.
+ *
+ *  An explicit decision always wins: Accept enables, Reject disables, and
+ *  Reject keeps working everywhere including the US. With no decision on
+ *  file the answer depends on where the visitor is — opt-in regions get
+ *  nothing until they accept, everyone else is measured under notice plus
+ *  opt-out. This is the correct legal model for US traffic and it recovers
+ *  the large majority of visitors who simply ignore a banner; running a
+ *  GDPR-shaped hard block on US visitors was costing Meta and GA4 most of
+ *  their volume, server-side included. */
 export function hasAnalyticsConsent(): boolean {
-  return getStoredConsent()?.choice === "accepted";
+  const stored = getStoredConsent();
+  if (stored) return stored.choice === "accepted";
+  return !requiresOptIn();
 }
 
 /** Records the visitor's choice and notifies any mounted listeners

@@ -133,6 +133,28 @@ export const DEFAULT_TIER =
   AVAILABLE_TIERS.find(t => t.id === 2) ?? AVAILABLE_TIERS[0];
 
 /**
+ * Single-bottle tier. Used as the conservative value to attach to lead-type
+ * analytics events, where the visitor hasn't chosen a pack size yet.
+ */
+export const SINGLE_TIER = AVAILABLE_TIERS.find(t => t.id === 1) ?? DEFAULT_TIER;
+
+/**
+ * Numeric Shopify ID out of a GID — "gid://shopify/ProductVariant/42940461023303"
+ * becomes "42940461023303". This is the shape Meta's `content_ids` and GA4's
+ * `item_id` both want.
+ *
+ * Every analytics call site used to send the invented string
+ * "base-layer-face-cream", which matches nothing in Shopify and would match
+ * nothing in a Meta product catalog either. Before running Advantage+ catalog
+ * ads, check the retailer ID the Facebook & Instagram sales channel actually
+ * publishes in its feed — it may prefix the variant ID as
+ * shopify_US_<product>_<variant> — and align this with it. Agreement between
+ * this site's pixel and the catalog is the whole requirement; the exact format
+ * follows from whatever Shopify emits.
+ */
+export const metaContentId = (gid: string): string => gid.split("/").pop() ?? gid;
+
+/**
  * Homepage $38 CTAs must land on the single-bottle tier they advertise.
  * Direct PDP visits keep the higher-value default tier selected.
  */

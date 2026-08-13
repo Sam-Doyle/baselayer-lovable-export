@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { X, Minus, Plus, Trash2, ExternalLink, Loader2, ShoppingCart } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
-import { BUY_TIERS, buildCartItem } from "@/config/product";
+import { BUY_TIERS, buildCartItem, metaContentId } from "@/config/product";
 
 /** "$35" for a round number, "$34.50" otherwise. For prices sitting inside a sentence. */
 const inlinePrice = (amount: string) => `$${parseFloat(amount).toFixed(2).replace(/\.00$/, "")}`;
@@ -27,7 +27,7 @@ const ShopifyCartDrawer = () => {
     if (checkoutUrl) {
       const total = totalPrice;
       trackEvent("begin_checkout", {
-        content_ids: ["base-layer-face-cream"],
+        content_ids: items.map(i => metaContentId(i.variantId)),
         value: total,
         currency: "USD",
         num_items: items.reduce((n, i) => n + i.quantity, 0),
@@ -68,7 +68,7 @@ const ShopifyCartDrawer = () => {
     if (!addResult.success) return;
     trackEvent("add_to_cart", {
       content_name: "Base Layer Face Cream",
-      content_ids: ["base-layer-face-cream"],
+      content_ids: [metaContentId(upsellTier.variantGid as string)],
       value: upsellTier.price,
       currency: "USD",
       source: "cart_upsell",

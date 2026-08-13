@@ -40,7 +40,11 @@ const PeptideStack = () => {
   const [showSticky, setShowSticky] = useState(false);
 
   useEffect(() => {
-    trackEvent('page_view', { page: 'peptide_stack', type: 'advertorial', angle: 'peptide_maxxing' });
+    // Named advertorial_view, not page_view: GA4 already receives a page_view
+    // for this route from the gtag config / MetaRouterTracker, and reusing the
+    // name here made the ad landers report roughly double the real pageviews.
+    // The params are the reason this event exists at all — keep them.
+    trackEvent('advertorial_view', { page: 'peptide_stack', type: 'advertorial', angle: 'peptide_maxxing' });
 
     const handleScroll = () => {
       setShowSticky(window.scrollY > 800);

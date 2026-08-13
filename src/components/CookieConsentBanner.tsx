@@ -1,31 +1,38 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getStoredConsent, setConsent, onConsentReviewRequest, type ConsentChoice } from "@/lib/consent";
+import { getStoredConsent, requiresOptIn, setConsent, onConsentReviewRequest, type ConsentChoice } from "@/lib/consent";
 
 /*
  * COOKIE CONSENT BANNER
  *
  * Strictly-necessary cookies (Shopify checkout, bl_session's cart/session
- * role if any) run regardless. Everything else — GA4, the Meta Pixel, Meta
- * CAPI, and the bl_session analytics cookie — stays off until the visitor
- * clicks Accept here. See src/lib/consent.ts for the storage/versioning
- * rules and src/lib/analytics.ts for what each choice actually gates.
+ * role if any) run regardless. See src/lib/consent.ts for the storage and
+ * versioning rules and src/lib/analytics.ts for what each choice gates.
+ *
+ * The banner is shown unprompted only where prior consent is legally
+ * required — the EEA, UK and Switzerland, per requiresOptIn(). US visitors,
+ * which is effectively all of this store's traffic, get notice plus opt-out
+ * instead: the privacy policy explains what runs, and the footer's Cookie
+ * Preferences link opens this same banner so Reject is always one click
+ * away. That link is the opt-out, so it has to keep working — do not gate
+ * it on region.
  *
  * Accept and Reject are the same size, same weight, same one click. A
  * de-emphasized "Reject" (grey text link next to a bold Accept button) is
  * the dark pattern the EDPB guidance on cookie banners calls out — don't
  * reintroduce that asymmetry here.
  *
- * Mounted once in App.tsx. The prerendered HTML includes the banner, so the
- * first client render does too; the effect immediately hides it for a
- * returning visitor with a stored decision. Matching the prerender avoids a
- * full-root hydration fallback (and its large layout shift) for new visitors.
+ * Mounted once in App.tsx. The initial state is computed synchronously so
+ * the first client render matches the prerendered HTML for the common case
+ * (no banner) and avoids a full-root hydration fallback. An EEA visitor
+ * mismatches and re-renders; that's the rarer path here and the right one
+ * to spend the cost on.
  */
 const CookieConsentBanner = () => {
   // Apply an existing choice during the first client render. Starting at true
-  // and correcting in an effect flashes the prerendered banner for returning
-  // visitors before React has a chance to hide it.
-  const [visible, setVisible] = useState(() => getStoredConsent() === null);
+  // and correcting in an effect flashes the banner for returning visitors
+  // before React has a chance to hide it.
+  const [visible, setVisible] = useState(() => getStoredConsent() === null && requiresOptIn());
 
   useEffect(() => {
     return onConsentReviewRequest(() => setVisible(true));
