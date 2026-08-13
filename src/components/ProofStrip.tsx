@@ -1,5 +1,5 @@
 const proofPoints = [
-  { value: "50", label: "Early testers" },
+  { value: "Niacinamide + Peptides", label: "Clinical Actives" },
   { value: "15 sec", label: "Full absorption" },
   { value: "30 days", label: "Money-back guarantee" },
   { value: "Free", label: "U.S. shipping" },
@@ -21,7 +21,7 @@ const ProofStrip = () => {
             <dt className="order-2 mt-1 font-body text-[11px] font-medium text-[#1A2F4C]/70 md:text-[12px]">
               {point.label}
             </dt>
-            <dd className="order-1 font-heading text-[18px] font-black uppercase leading-none tracking-[-0.02em] text-[#1A2F4C] md:text-[21px]">
+            <dd className="order-1 font-heading text-[18px] font-black uppercase leading-[1.05] tracking-[-0.02em] text-[#1A2F4C] md:text-[21px]">
               {point.value}
             </dd>
           </div>

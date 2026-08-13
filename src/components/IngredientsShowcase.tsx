@@ -19,6 +19,7 @@ const ingredients = [
     concentration: "5%",
     why: "Regulates oil production, reduces pore size, and strengthens the skin barrier. The most studied active in men's skincare.",
     image: "/images/ingredients/niacinamide.png",
+    responsiveImage: "/images/ingredients/responsive/niacinamide",
   },
   {
     name: "Copper Peptide GHK-Cu",
@@ -26,6 +27,7 @@ const ingredients = [
     concentration: null,
     why: "Signals fibroblasts to produce collagen and elastin. Shown to increase collagen synthesis by up to 70% in clinical studies.",
     image: "/images/ingredients/copper-peptide.png",
+    responsiveImage: "/images/ingredients/responsive/copper-peptide",
   },
   {
     name: "Centella Asiatica",
@@ -33,6 +35,7 @@ const ingredients = [
     concentration: null,
     why: "Calms post-shave irritation and active inflammation. Accelerates wound healing without steroids or harsh chemicals.",
     image: "/images/ingredients/centella.png",
+    responsiveImage: "/images/ingredients/responsive/centella",
   },
   {
     name: "Hyaluronic Acid",
@@ -40,6 +43,7 @@ const ingredients = [
     concentration: null,
     why: "Holds 1,000x its weight in water. Pulls deep hydration into the skin without adding weight or shine.",
     image: "/images/ingredients/hyaluronic-acid.png",
+    responsiveImage: "/images/ingredients/responsive/hyaluronic-acid",
   },
   {
     name: "Squalane",
@@ -47,6 +51,7 @@ const ingredients = [
     concentration: null,
     why: "Plant-derived lipid that matches your skin's natural oils. Absorbs in seconds, locks in moisture, zero greasiness.",
     image: "/images/ingredients/squalane.png",
+    responsiveImage: "/images/ingredients/responsive/squalane",
   },
   {
     name: "Panthenol",
@@ -54,6 +59,7 @@ const ingredients = [
     concentration: null,
     why: "Vitamin B5 derivative that repairs the moisture barrier and soothes wind-chapped, sun-exposed skin on contact.",
     image: "/images/ingredients/panthenol.png",
+    responsiveImage: "/images/ingredients/responsive/panthenol",
   },
 ];
 
@@ -81,9 +87,12 @@ const IngredientCard = ({
         className="w-full aspect-[3/4] rounded-[40%/20%] bg-black/5 flex items-center justify-center overflow-hidden group-hover:scale-[1.03] transition-transform duration-500"
       >
         <img
-          src={ingredient.image}
+          src={isVisible ? ingredient.image : undefined}
+          srcSet={isVisible ? `${ingredient.responsiveImage}-240w.webp 240w, ${ingredient.responsiveImage}-480w.webp 480w` : undefined}
+          sizes="(max-width: 639px) calc(50vw - 44px), (max-width: 1023px) calc(33vw - 48px), 180px"
           alt={ingredient.name}
           loading="lazy"
+          decoding="async"
           width={500}
           height={500}
           className="w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-300 pointer-events-none"

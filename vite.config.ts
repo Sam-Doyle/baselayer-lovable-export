@@ -1,15 +1,46 @@
+/// <reference lib="dom" />
+
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 import compression from "vite-plugin-compression";
+import type { HTTPRequest } from "puppeteer";
 import * as fs from "fs";
 import * as http from "http";
 
 // ── Prerender plugin (closeBundle) ────────────────────────────────
 
 const BASE_URL = "https://baselayerskin.co";
+
+/*
+ * Judge.me aggregate for the Product schemas below, read from the same snapshot
+ * scripts/fetch-reviews.mjs writes and src/lib/reviews.ts imports — the number is
+ * never typed by hand in either place.
+ *
+ * The gate must stay in sync with REVIEW_GATE in src/lib/reviews.ts (see the note
+ * there on why it dropped from 5 to 1). Below it the spread is empty, which is the
+ * point: Google's Rich Results Test errors on aggregateRating with reviewCount 0,
+ * and an erroring Product schema can cost the rich result for the whole page.
+ */
+const REVIEW_GATE = 1;
+const readReviewAggregate = () => {
+  try {
+    const snapshot = JSON.parse(fs.readFileSync(path.resolve(__dirname, "src/data/reviews.json"), "utf-8"));
+    if (!snapshot || snapshot.count < REVIEW_GATE) return {};
+    return {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: Number(snapshot.rating).toFixed(1),
+        reviewCount: snapshot.count,
+      },
+    };
+  } catch {
+    return {};
+  }
+};
+const REVIEW_AGGREGATE = readReviewAggregate();
 
 interface PageMeta {
   path: string;
@@ -98,6 +129,7 @@ const STATIC_PAGES: PageMeta[] = [
         image: `${BASE_URL}/og-face-cream.jpg`,
         url: `${BASE_URL}/matte-moisturizer-for-men`,
         sku: "BL-PDFC-50ML",
+        ...REVIEW_AGGREGATE,
       },
     ],
   },
@@ -120,6 +152,7 @@ const STATIC_PAGES: PageMeta[] = [
         image: `${BASE_URL}/og-face-cream.jpg`,
         url: `${BASE_URL}/non-greasy-moisturizer-for-men`,
         sku: "BL-PDFC-50ML",
+        ...REVIEW_AGGREGATE,
       },
     ],
   },
@@ -142,6 +175,7 @@ const STATIC_PAGES: PageMeta[] = [
         image: `${BASE_URL}/og-face-cream.jpg`,
         url: `${BASE_URL}/all-in-one-skincare-for-men`,
         sku: "BL-PDFC-50ML",
+        ...REVIEW_AGGREGATE,
       },
     ],
   },
@@ -268,16 +302,12 @@ function prerenderPlugin(): Plugin {
         return;
       }
 
-      let baseHtml = fs.readFileSync(indexPath, "utf-8");
+      const baseHtml = fs.readFileSync(indexPath, "utf-8");
 
-      // ── LCP Optimization 0: Non-blocking CSS ──────────────────
-      // The <head> already has critical inline CSS for above-the-fold
-      // rendering, so the external stylesheet can load asynchronously.
-      // This prevents the 85KB CSS file from blocking FCP/LCP.
-      baseHtml = baseHtml.replace(
-        /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/,
-        '<link rel="preload" as="style" crossorigin href="$1">\n  <link rel="stylesheet" crossorigin href="$1" media="print" onload="this.media=\'all\'">\n  <noscript><link rel="stylesheet" crossorigin href="$1"></noscript>'
-      );
+      // Keep Vite's generated stylesheet render-blocking. The prerendered DOM
+      // uses the full Tailwind utility set, so applying that CSS asynchronously
+      // produces a flash of unstyled layout and a near-1.0 CLS. The compressed
+      // stylesheet is small enough that visual stability is the better trade.
 
       // ── LCP Optimization 1: Per-page hero image preloads ───────
       // Scan built assets for hero image variants so each page gets
@@ -287,26 +317,32 @@ function prerenderPlugin(): Plugin {
       const findBuilt = (re: RegExp) => builtFiles.find(f => re.test(f));
 
       function heroSrcset(prefix: string): string {
-        const variants = [
-          { f: findBuilt(new RegExp(`^${prefix}-480w[^.]*\\.webp$`)), w: 480 },
-          { f: findBuilt(new RegExp(`^${prefix}-768w[^.]*\\.webp$`)), w: 768 },
-          { f: findBuilt(new RegExp(`^${prefix}-1200w[^.]*\\.webp$`)), w: 1200 },
-        ].filter(v => v.f) as { f: string; w: number }[];
+        const variants = [480, 768, 824, 1200]
+          .map((w) => ({ f: findBuilt(new RegExp(`^${prefix}-${w}w[^.]*\\.webp$`)), w }))
+          .filter(v => v.f) as { f: string; w: number }[];
         if (!variants.length) return "";
         return variants.map(v => `/assets/${v.f} ${v.w}w`).join(", ");
       }
 
-      function preloadTag(srcset: string): string {
+      function preloadTag(srcset: string, sizes = "100vw", media?: string): string {
         if (!srcset) return "";
-        return `<link rel="preload" as="image" type="image/webp" imagesrcset="${srcset}" imagesizes="100vw" fetchpriority="high">`;
+        const mediaAttribute = media ? ` media="${media}"` : "";
+        return `<link rel="preload" as="image" type="image/webp"${mediaAttribute} imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="high">`;
       }
 
       const fcSrcset = heroSrcset("product-hero-rock");
 
-      const homeProductImage = findBuilt(/^hero-mountain-packshot-v2-[^.]+\.webp$/);
-      const homeProductPreload = homeProductImage
-        ? `<link rel="preload" as="image" type="image/webp" href="/assets/${homeProductImage}" fetchpriority="high">`
-        : "";
+      const homeProductImage = findBuilt(/^hero-mountain-packshot-v2-(?!480w-|768w-|1200w-|mobile-)[^.]+\.webp$/);
+      const homeResponsiveSrcset = heroSrcset("hero-mountain-packshot-v2");
+      const homeMobileSrcset = heroSrcset("hero-mountain-packshot-v2-mobile");
+      const homeProductSrcset = [
+        homeResponsiveSrcset,
+        homeProductImage ? `/assets/${homeProductImage} 1536w` : "",
+      ].filter(Boolean).join(", ");
+      const homeProductPreload = [
+        preloadTag(homeMobileSrcset, "100vw", "(max-width: 768px)"),
+        preloadTag(homeProductSrcset, "min(49vw, 706px)", "(min-width: 769px)"),
+      ].filter(Boolean).join("\n  ");
 
       const heroPreloadForPage: Record<string, string> = {
         "/": homeProductPreload,
@@ -328,14 +364,14 @@ function prerenderPlugin(): Plugin {
       }
 
       const homeHeroPicture = homeProductImage
-        ? `<img src="/assets/${homeProductImage}" alt="Base Layer Daily Face Cream bottle and carton on Colorado alpine granite" width="1536" height="1536" fetchpriority="high">`
+        ? `<picture><source media="(max-width: 768px)" srcset="${homeMobileSrcset}" sizes="100vw"><img src="/assets/${homeProductImage}" srcset="${homeProductSrcset}" sizes="min(49vw, 706px)" alt="Base Layer Daily Face Cream bottle and carton on Colorado alpine granite" width="1536" height="1536" fetchpriority="high"></picture>`
         : "";
       const fcHeroPicture = heroPictureTag("product-hero-rock", "Base Layer face cream");
 
       // ── LCP Optimization 3: Above-the-fold skeletons ───────────
       // Bake real hero content into the HTML so LCP paints with FCP,
       // before React hydrates. Saves ~500-1000ms on mobile.
-      const homeSkeleton = `<style>#bl-home-skeleton{min-height:100svh;background:#F2EFE8;padding-top:96px;display:flex;flex-direction:column;overflow:hidden}#bl-home-visual{height:226px;position:relative;overflow:hidden;order:1;background:#D8D3CA}#bl-home-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 48%}#bl-home-copy{order:2;padding:28px 20px;color:#1A2F4C}#bl-home-copy p{font-family:Inter,sans-serif}#bl-home-copy h1{font-family:Montserrat,sans-serif;font-size:clamp(40px,10.8vw,60px);font-weight:900;text-transform:uppercase;line-height:.91;letter-spacing:-.05em;word-spacing:.1em;margin:0;color:#1A2F4C}@media(min-width:769px){#bl-home-skeleton{display:grid;grid-template-columns:1.02fr .98fr;min-height:100svh}#bl-home-visual{order:2;height:calc(100svh - 96px)}#bl-home-visual img{object-position:center}#bl-home-copy{order:1;padding:64px 80px;display:flex;flex-direction:column;justify-content:center}#bl-home-copy h1{font-size:clamp(60px,5.2vw,82px)}}</style><div id="bl-home-skeleton"><div id="bl-home-visual">${homeHeroPicture}</div><div id="bl-home-copy"><p style="font-size:11px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:rgba(26,47,76,.65);margin:0 0 12px">Daily Face Moisturizer</p><h1>ONE STEP.<br>ZERO SHINE.</h1><p style="font-size:16px;line-height:1.55;color:rgba(26,47,76,.78);max-width:560px;margin:20px 0 0">Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Put it on in 15 seconds. Forget it's there.</p></div></div>`;
+      const homeSkeleton = `<style>#bl-home-skeleton{min-height:100svh;background:#F2EFE8;padding-top:96px;display:flex;flex-direction:column;overflow:hidden}#bl-home-visual{height:226px;position:relative;overflow:hidden;order:1;background:#D8D3CA}#bl-home-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 51%}#bl-home-copy{order:2;padding:28px 20px;color:#1A2F4C}#bl-home-copy p{font-family:Inter,sans-serif}#bl-home-copy h1{font-family:Montserrat,sans-serif;font-size:clamp(40px,10.8vw,60px);font-weight:900;text-transform:uppercase;line-height:.91;letter-spacing:-.05em;word-spacing:.1em;margin:0;color:#1A2F4C}@media(min-width:769px){#bl-home-skeleton{display:grid;grid-template-columns:1.02fr .98fr;min-height:100svh}#bl-home-visual{order:2;height:calc(100svh - 96px)}#bl-home-visual img{object-position:center}#bl-home-copy{order:1;padding:64px 80px;display:flex;flex-direction:column;justify-content:center}#bl-home-copy h1{font-size:clamp(60px,5.2vw,82px)}}</style><div id="bl-home-skeleton"><div id="bl-home-visual">${homeHeroPicture}</div><div id="bl-home-copy"><p style="font-size:11px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:rgba(26,47,76,.65);margin:0 0 12px">Daily Face Moisturizer</p><h1>ONE STEP.<br>ZERO SHINE.</h1><p style="font-size:16px;line-height:1.55;color:rgba(26,47,76,.78);max-width:560px;margin:20px 0 0">Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Put it on in 15 seconds. Forget it's there.</p></div></div>`;
 
       const fcSkeleton = `<div style="min-height:100vh;background:#0a0a0a;position:relative;overflow:hidden;padding-top:88px">${fcHeroPicture}<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.7))"></div><div style="position:relative;z-index:10;max-width:80rem;margin:0 auto;padding:2rem 1.5rem;text-align:center"><h1 style="font-family:'DM Sans',sans-serif;font-size:2rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#ebebeb;margin:0 0 1rem">Best Men's Face Moisturizer</h1><p style="font-family:Inter,sans-serif;font-size:1.5rem;font-weight:700;color:#ebebeb;margin:0">$38</p></div></div>`;
 
@@ -351,7 +387,7 @@ function prerenderPlugin(): Plugin {
       const shellHtml = baseHtml;
 
       // ── Fetch dynamic pages from Sanity ─────────────────────────
-      let dynamicPages: PageMeta[] = [];
+      const dynamicPages: PageMeta[] = [];
       try {
         const { createClient } = await import("@sanity/client");
         const sanity = createClient({
@@ -601,7 +637,7 @@ function prerenderPlugin(): Plugin {
                 pageInstance = await browser.newPage();
                 // Block analytics / tracking scripts to speed up rendering
                 await pageInstance.setRequestInterception(true);
-                pageInstance.on("request", (req: any) => {
+                pageInstance.on("request", (req: HTTPRequest) => {
                   const reqUrl = req.url();
                   if (
                     reqUrl.includes("googletagmanager.com") ||
@@ -711,6 +747,160 @@ function prerenderPlugin(): Plugin {
               }
             })
           );
+        }
+
+        // Extract the exact CSS rules used in the first viewport on mobile and
+        // desktop, then make the full homepage stylesheet non-render-blocking.
+        // Other prerendered routes intentionally retain their normal blocking
+        // stylesheet until they receive the same visual-regression coverage.
+        try {
+          const criticalRules = new Set<string>();
+          const criticalViewports = [
+            { width: 375, height: 812, deviceScaleFactor: 2 },
+            { width: 1440, height: 900, deviceScaleFactor: 1 },
+          ];
+
+          for (const viewport of criticalViewports) {
+            const criticalPage = await browser.newPage();
+            try {
+              await criticalPage.setViewport(viewport);
+              await criticalPage.goto(`http://127.0.0.1:${PORT}/`, {
+                waitUntil: "networkidle0",
+                timeout: PAGE_TIMEOUT,
+              });
+              await criticalPage.waitForSelector("#hero-primary-cta", { timeout: PAGE_TIMEOUT });
+
+              const viewportRules = await criticalPage.evaluate(() => {
+                const visibleElements = new Set<Element>();
+                const viewportBottom = window.innerHeight;
+                const viewportRight = window.innerWidth;
+
+                for (const element of Array.from(document.querySelectorAll("*"))) {
+                  const rect = element.getBoundingClientRect();
+                  if (
+                    rect.width <= 0 ||
+                    rect.height <= 0 ||
+                    rect.bottom <= 0 ||
+                    rect.top >= viewportBottom ||
+                    rect.right <= 0 ||
+                    rect.left >= viewportRight
+                  ) continue;
+
+                  let current: Element | null = element;
+                  while (current) {
+                    visibleElements.add(current);
+                    current = current.parentElement;
+                  }
+                }
+
+                // Responsive navigation controls can be display:none in one
+                // extraction viewport, which gives them no bounding box. Keep
+                // the entire first-viewport component subtree so md:hidden and
+                // the closed mobile-menu rules are present before full CSS.
+                const criticalContainers = [
+                  document.querySelector("nav"),
+                  document.querySelector("#hero-primary-cta")?.closest("section"),
+                  document.querySelector('[aria-label="Cookie consent"]'),
+                ].filter((element): element is Element => element !== null && element !== undefined);
+
+                for (const container of criticalContainers) {
+                  visibleElements.add(container);
+                  for (const descendant of Array.from(container.querySelectorAll("*"))) {
+                    visibleElements.add(descendant);
+                  }
+                }
+
+                const selectorMatches = (selector: string) => {
+                  for (const element of visibleElements) {
+                    try {
+                      if (element.matches(selector)) return true;
+                    } catch {
+                      // Ignore selectors unsupported by Element.matches().
+                    }
+
+                    // Preserve interaction styles for critical controls even
+                    // though the extraction page is not actively hovering or
+                    // focusing them.
+                    try {
+                      const restingSelector = selector.replace(
+                        /:(hover|active|focus|focus-visible|focus-within|visited)\b/g,
+                        ""
+                      );
+                      if (restingSelector !== selector && element.matches(restingSelector)) return true;
+                    } catch {
+                      // Invalid after pseudo-class removal; skip it safely.
+                    }
+                  }
+                  return false;
+                };
+
+                const collectRules = (rules: CSSRuleList): string[] => {
+                  const collected: string[] = [];
+
+                  for (const rule of Array.from(rules)) {
+                    if (rule instanceof CSSStyleRule) {
+                      if (selectorMatches(rule.selectorText)) collected.push(rule.cssText);
+                      continue;
+                    }
+
+                    if (rule instanceof CSSMediaRule) {
+                      if (!window.matchMedia(rule.conditionText).matches) continue;
+                      const nested = collectRules(rule.cssRules);
+                      if (nested.length) collected.push(`@media ${rule.conditionText}{${nested.join("")}}`);
+                      continue;
+                    }
+
+                    if (typeof CSSSupportsRule !== "undefined" && rule instanceof CSSSupportsRule) {
+                      const nested = collectRules(rule.cssRules);
+                      if (nested.length) collected.push(`@supports ${rule.conditionText}{${nested.join("")}}`);
+                    }
+                  }
+
+                  return collected;
+                };
+
+                const collected: string[] = [];
+                for (const sheet of Array.from(document.styleSheets)) {
+                  if (!sheet.href?.includes("/assets/index-")) continue;
+                  try {
+                    collected.push(...collectRules(sheet.cssRules));
+                  } catch {
+                    // A stylesheet that cannot expose rules is not same-origin
+                    // and therefore not part of this build's critical CSS.
+                  }
+                }
+                return collected;
+              });
+
+              viewportRules.forEach((rule) => criticalRules.add(rule));
+            } finally {
+              await criticalPage.close().catch(() => {});
+            }
+          }
+
+          console.log(`  🔎 / critical CSS scan found ${criticalRules.size} rules`);
+
+          if (criticalRules.size > 0) {
+            let homepageHtml = fs.readFileSync(indexPath, "utf-8");
+            const stylesheetPattern = /<link rel="stylesheet" crossorigin href="([^"]+\.css)">/;
+            const stylesheetMatch = homepageHtml.match(stylesheetPattern);
+
+            if (stylesheetMatch) {
+              const stylesheetHref = stylesheetMatch[1];
+              const criticalCss = Array.from(criticalRules).join("");
+              const deferredStyles = [
+                `<style id="bl-critical-css">${criticalCss}</style>`,
+                `<link rel="stylesheet" href="${stylesheetHref}" media="print" onload="this.onload=null;this.media='all'">`,
+                `<noscript><link rel="stylesheet" href="${stylesheetHref}"></noscript>`,
+              ].join("\n  ");
+
+              homepageHtml = homepageHtml.replace(stylesheetPattern, deferredStyles);
+              fs.writeFileSync(indexPath, homepageHtml);
+              console.log(`  ⚡ / critical CSS (${Math.round(Buffer.byteLength(criticalCss) / 1024)}KB, ${criticalRules.size} rules)`);
+            }
+          }
+        } catch (err) {
+          console.warn("  ⚠️  Homepage critical CSS extraction failed; keeping blocking CSS:", (err as Error).message);
         }
 
         await browser.close();
@@ -832,9 +1022,6 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           vendor: ["react", "react-dom", "react-router-dom"],
-          query: ["@tanstack/react-query"],
-          supabase: ["@supabase/supabase-js"],
-          sanity: ["@sanity/client", "@sanity/image-url"],
         },
       },
     },

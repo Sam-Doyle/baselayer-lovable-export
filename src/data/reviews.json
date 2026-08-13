@@ -1,0 +1,53 @@
+{
+  "fetchedAt": "2026-08-12",
+  "rating": 4.8,
+  "count": 4,
+  "reviews": [
+    {
+      "id": 1294349054,
+      "rating": 4,
+      "title": "",
+      "body": "Really good feel, just too small size. Went through it faster than 6 weeks adverties",
+      "reviewer": "Mike J",
+      "verified": false,
+      "createdAt": "2026-08-12",
+      "pictures": [
+        "https://review-images.judgeme.com/base-layer-skin/1786567767__1786567764597-img_4549__original.jpeg?quality=80&width=320"
+      ]
+    },
+    {
+      "id": 1294333383,
+      "rating": 5,
+      "title": "",
+      "body": "Found this on IG and was blown away by how nice it feels and how great my skin looks now. Girlfriend loves it too",
+      "reviewer": "SG",
+      "verified": false,
+      "createdAt": "2026-08-12",
+      "pictures": [
+        "https://review-images.judgeme.com/base-layer-skin/1786567053__1786567050919-img_4571__original.jpeg?quality=80&width=320"
+      ]
+    },
+    {
+      "id": 1294320741,
+      "rating": 5,
+      "title": "",
+      "body": "Wifey got me this and i'm loving it",
+      "reviewer": "Matt B",
+      "verified": false,
+      "createdAt": "2026-08-12",
+      "pictures": [
+        "https://review-images.judgeme.com/base-layer-skin/1786566497__1786566494428-img_4569__original.jpeg?quality=80&width=320"
+      ]
+    },
+    {
+      "id": 1294321348,
+      "rating": 5,
+      "title": "",
+      "body": "Super easy to use",
+      "reviewer": "Matt B",
+      "verified": false,
+      "createdAt": "2026-08-12",
+      "pictures": []
+    }
+  ]
+}

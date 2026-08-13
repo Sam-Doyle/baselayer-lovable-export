@@ -3,8 +3,8 @@ title: SEO Strategy
 domain: marketing
 created: 2026-04-03
 last_compiled: 2026-08-12
-revision: 2
-sources: [SEO.tsx, generate-sitemap.mjs, robots.txt, netlify.toml, SEO_AUDIT_REPORT.md, SEO_OPTIMIZATION_PLAN.md, KEYWORD_OPTIMIZATION_REPORT.md, INTERNAL_LINKING_VISUAL_MAP.md, content/CLAUDE.md, Search Console API, GA4 API, /seo-os:tech-debt crawl, /seo-os:backlinks SERP sweep, 3-agent content improvement pass]
+revision: 3
+sources: [SEO.tsx, generate-sitemap.mjs, robots.txt, netlify.toml, SEO_AUDIT_REPORT.md, SEO_OPTIMIZATION_PLAN.md, KEYWORD_OPTIMIZATION_REPORT.md, INTERNAL_LINKING_VISUAL_MAP.md, content/CLAUDE.md, Search Console API, GA4 API, /seo-os:tech-debt crawl, /seo-os:backlinks SERP sweep, 3-agent content improvement pass, live verification of /article/peptide-stack after deploy 3aca582]
 codePaths:
   - ~/baselayer-lovable-export/src/components/SEO.tsx
   - ~/baselayer-lovable-export/scripts/generate-sitemap.mjs
@@ -331,6 +331,32 @@ No Ahrefs access — targets are SERP-derived. **Tier 1 niche DTC reviewers** th
 - Comparison schema type has no `author` field — an E-E-A-T gap worth closing.
 
 **Content integrity findings from the same pass:** the over-40 article had fabricated competitor absorption times (reframed to a label-based formula-weight analysis in drafts); the "we tested 10+" `metaDescription` was false on two counts (actually 5 products, and no formal testing was done). Also flagged: the brand doc `~/BaseLayer/brand/_brand-context.md` describes a dark monochrome visual identity, but the live site is a light theme with navy/orange — that doc is stale (see `kb/wiki/brand-identity.md` for the compiled brand system, which reflects the live site).
+
+## Advertorials Are Not Actually Noindexed (2026-08-12, live verification of baselayerskin.co after deploy 3aca582, confidence: high)
+
+⚠️ **Open decision — resolve before scaling spend to these URLs.**
+
+Advertorials are kept out of the prerender and out of the sitemap, but **that is
+not a noindex.** None of the four pages under `src/pages/advertorials/` emit
+`<meta name="robots">`, and `robots.txt` disallows only `/checkout`.
+
+Verified live: `/article/peptide-stack` returns **200 with a self-referencing
+canonical and no robots directive.**
+
+Sitemap exclusion only stops discovery *through the sitemap*. Google can still
+index these from ad clicks, referrals, or external links. For paid presell pages
+that carry a "paid partnership" disclosure, that is probably not the intended
+posture.
+
+Because they are served via `/article/*  /__shell.html  200`, enforcement is
+either:
+1. A `Disallow: /article/` line in `robots.txt`, or
+2. A `noindex` emitted through `useMetaTags`
+
+Option 2 is the stronger signal — `robots.txt` blocks crawling but does not
+reliably prevent indexing of a URL that has inbound links.
+
+---
 
 ## See Also
 

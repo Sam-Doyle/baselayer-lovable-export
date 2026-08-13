@@ -40,11 +40,18 @@
   <!-- Preconnect to critical origins -->
   <link rel="dns-prefetch" href="//rxcoecpfznxkprnvqmem.supabase.co">
   <link rel="dns-prefetch" href="//cdn.sanity.io">
-  <link rel="preconnect" href="https://cdn.sanity.io" crossorigin>
   <link rel="dns-prefetch" href="//base-layer-skin.myshopify.com">
 
   <!-- Critical inline CSS for above-the-fold rendering -->
   <style>
+    @font-face {
+      font-family: 'Montserrat';
+      font-style: normal;
+      font-weight: 800 900;
+      font-display: swap;
+      src: url('/fonts/montserrat-900.woff2') format('woff2')
+    }
+
     :root {
       --background: 0 0% 4%;
       --foreground: 0 0% 92%;
@@ -186,10 +193,15 @@
   </style>
 
   <!-- LCP hero image preload — must be early in <head> before CSS blocks rendering -->
-  <link rel="preload" as="image" type="image/webp" href="/src/assets/generated-creatives/hero-mountain-packshot-v2.webp" fetchpriority="high">
+  <link rel="preload" as="image" type="image/webp" media="(max-width: 768px)"
+    imagesrcset="/src/assets/generated-creatives/responsive/hero-mountain-packshot-v2-mobile-480w.webp 480w, /src/assets/generated-creatives/responsive/hero-mountain-packshot-v2-mobile-824w.webp 824w"
+    imagesizes="100vw" fetchpriority="high">
+  <link rel="preload" as="image" type="image/webp" media="(min-width: 769px)"
+    imagesrcset="/src/assets/generated-creatives/responsive/hero-mountain-packshot-v2-480w.webp 480w, /src/assets/generated-creatives/responsive/hero-mountain-packshot-v2-768w.webp 768w, /src/assets/generated-creatives/responsive/hero-mountain-packshot-v2-1200w.webp 1200w, /src/assets/generated-creatives/hero-mountain-packshot-v2.webp 1536w"
+    imagesizes="min(49vw, 706px)" fetchpriority="high">
 
   <!-- Self-hosted font preloads — above-fold critical weights -->
-  <link rel="preload" as="font" type="font/woff2" href="/fonts/inter-400.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/montserrat-900.woff2" crossorigin>
 
   <!-- URL snapshot — 50 bytes, captures UTMs before React Router mounts.
          Analytics scripts load deferred in App.tsx but use this saved URL. -->
@@ -208,6 +220,21 @@
           text-anchor="middle" fill="#F6F2EA">BL</text>
       </svg></div><!--/SKELETON-->
   </div>
+  <script>
+    (() => {
+      const snapshot = document.getElementById("root");
+      const isPrerenderedHome = location.pathname === "/" && Array.from(snapshot?.childNodes || [])
+        .some((node) => node.nodeType === 8 && node.nodeValue === "SSR");
+      if (!snapshot || !isPrerenderedHome) return;
+
+      snapshot.id = "bl-prerender-root";
+      snapshot.style.cssText = "position:absolute;inset:0;width:100%;height:100svh;overflow:hidden;z-index:1";
+
+      const clientRoot = document.createElement("div");
+      clientRoot.id = "root";
+      snapshot.after(clientRoot);
+    })();
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

@@ -245,3 +245,329 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **KB updates**: This entry plus one inbox entry on the advertorial noindex gap.
 - **Verification**: Both commits built standalone in isolated worktrees (60 routes prerendered, 0 failed) before pushing. Deploys `f3d4c1a` and `3aca582` both reached ready. Live checks: `/article/peptide-stack`, `/face-cream`, `/article/one-bottle-experiment`, `/articles`, comparisons and ingredients all 200, unknown routes 404. All 7 advertorial CTAs resolve to `https://baselayerskin.co/face-cream` and a scripted click lands on the PDP with the buy box present. Homepage serves the hashed packshot preload with no `/src/assets` dev path leaking into production HTML, and no console errors.
 - **Open issue**: `npm run verify:pricing` fails on production. Subscribe & Save is $35.00 in `src/config/product.ts` and $34.00 in Shopify, and the plan is named "Deliver every 6 weeks, $34.00". This now presents differently than before: the cart store shipped in this release takes its price from Shopify's cart response, so the PDP shows $35 while the cart and checkout show $34. Needs a decision in Shopify admin or in `product.ts`; the Storefront token is read-only.
+
+## 2026-08-12 — Live homepage performance and Meta-readiness audit
+- **Task**: Audited the current `baselayerskin.co` homepage with three Lighthouse mobile runs, three desktop runs, live browser checks, code tracing, and current official Meta/Chrome guidance.
+- **Findings**: Mobile median Lighthouse performance is 87 (LCP 3.37s, TBT 0ms); desktop median is 75 (LCP 0.67s, TBT 0ms). Best Practices is 100 on all six runs. The blocking issue is a ~1.0 CLS caused by mounting prerendered HTML with `createRoot()` instead of hydrating it; desktop reproduces every run and one of three mobile runs reproduces. Initial transfer is ~983 KiB/40 requests, with ~114 KiB avoidable hero bytes on mobile, six oversized ingredient PNGs, and ~85 KiB unused homepage JS. Meta Pixel and GA4 scripts are consent-gated/deferred, and the code pairs the Pixel with CAPI using shared event IDs for deduplication.
+- **Files changed**: `kb/_inbox.md`, `kb/_session-log.md` (audit records only; no production code changed).
+- **KB updates**: Two performance findings added to the inbox for `performance-metrics`.
+- **Verification**: Lighthouse lab data collected from the latest live production deploy; live page is HTTPS, redirect-free, has ~105ms server response, no render-blocking requests, no third-party requests before consent, and no long tasks over 25ms. Anonymous PageSpeed Insights field-data request was rate-limited, so no CrUX p75 claim is made.
+
+## 2026-08-12 — Ingredient hero image set published to Sanity
+- **Task**: Created a coherent eight-image ingredient hero system and published it to every `ingredient.heroImage` field in Sanity project `27quz10a`, dataset `production`. The six public ingredients now render the CMS images on both `/ingredients` cards and their detail pages; retinol and vitamin C are populated for future publication even though the listing query currently excludes them.
+- **Findings**: The storefront query and fallback were already correct; all eight content documents lacked a hero reference. The existing local six-image set was only 500x500, included baked-in copy on one image, and did not support the listing/detail crop pair reliably.
+- **Files changed**: `~/baselayer-sanity/assets/ingredient-heroes/` (eight 1672x941 WebPs, prompt manifest, README), `~/baselayer-sanity/scripts/upload-ingredient-heroes.mjs` (idempotent dry-run/commit uploader), `kb/_session-log.md`.
+- **KB updates**: This session-log entry only; the diagnosis and production state are operational and directly represented by the Studio/script.
+- **Verification**: Direct GROQ verification returned 8/8 image references and alt strings. A fresh live-browser pass returned six listing images and six detail heroes from the Sanity CDN, all complete at natural size 1672x941. Re-running the uploader with `--commit` skipped all eight documents, confirming idempotence.
+
+## 2026-08-12 — /last30days research: minimizing Shopify shipping cost for a 50ml moisturizer
+- **Task**: Researched current (post-July-2026) USPS/carrier economics and recommended package build + Shopify settings for a 50ml skincare moisturizer.
+- **Findings**: USPS eliminated sub-1-lb ounce tiers at published Commercial on 2026-07-12, but below-Commercial platforms (Pirate Ship, Shippo) preserve them for contiguous non-rural — a ~$1.86/order swing at Zone 5. Ground Advantage Cubic loses for lightweight parcels. USPS applies DIM weight only above 1 cu ft, so box dimensions are cost-neutral at this size. Glass primary containers are near-free on single-unit orders but add ~$3.43 on 2-unit orders by pushing into the 2 lb tier.
+- **Files changed**: None (research only).
+- **KB updates**: 4 entries added to `kb/_inbox.md` (all targeting a new `shipping-economics` article). Raw research saved to `~/Documents/Last30Days/minimizing-shipping-costs-shopify-small-parcel-skincare-raw-v3.md`. Inbox now at 5 items — at the compile threshold.
+
+## 2026-08-12 — Homepage performance remediation + clinical-actives proof
+- **Task**: Implemented the full homepage performance-audit backlog and changed the proof-grid lead cell to “Niacinamide + Peptides” / “Clinical Actives.”
+- **Changes**: Added 480/768/1200 responsive hero sources, 240/480 ingredient WebPs, route-scoped React Query/Sanity/Supabase loading, self-hosted Montserrat 700/800/900, consent-gated real-user LCP/CLS/INP reporting, a stable prerender-to-client visual handoff, and a shorter consent message that clears the hero CTA. Removed the unsafe async-CSS rewrite so the actual prerendered Tailwind layout is styled before first paint.
+- **Findings**: The audit's initial attribution to `createRoot()` was incomplete. Browser trace isolation showed the ~1.0 CLS came from applying the full stylesheet with `media="print"` after an unstyled prerender had painted. Responsive assets and route chunking cut mobile first-load requests from 40 to 18 and transfer from ~983KB to ~502KB; homepage startup requests no Sanity, Supabase, or React Query bundles.
+- **Files changed**: `index.html`, `vite.config.ts`, `package*.json`, `src/{main,App,index}.tsx/css`, `src/lib/analytics.ts`, homepage/proof/consent components, `src/components/QueryRoute.tsx`, responsive image/font assets, and `src/test/ProofStrip.test.tsx`.
+- **Verification**: Final Lighthouse confirmation: mobile 93 (FCP 2.10s, LCP 3.00s, CLS 0.00006, TBT 0), desktop 100 (FCP 0.44s, LCP 0.58s, CLS 0.0056, TBT 0); Best Practices 100, Accessibility 97, SEO 100. Three prior consecutive stabilized runs returned the same 93/100 scores. Typecheck passes, 61/61 tests pass, targeted ESLint has zero errors/warnings, production build prerenders 60/60 routes, browser startup has no console errors, the mobile hero selects 480w, and the 375×812 consent banner has 0px CTA overlap.
+
+## 2026-08-12 — Shipping pricing strategy, unit-economics correction, KB compile
+
+- **Task**: Answer how to price shipping to customers at $38/~$9 COGS; select a shipper; correct stale economics across code and wiki; compile the 12-entry inbox.
+- **Findings**:
+  - Landed shipping was modelled at $5.50 everywhere. Verified cost from Denver is **$8.10** (USPS GA 8 oz tier, $6.59 zone-blended below-Commercial + ~$1.51 materials). Corrected CM: single $19.50 (1.95x BE ROAS), 2-pack $39.24 (1.73x), subscribe $16.58 (2.11x). **The error only bit single-unit tiers** — the 2-pack amortises one parcel, so its old estimate was accidentally within $0.51.
+  - Buying media against the old 1.93x subscription breakeven loses money up to the real 2.11x. This was the material find.
+  - **Do not charge for shipping.** A $4.95 flat on singles adds $4.81 CM but needs conversion to hold within 19.8% — roughly EV-neutral against real cart-abandonment data, for real FTC copy-surface risk. The $50 threshold was already built and reverted (commit `fb4814a`); that decision stands.
+  - The real lever is mix, not the shipping line: the second bottle costs $0.20 more to ship and earns $30 more revenue.
+  - Highest-return open item: move the subscription from 1 bottle/6 weeks to **2 bottles/$70/12 weeks** (+$8.02, +24% CM per cycle, no price change). 50 mL at ~1 mL/day is ~7 weeks of product, so the current cadence over-ships. Shopify admin edit, untested.
+  - Shipper selected: **white #1 7.25x12 poly bubble, $0.215/ea at 1,000**. Self-corrected from an earlier #0 6x10 call — #0 leaves only ~0.35" width margin on the 2-pack, which is the PDP default. Every candidate lands in the same USPS tier, so packaging is chosen on fit/protection/brand, never postage.
+- **Files changed**: `src/config/product.ts` (economics comment corrected; typecheck clean), `kb/wiki/conversion-learnings.md`, `kb/wiki/launch-timeline.md`, `kb/wiki/performance-metrics.md`, `kb/wiki/ad-strategy.md`, `kb/wiki/seo-strategy.md`, `kb/wiki/shipping-economics.md` (new), `kb/_index.md`, `kb/_inbox.md`
+- **KB updates**: Compiled all 12 inbox entries and cleared the buffer. Created `shipping-economics.md` (11th article). Bumped revisions on ad-strategy (3), seo-strategy (3), conversion-learnings (2), performance-metrics (2). Index quick-reference now carries the real price ladder and shipping posture.
+- **Open items**: (1) COGS conflict — $9 (Sam) vs $10 (product.ts) vs $12 (launch-timeline); scope unconfirmed, every CM figure moves with it. (2) Carton dimensions assumed at 1.8×1.8×5.3" — measure before ordering mailers. (3) Advertorials are not actually noindexed; decide before scaling spend. (4) Check the Shopify Rest of World zone isn't open at $0.00.
+
+## 2026-08-12 — Anti-aging advertorial: the concentration-transparency angle
+
+- **Task**: Interview-driven build of a new advertorial for the evidence-backed anti-aging actives (5% niacinamide + 0.03% GHK-Cu). Locked brief: angle = "why concentration is the tell," target = men 35-50 problem-aware, mechanism = the pair plus a dose comparison, evidence posture = cite studies with cosmetic verbs only, Preset C (Consumer Report), new generated imagery. Shipped `/article/concentration-test`.
+- **Findings**:
+  - **The reframe that makes 0.03% an asset.** The prior decision in `conversion-learnings.md` was "don't fight on concentration" because 0.03% loses a percentage duel. The way to fight it is to change what the number is compared against: the published GHK-Cu literature works a **0.01%–1% range**, so 0.03% sits inside the researched band while 5% would sit far outside it. The argument stops being "ours is bigger" and becomes "a percentage is meaningless without the band the research used, and almost nobody publishes either." Two live advertorials now argue opposite sides of this — treat it as a deliberate A/B, not an accident.
+  - **The teaching beat the page needed.** A problem-aware reader doesn't yet know concentrations are hidden, so numbers land on nothing. The section that does the work: a cosmetic ingredient list is ordered by weight only down to 1%, below 1% in any order, and never states a quantity — so "contains niacinamide" is equally true of a formula built around it and one carrying a trace.
+  - **Evidence vs. banned words is a structural tension, not a wording problem.** The strongest GHK-Cu evidence *is* collagen synthesis, which the brand bans stating. Resolved by moving the claim from mechanism to dose-in-range, plus an explicit caveat box that the cited work tested ingredients, not finished products. Dropped the KB's unattributed 21%/14%/15% figures because they couldn't be tied to a nameable study.
+  - **Comparison-table framing.** Every row states what a brand *publishes* on its own pages, not what its formula contains — checkable, more conservative than the live `ComparisonTable.tsx`, and more on-angle.
+  - **Imagery rule.** No synthetic product shots for this brand: a generated bottle on a page arguing "we print what's on the label" undercuts itself. Real photography for product, generated imagery for editorial context only.
+  - **Preset C's `#E53E3E` fails the AA gate** (~3.9:1 on white). Used the `brand-accent` token (#C4470E, 4.94:1) and documented the deviation in the file rather than shipping it silently.
+  - **Two banned claims are live in production**, found by scripted grep rather than reading: `PeptideStack.tsx:248` "Rebuilds the moisture barrier," and `IngredientsShowcase.tsx:28` "increase collagen synthesis by up to 70%."
+- **Files changed**: `src/pages/advertorials/ConcentrationTest.tsx` (new), `src/App.tsx` (lazy import + route), `src/assets/generated-creatives/antiaging-portrait.webp` (new), `src/assets/generated-creatives/antiaging-blank-lineup.webp` (new), `kb/_inbox.md`, `kb/_session-log.md`.
+- **KB updates**: 6 entries added to `kb/_inbox.md` (conversion x2, brand, technical x3). Inbox had been compiled to zero mid-session, so it now stands at 6 — at the 5-item compile threshold, below the 10-item mandatory line.
+- **Verification**: fal.ai run 2/2 succeeded, $0.40 against a $1.00 cap, logged to `generations/log.jsonl`; both images reviewed before entering the repo. ESLint clean on the new file (the 2 `no-explicit-any` errors in `App.tsx` are pre-existing, lines 92/131, not from the route edit). `npm run build` succeeded, 60/60 routes prerendered, advertorial correctly excluded from prerender and sitemap. Browser: no console errors, all 4 images load, 7 `/face-cream` CTAs, correct h1/title. Puppeteer at real viewports confirmed no page-level horizontal scroll at 1280px or 390px — an earlier in-pane `bodyScrollX: true` was a measurement artifact of a collapsed viewport (`innerWidth: 0`), not a layout bug. Compliance grep clean across banned claim verbs, collagen/elastin claims, brand banned words, AI vocabulary, `!`/`?` in headings, and Meta second-person attributes; the single `prevent` hit is the mandatory FDA disclaimer.
+- **Open items**: (1) Page is built and verified but **not committed or deployed**. (2) The two live banned claims above are unfixed. (3) The five competitor rows came from `competitor-landscape.md`, not from first-hand verification of those pages this session — spot-check before spend. (4) Subscribe & Save is $35 in `product.ts` but $34 in Shopify; cart reads Shopify, so PDP and checkout disagree. (5) Advertorial noindex posture still undecided.
+
+## 2026-08-12 — Measured packed weight, mailer purchase, Shopify CLI feasibility
+
+- **Task**: Sam bought the 9x12 plain poly mailer (1,000 for $43.25) and weighed a
+  packed unit at 82 g (carton + filled container); bottle measured 5.5". Asked to
+  wire up Shopify CLI to create the shipping config.
+- **Findings**:
+  - **Shopify CLI cannot configure shipping.** Not installed (`which shopify` →
+    not found), and it targets app/theme/Hydrogen development regardless. Admin
+    GraphQL has `shippingPackageMakeDefault`/`Update`/`Delete` but **no documented
+    create mutation** for package presets — that setting is admin-UI-only. Variant
+    weights (`productVariantsBulkUpdate`) and delivery profiles
+    (`deliveryProfileUpdate`) need an Admin token with `write_products` /
+    `write_shipping`; the repo holds only a **read-only Storefront token**.
+    Recommendation: do it in admin (~3 min) rather than stand up a write-scoped
+    credential to save typing.
+  - **Both tiers drop a USPS band.** 82 g + ~8 g mailer = 90 g / 3.17 oz single
+    (**4 oz tier**, $6.12 blended) and 172 g / 6.07 oz 2-pack (**8 oz tier**,
+    $6.59). Landed shipping $7.46 / $8.12, down from $8.10 / $8.49.
+  - Revised CM: single $20.14 (1.89x BE), 2-pack $39.61 (1.72x), subscribe $17.23
+    (2.03x). 2-bottle/12-week subscription proposal now worth $41.55 vs $34.46.
+  - **At 82 g the mailer choice moves the tier** — a corrugated box crosses into
+    8 oz where every mailer stays at 4 oz. Reverses the rev-1 conclusion that
+    packaging never affects postage at this size. Headroom is 23 g to the cliff.
+  - **Methodological finding**: landed shipping went $5.50 (assumed) → $8.10
+    (carrier tables) → $7.46 (scale). Weighing one box moved unit economics more
+    than any pricing decision this month. Do not model on an unweighed parcel.
+- **Open item raised**: Sam wrote "filled tube," but the product photo and
+  `shipping-economics.md` rev 1 describe a 50 mL airless pump. 82 g backs out to a
+  ~18 g container — a tube, not a pump (~58 g empty). If Batch 01 fills the pump,
+  the single returns to the 8 oz tier and every single-unit figure is stale. Also
+  affects protection: plain 2-mil poly is fine around a tube in a carton, not
+  around a pump actuator. **Unresolved — confirm before buying media at 1.89x.**
+- **Files changed**: `src/config/product.ts`, `kb/wiki/shipping-economics.md`
+  (rev 2), `kb/wiki/conversion-learnings.md` (rev 3),
+  `kb/wiki/launch-timeline.md`, `kb/wiki/ad-strategy.md`, `kb/_index.md`
+- **KB updates**: compiled directly into the wiki (inbox stayed empty).
+
+## 2026-08-12 — Container confirmed: airless pump (follow-up)
+
+- **Task**: Resolve the tube-vs-airless-pump open item raised in the prior digest.
+- **Resolution**: **Airless pump.** The inference that 82 g implied a ~18 g tube
+  was wrong — it rested on a ~58 g empty-bottle estimate that was ~30 g too heavy.
+  A thin-wall mono-material PP airless at 50 mL runs 25-30 g. The scale reading was
+  right; the component estimate was not.
+- **Findings**:
+  - **No economics change.** 82 g is 82 g regardless of container. 4 oz / 8 oz
+    tiers, $7.46 / $8.12 landed, and breakevens 1.89x / 1.72x / 2.03x all stand.
+  - **New open risk: actuator protection.** 1,000 plain 2-mil poly mailers are now
+    on hand and the product is a pump. The dominant transit failure is a *depressed
+    actuator* (product pumps into the carton), which bubble padding does **not**
+    fix — it is solved by an over-cap or lock-down actuator and by the actuator
+    sitting below the carton's top edge. Padding only helps the secondary
+    snapped-head / drop case. Verify carton geometry and closure, then drop- and
+    stack-test 3-5 units.
+  - **Fallback is cheap and tier-safe:** #1 7.25x12 poly bubble adds 13 g/unit →
+    103 g single (still 4 oz) and 185 g 2-pack (still 8 oz). $0.172/unit, ~$172
+    per 1,000, zero postage penalty. The plain mailers already bought are not a
+    sunk trap if the drop test fails.
+  - **Lesson**: a component-weight estimate off by 30 g moves the parcel a full
+    USPS band. Weigh components, not just totals.
+- **Carried forward**: sanity-re-weigh a second unit (82 g is at the light end of
+  plausible for a filled 50 mL airless + carton); weigh a sealed mailer with insert
+  and label against the 113.4 g cliff.
+- **Files changed**: `src/config/product.ts`, `kb/wiki/shipping-economics.md`,
+  `kb/wiki/conversion-learnings.md`, `kb/wiki/launch-timeline.md`
+
+## 2026-08-12 — Reviews app selection for a headless store; Judge.me scoped
+
+- **Task**: Research which reviews platform fits Base Layer given it is a Vite SPA
+  and not a Liquid theme, what shoppers actually expect from a review block, and
+  how Trustpilot / Judge.me / Okendo / Loox compare. Then scope the integration.
+- **Findings**:
+  - **The generic "best Shopify reviews app" comparison is the wrong question
+    here.** Theme app extensions — how nearly every review app ships its widget —
+    do not exist on this stack. The only criterion that survives is whether the
+    vendor exposes a public read API we can call at build time. That eliminates
+    Loox outright, prices out Yotpo ($169+) and Stamped ($59-199), and rules out
+    Trustpilot (~$199/mo, and it solves cross-channel brand reputation, not PDP
+    product reviews).
+  - **Judge.me is the fit**: REST API v1 with a public GET token, free tier
+    covering photo/video reviews and unlimited requests, $15/mo flat above that.
+    Okendo has the better headless architecture (`@okendo/shopify-hydrogen`,
+    Storefront REST API, React reference implementations) but gates headless
+    installs to its Advanced plan and prices by order volume.
+  - **Shopper-expectation data reframed the design, not just the vendor choice.**
+    70% need >=5 reviews before trusting a business (hence a hard 5-review render
+    gate rather than showing a thin block); the optimal band is 4.0-4.7 stars and
+    above 4.7 reads as fake; 82% actively seek out negative reviews (so never
+    filter or reorder by rating); 85% call reviews older than 3 months irrelevant
+    (collection is a standing process, not a launch task); 62% more likely to buy
+    with customer photos.
+  - **FTC Consumer Reviews Rule (16 CFR 465)** has been enforceable since Oct 2024,
+    ~$53k/violation, warning letters as recent as Dec 2025. Incentivized reviews
+    are legal only with clear disclosure in or beside the review and never
+    conditioned on sentiment. This constrains the build regardless of vendor.
+  - **Method finding**: `/last30days` was the wrong instrument for a vendor-
+    selection question. Reddit 403'd on every subreddit and the global search, X
+    returned three marginal posts across two runs, and the keyword "Judge" poisoned
+    Polymarket with county-judge elections and Aaron Judge prop markets. The whole
+    usable answer came from vendor docs via WebSearch. Reported honestly rather
+    than dressed up.
+  - **Two blocking unknowns remain, neither answerable from public docs**: whether
+    the public API token is available on the free plan or gated to Awesome, and
+    whether Judge.me's "revert to the legacy Review Widget" rule for
+    platform-independent pages extends to the API path (probably not — we render
+    our own components rather than embedding their widget).
+- **Files changed**: `tasks/judge-me-integration.md` (new), `kb/_inbox.md`,
+  `kb/_index.md`, this log. **No application code was written** — the scope doc
+  states both unknowns must be resolved first, and step 1 (install on Shopify,
+  confirm request emails fire) gates everything and depends on real orders.
+- **KB updates**: 3 entries appended to inbox (shopper expectations ->
+  `customer-insights`; headless vendor comparison + FTC constraint ->
+  `site-architecture`; `/last30days` method finding -> `site-architecture`).
+  Inbox now holds 9 uncompiled entries, one below the mandatory-compile threshold.
+  `kb/_index.md` frontmatter said `inbox_count: 0` while 6 entries were already
+  sitting there — corrected to 9.
+
+## 2026-08-12 — Postage rebuilt from quoted rates; the zone model was wrong
+
+- **Task**: Sam ran the Shopify admin shipping rate calculator against four
+  destinations at 82 g from origin 80206. Rebuild the blend from actuals.
+- **Measured** (USPS Ground Advantage, 9x12 poly preset):
+  | Destination | Zone | Rate | vs. Berkeley |
+  |---|---|---|---|
+  | Berkeley, CA 94707 | 5 | $5.48 | — |
+  | New York, NY 10001 | 7 | $5.62 | +$0.14 |
+  | Juneau, AK 99801 | non-contig. | $5.97 | +$0.49 |
+  | White Sulphur Springs, MT 59645 | rural | $7.46 | +$1.98 (+36%) |
+- **Structural findings** (these change the model's shape, not just its numbers):
+  1. **Zone is nearly irrelevant at 4 oz.** Z5 → Z7 costs $0.14. Every prior
+     revision blended across a Denver zone map — wrong frame. There is effectively
+     one contiguous non-rural rate, ~$5.55.
+  2. **Rural ZIPs are the only material variable, +36%.** This was the input
+     flagged as least certain in the prior revision and it is the one that held
+     (predicted +32%).
+  3. **Corrects rev 1: AK/HI are not a penalty lane.** Juneau +9%, nowhere near
+     tier loss. The rev-1 claim grouping AK/HI/PR/APO with rural ZIPs was sourced
+     from research, not quotes, and is wrong at this weight.
+  4. **Shopify Shipping is ~6% under published Commercial** → buy labels there,
+     skip Pirate Ship/Shippo.
+- **Rebuilt blend**: 0.87 × $5.55 + 0.12 × $7.46 + 0.01 × $5.97 = **$5.78**
+  (was $6.12). Insensitive to the unmeasured rural weighting: 5% → $5.65,
+  20% → $5.94, so there is no need to pin it down.
+- **Revised economics**: landed $7.12 single / $7.75 2-pack. CM $20.48 (1.86x BE) /
+  $39.98 (1.70x) / $17.57 (1.99x). **Subscription breaks under 2.0x for the first
+  time.**
+- **The estimate ladder, for the record**: landed single went $5.50 (assumed) →
+  $8.10 (carrier tables) → $7.46 (weighed) → $7.12 (quoted). Three of the four
+  steps were estimates and two erred in the direction that flattered us. Rule:
+  weigh the parcel, then quote the lane; do not model either.
+- **Still open**: 2-pack postage ($6.22) is derived from the 4→8 oz step, not
+  quoted — re-run the same four ZIPs at 164 g. Prediction to test: if rural bills
+  at the top sub-1-lb rate regardless of weight, rural 2-pack quotes the same
+  $7.46. Also: materials are $1.34/order of which only $0.043 is the mailer —
+  ~$1.30 of label/insert/tape is unaudited and is now 18% of landed shipping.
+- **Files changed**: `src/config/product.ts`, `kb/wiki/shipping-economics.md`
+  (rev 3), `kb/wiki/conversion-learnings.md`, `kb/wiki/launch-timeline.md`,
+  `kb/_index.md`
+
+## 2026-08-12 — Judge.me reviews wired into the PDP (headless, build-time)
+
+- **Task**: Enable Judge.me on a headless (non-Liquid) storefront, then build the
+  PDP customer-review block with verified-purchase badges. Set Netlify env vars.
+- **Findings** (compiled into the wiki this session):
+  - **The Shopify theme app embed is a red herring.** The theme is never served on
+    this stack, so the embed injects into a page nobody loads. The real dependency
+    is `Settings → Collection flow` → **External form** — a dropdown, not an
+    architecture problem. Left on the default, every review-request email
+    deep-links into the dead theme and silently wastes the request.
+  - **The public token 403s on `/api/v1/reviews`** ("not enough permissions"); it
+    is scoped to the *widget* API. This inverted the scope doc's core assumption —
+    a browser-side fetch is now impossible, which makes the build-time fetch
+    architecturally required rather than an optimisation. `JUDGEME_PRIVATE_TOKEN`
+    must never carry a `VITE_` prefix.
+  - **`shop_domain` is `kpfzdg-kw.myshopify.com`** (Shopify's original handle), not
+    the `base-layer-skin` alias the Storefront API uses. Judge.me returns an
+    identical 401 for a bad domain and a bad token, so a domain mismatch reads
+    exactly like a credential failure — this cost about an hour.
+  - **API access is not plan-gated** — works on the free plan.
+  - **Four real reviews landed mid-session** and were pulled by the build's fetch
+    step (the account had 0 when probing started). State as of this session:
+    **rating 5.0, count 4, all four `verified: false`, three with photos.**
+    Three consequences: (a) count 4 is below `REVIEW_GATE = 5`, so the block still
+    renders nothing and no `aggregateRating` is emitted — correct, but for a
+    different reason than "no reviews exist"; (b) **zero verified badges will
+    render**, because Judge.me has not tied any of these to a confirmed order —
+    this is exactly what Collection flow → External form plus a real test order
+    fixes; (c) a 5.0 average sits above the 4.7 authenticity-skepticism ceiling
+    recorded in `customer-insights.md`.
+  - **Photo URLs are served from `review-images.judgeme.com`**, not the
+    `judgeme.imgix.net` / `cdn.judge.me` hosts named in Judge.me's docs. The CSP
+    added earlier in the session would have **blocked every review photo in
+    production**; `img-src` in both `netlify.toml` and `public/_headers` was
+    corrected. Caught only because real review data arrived — a 0-review snapshot
+    would have shipped this silently.
+  - **Compliance flag, unresolved:** one of the four reviews is authored by
+    "Samuel Doyle." An insider review without a clear and conspicuous disclosure
+    of the material connection is squarely what FTC 16 CFR 465 prohibits, and the
+    rule has been enforceable since Oct 2024. This is a decision for Sam, not a
+    code change: disclose the relationship on the review, or remove it in the
+    Judge.me dashboard.
+  - **Pre-existing build flake found**: the prerender's static server pipes an
+    unguarded `createReadStream`, which crashed one build with ENOENT on
+    `dist/index.html` and passed on an identical re-run. Present at HEAD, not fixed.
+- **Files changed**: `scripts/fetch-reviews.mjs` (new), `src/lib/reviews.ts` (new),
+  `src/components/ReviewsSection.tsx` (new), `src/data/reviews.json` (new),
+  `src/pages/FaceCream.tsx`, `vite.config.ts` (REVIEW_AGGREGATE spread into the 3
+  landing-route Product schemas), `package.json`, `netlify.toml`, `public/_headers`,
+  `tasks/judge-me-integration.md`, `.env` (gitignored)
+- **KB updates**: 11 inbox entries compiled into `site-architecture` (rev 3, 4
+  entries + checkout-redirect-loop marked resolved), `customer-insights` (rev 3),
+  `conversion-learnings` (rev 4, 2 entries), `brand-identity` (rev 2, 2 entries),
+  `ad-strategy` (rev 4), `product-formula` (rev 3), `performance-metrics` (rev 3).
+  Inbox cleared to 0; `_index.md` updated including a stale `last_compiled` date
+  corrected on the performance-metrics row.
+- **Verification**: `npx tsc -b --force` clean; `npm run build` exit 0; prerendered
+  HTML confirmed to emit **no** `aggregateRating` at 0 reviews on both the
+  component-driven PDP and the config-driven landing routes. The review component
+  was exercised against a 6-review fixture (deliberately including a 2-star review,
+  one unverified reviewer and one photo) — 6 items, 5 badges, 1 image, 4.3
+  aggregate, negative review in position 2 — then **the fixture was removed and the
+  real 0-review snapshot restored** before finishing.
+- **Open, user-side**: set Collection flow → External form in the Judge.me
+  dashboard; place a test order; consider seeding Batch 01 buyers with a review
+  link. The private token was pasted into a transcript and shell history —
+  regenerating it is recommended and has not been done.
+
+## 2026-08-12 (cont.) — PDP reviews go live
+
+- **Task**: Sam hid his own review (resolving the 16 CFR 465 insider-review flag
+  raised earlier this session) and asked to get the remaining real reviews and
+  their photos onto the PDP.
+- **State at go-live**: 4 reviews, **4.8 average**, 3 with customer photos, 0
+  verified. The average moved 5.0 → 4.8 because the founder review came out and a
+  4-star from "Mike J" came in — 4.8 sits at the top of the healthy band rather
+  than in the reads-as-fake zone above 4.7. The 4-star is a genuine complaint
+  (ran out faster than the advertised 6 weeks) and sorts **first**, because the
+  sort is photo-first then newest and never by rating.
+- **Changes**:
+  - `REVIEW_GATE` 5 → 1 across all three files that hardcode it
+    (`src/lib/reviews.ts`, `vite.config.ts`, `scripts/fetch-reviews.mjs`).
+  - Review photos 96px → 160px, wrapped in a link to the full-size image.
+  - **Photo payload cut ~7x**: Judge.me serves `?width=1024` (~200 KB) by default;
+    `normalize()` now rewrites to `width=320` (16–30 KB) for the 160px box.
+  - Footer disclaimer corrected — it claimed reviews were "collected and verified
+    by Judge.me" while zero are verified. Now states that the badge appears only
+    where Judge.me matched a confirmed order.
+- **Verification**: `npx tsc -b --force` clean; `npm run build` exit 0. Prerendered
+  HTML now carries `"aggregateRating":{"ratingValue":"4.8","reviewCount":4}` on
+  both the PDP and the landing routes, all four reviewers and all three photo URLs
+  are baked into `dist/face-cream/index.html` (crawler-visible, not a runtime
+  fetch), and "Verified Purchase" appears exactly once — in the explanatory footer,
+  not as a badge. All three photo URLs return HTTP 200 via curl.
+  **Not visually confirmed**: the browser pane has no outbound network
+  (ERR_CONNECTION_REFUSED on external hosts), so the photos could not be rendered
+  in preview. Structure was verified through the DOM; the images themselves are
+  unproven in a browser until this hits a deploy preview.
+- **Files changed**: `src/lib/reviews.ts`, `src/components/ReviewsSection.tsx`,
+  `scripts/fetch-reviews.mjs`, `vite.config.ts`, `src/data/reviews.json`
+- **KB updates**: 2 inbox entries (gate override rationale + the photo-width and
+  CDN-host findings).
+
+## 2026-08-12 — PDP rating widget + production deploy
+- **Task**: Added the visible Judge.me rating summary to the Face Cream buy box (stars + `4.8 · 4 reviews`, anchor-linked to the review block), gave `#reviews` a scroll offset that clears the fixed Navbar, and deployed to production.
+- **Findings**: Judge.me's own preview-badge widget is unusable here on two counts — it ships as a Shopify theme app extension (no theme on a Vite SPA) and its browser-side path uses the public token, which 403s on `/api/v1/reviews`. Rendering the rating natively from the build-time snapshot is strictly better: it gets captured by the Puppeteer prerender, so the aggregate is crawler-visible text with no CLS and no third-party JS.
+- **Files changed**: `src/pages/FaceCream.tsx`, `src/components/ReviewsSection.tsx`, `kb/_inbox.md`, `kb/_index.md`
+- **Verified**: `npx tsc -b --force` exit 0; `npm run build` 60 routes rendered / 0 failed; `href="#reviews"`, `scroll-mt-[96px]` and `"reviewCount":4` all present in `dist/face-cream/index.html`; in the dev preview the link renders 5 stars + `4.8 · 4 reviews` under the H1 and the click lands the review section exactly 96px from the top. Review block confirmed at 4 items / 3 photos / 0 verified badges — correct, since Judge.me has matched none of the four to an order yet.
+- **KB updates**: 1 inbox entry (technical → site-architecture) on why the ranking widget is native rather than a Judge.me embed. Inbox at 4.

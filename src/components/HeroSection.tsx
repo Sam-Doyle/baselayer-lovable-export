@@ -1,6 +1,11 @@
 import { Check, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import mountainPackshot from "@/assets/generated-creatives/hero-mountain-packshot-v2.webp";
+import mountainPackshot480 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-480w.webp";
+import mountainPackshot768 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-768w.webp";
+import mountainPackshot1200 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-1200w.webp";
+import mountainPackshotMobile480 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-mobile-480w.webp";
+import mountainPackshotMobile824 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-mobile-824w.webp";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 import { trackEvent } from "@/lib/analytics";
 
@@ -9,17 +14,24 @@ const HeroSection = () => {
     <section className="w-full bg-[#F2EFE8] pt-[96px]">
       <div className="mx-auto grid min-h-[calc(100svh-96px)] max-w-[1440px] md:grid-cols-[1.02fr_0.98fr]">
         <div className="relative order-1 h-[226px] overflow-hidden bg-[#D8D3CA] sm:h-[300px] md:order-2 md:h-auto md:min-h-[650px]">
-          <img
-            src={mountainPackshot}
-            alt="Base Layer Daily Face Cream bottle and carton on Colorado alpine granite"
-            width={1536}
-            height={1536}
-            {...{ fetchpriority: "high" }}
-            loading="eager"
-            decoding="async"
-            sizes="(max-width: 768px) 100vw, 49vw"
-            className="absolute inset-0 h-full w-full object-cover object-[center_51%] md:object-center"
-          />
+          <picture>
+            <source
+              media="(max-width: 768px)"
+              srcSet={`${mountainPackshotMobile480} 480w, ${mountainPackshotMobile824} 824w`}
+              sizes="100vw"
+            />
+            <img
+              src={mountainPackshot}
+              srcSet={`${mountainPackshot480} 480w, ${mountainPackshot768} 768w, ${mountainPackshot1200} 1200w, ${mountainPackshot} 1536w`}
+              alt="Base Layer Daily Face Cream bottle and carton on Colorado alpine granite"
+              width={1536}
+              height={1536}
+              {...{ fetchpriority: "high" }}
+              loading="eager"
+              sizes="min(49vw, 706px)"
+              className="absolute inset-0 h-full w-full object-cover object-[center_51%] md:object-center"
+            />
+          </picture>
         </div>
 
         <div className="order-2 flex bg-[#F2EFE8] px-5 py-7 sm:px-8 sm:py-10 md:order-1 md:items-center md:px-12 md:py-16 lg:px-16 xl:px-20">

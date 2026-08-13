@@ -1,19 +1,25 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { EarlyAccessProvider } from "@/context/EarlyAccessContext";
-import React, { lazy, Suspense, useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import MetaRouterTracker from "@/analytics/MetaRouterTracker";
 import { JsonLd, organizationSchema, websiteSchema } from "@/components/SEO";
 import { useCartSync } from "@/hooks/useCartSync";
-import { fireInitialCapiPageView, initAnalyticsScripts, clearAnalyticsCookies } from "@/lib/analytics";
+import {
+  clearAnalyticsCookies,
+  fireInitialCapiPageView,
+  initAnalyticsScripts,
+  initWebVitalsReporting,
+} from "@/lib/analytics";
 import { onConsentChange } from "@/lib/consent";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
+import PrerenderSnapshotRouteGuard from "@/components/PrerenderSnapshotRouteGuard";
 import ErrorBoundary from "@/components/ErrorBoundary";
-const ShopifyCartDrawer = lazy(() => import("@/components/ShopifyCartDrawer"));
-
-const Toaster = lazy(() => import("@/components/ui/toaster").then(m => ({ default: m.Toaster })));
-const Sonner = lazy(() => import("@/components/ui/sonner").then(m => ({ default: m.Toaster })));
+import ShopifyCartDrawer from "@/components/ShopifyCartDrawer";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+const QueryRoute = lazy(() => import("@/components/QueryRoute"));
 import Index from "./pages/Index";
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -43,48 +49,6 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
 
-// ── Deferred QueryClientProvider ──────────────────────────────────
-// Dynamically imports @tanstack/react-query so the 36KB chunk is NOT
-// in the synchronous ES module import chain. The homepage renders
-// immediately without waiting for the chunk; react-query loads in the
-// background. Pages that use useQuery are already behind Suspense/lazy
-// boundaries so they naturally wait for the provider to be ready.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _rqModule: any = null;
-const _rqPromise = import("@tanstack/react-query").then((m) => {
-  _rqModule = m;
-  return m;
-});
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _queryClient: any = null;
-
-const DeferredQueryProvider = ({ children }: { children: React.ReactNode }) => {
-  const [ready, setReady] = useState(!!_rqModule);
-  useEffect(() => {
-    if (!ready) {
-      _rqPromise.then(() => setReady(true));
-    }
-  }, [ready]);
-
-  if (!ready || !_rqModule) {
-    // react-query chunk not yet loaded — render children without the
-    // provider. Safe because the homepage doesn't call useQuery, and
-    // pages that do are behind lazy() boundaries that haven't loaded yet.
-    return <>{children}</>;
-  }
-
-  if (!_queryClient) {
-    _queryClient = new _rqModule.QueryClient();
-  }
-
-  return (
-    <_rqModule.QueryClientProvider client={_queryClient}>
-      {children}
-    </_rqModule.QueryClientProvider>
-  );
-};
-
 const PageFallback = () => <div style={{ minHeight: "100vh", background: "#0a0a0a" }} />;
 
 // ErrorBoundary wraps Suspense (not the reverse) — see the doc comment in
@@ -93,6 +57,14 @@ const PageFallback = () => <div style={{ minHeight: "100vh", background: "#0a0a0
 const Wrap = ({ children }: { children: React.ReactNode }) => (
   <ErrorBoundary>
     <Suspense fallback={<PageFallback />}>{children}</Suspense>
+  </ErrorBoundary>
+);
+
+const QueryWrap = ({ children }: { children: React.ReactNode }) => (
+  <ErrorBoundary>
+    <Suspense fallback={<PageFallback />}>
+      <QueryRoute>{children}</QueryRoute>
+    </Suspense>
   </ErrorBoundary>
 );
 
@@ -118,7 +90,7 @@ const App = () => {
     const isBot = /Lighthouse|Chrome-Lighthouse|PageSpeed|HeadlessChrome/i.test(navigator.userAgent);
     const isEmbedded = window.top !== window.self;
     if (isBot || isEmbedded) {
-      (window as any).__META_PIXEL_DISABLED__ = true;
+      (window as Window & { __META_PIXEL_DISABLED__?: boolean }).__META_PIXEL_DISABLED__ = true;
     }
 
     // ── Immediate CAPI PageView ──
@@ -154,9 +126,10 @@ const App = () => {
         if (analyticsLoaded) return;
         analyticsLoaded = true;
         initAnalyticsScripts();
+        initWebVitalsReporting();
       };
       if ("requestIdleCallback" in window) {
-        (window as any).requestIdleCallback(loadOnce);
+        (window as Window & { requestIdleCallback: (callback: IdleRequestCallback) => number }).requestIdleCallback(loadOnce);
       }
       setTimeout(loadOnce, 3000);
     }
@@ -194,6 +167,7 @@ const App = () => {
       if (choice === "accepted") {
         fireInitialCapiPageView();
         initAnalyticsScripts();
+        initWebVitalsReporting();
       } else {
         clearAnalyticsCookies();
       }
@@ -201,13 +175,13 @@ const App = () => {
   }, []);
 
   return (
-    <DeferredQueryProvider>
       <TooltipProvider>
-        <Suspense fallback={null}><Toaster /></Suspense>
-        <Suspense fallback={null}><Sonner /></Suspense>
+        <Toaster />
+        <Sonner />
         <JsonLd data={[organizationSchema, websiteSchema]} />
         <EarlyAccessProvider>
           <BrowserRouter>
+            <PrerenderSnapshotRouteGuard />
             <MetaRouterTracker />
             <Routes>
               <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
@@ -215,19 +189,19 @@ const App = () => {
               <Route path="/matte-moisturizer-for-men" element={<Wrap><MatteMoisturizer /></Wrap>} />
               <Route path="/non-greasy-moisturizer-for-men" element={<Wrap><NonGreasyMoisturizer /></Wrap>} />
               <Route path="/all-in-one-skincare-for-men" element={<Wrap><AllInOneSkincare /></Wrap>} />
-              <Route path="/about" element={<Wrap><About /></Wrap>} />
+              <Route path="/about" element={<QueryWrap><About /></QueryWrap>} />
               <Route path="/checkout" element={<Navigate to="/face-cream" replace />} />
               <Route path="/blog" element={<Navigate to="/articles" replace />} />
               <Route path="/blog/:slug" element={<Navigate to="/articles" replace />} />
-              <Route path="/articles" element={<Wrap><Articles /></Wrap>} />
-              <Route path="/articles/:slug" element={<Wrap><ArticleDetail /></Wrap>} />
-              <Route path="/ingredients" element={<Wrap><Ingredients /></Wrap>} />
+              <Route path="/articles" element={<QueryWrap><Articles /></QueryWrap>} />
+              <Route path="/articles/:slug" element={<QueryWrap><ArticleDetail /></QueryWrap>} />
+              <Route path="/ingredients" element={<QueryWrap><Ingredients /></QueryWrap>} />
               <Route path="/ingredients/copper-peptide-ghk-cu" element={<Navigate to="/ingredients/copper-peptide" replace />} />
-              <Route path="/ingredients/:slug" element={<Wrap><IngredientDetail /></Wrap>} />
-              <Route path="/skin-concerns" element={<Wrap><SkinConcerns /></Wrap>} />
-              <Route path="/skin-concerns/:slug" element={<Wrap><SkinConcernDetail /></Wrap>} />
-              <Route path="/comparisons" element={<Wrap><Comparisons /></Wrap>} />
-              <Route path="/comparisons/:slug" element={<Wrap><ComparisonDetail /></Wrap>} />
+              <Route path="/ingredients/:slug" element={<QueryWrap><IngredientDetail /></QueryWrap>} />
+              <Route path="/skin-concerns" element={<QueryWrap><SkinConcerns /></QueryWrap>} />
+              <Route path="/skin-concerns/:slug" element={<QueryWrap><SkinConcernDetail /></QueryWrap>} />
+              <Route path="/comparisons" element={<QueryWrap><Comparisons /></QueryWrap>} />
+              <Route path="/comparisons/:slug" element={<QueryWrap><ComparisonDetail /></QueryWrap>} />
               <Route path="/product/:handle" element={<Wrap><ProductDetail /></Wrap>} />
               <Route path="/lp" element={<Wrap><LandingPage /></Wrap>} />
               <Route path="/article/5-reasons" element={<Wrap><Listicle /></Wrap>} />
@@ -243,12 +217,10 @@ const App = () => {
             </Routes>
             <CookieConsentBanner />
           </BrowserRouter>
-          <Suspense fallback={null}><ShopifyCartDrawer /></Suspense>
+          <ShopifyCartDrawer />
         </EarlyAccessProvider>
       </TooltipProvider>
-    </DeferredQueryProvider>
   );
 };
 
 export default App;
-

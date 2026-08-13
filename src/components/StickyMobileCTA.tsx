@@ -7,46 +7,70 @@ import { trackEvent } from "@/lib/analytics";
  *
  * Mirrors the proven `md:hidden fixed bottom-0` bar from
  * src/pages/FaceCream.tsx. It observes the homepage's primary CTA and
- * appears only after that button has moved above the viewport, preventing
- * two competing purchase controls from being visible at once.
+ * appears whenever that button is not fully visible. This keeps a purchase
+ * action available on short phone screens where the hero CTA starts just
+ * below the fold, while preventing two competing controls when the complete
+ * hero button is already on screen.
  */
 const StickyMobileCTA = () => {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const heroCta = document.getElementById("hero-primary-cta");
-    if (heroCta && "IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(([entry]) => {
-        setVisible(!entry.isIntersecting && entry.boundingClientRect.bottom < 0);
-      });
-      observer.observe(heroCta);
-      return () => observer.disconnect();
-    }
+    if (!heroCta) return;
 
-    let ticking = false;
-    const handleScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        setVisible(window.scrollY > window.innerHeight);
-        ticking = false;
-      });
+    let frameId: number | undefined;
+    const updateVisibility = () => {
+      // The production prerender runs at a desktop viewport. Keep its static
+      // snapshot closed so desktop state cannot flash an active mobile bar
+      // while React hands the page off on a phone.
+      if (!window.matchMedia("(max-width: 767px)").matches) {
+        setVisible(false);
+        return;
+      }
+
+      const rect = heroCta.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+      const fullyVisible = rect.top >= viewportTop && rect.bottom <= viewportBottom;
+      setVisible(!fullyVisible);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    const scheduleUpdate = () => {
+      if (frameId !== undefined) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(updateVisibility);
+    };
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate, { passive: true });
+    window.addEventListener("load", scheduleUpdate, { once: true });
+    window.visualViewport?.addEventListener("resize", scheduleUpdate, { passive: true });
+    window.visualViewport?.addEventListener("scroll", scheduleUpdate, { passive: true });
+    void document.fonts?.ready.then(scheduleUpdate);
+    scheduleUpdate();
+
+    return () => {
+      if (frameId !== undefined) cancelAnimationFrame(frameId);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("load", scheduleUpdate);
+      window.visualViewport?.removeEventListener("resize", scheduleUpdate);
+      window.visualViewport?.removeEventListener("scroll", scheduleUpdate);
+    };
   }, []);
 
   return (
     <div
-      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E8F0] p-[12px_16px] flex items-center justify-between gap-3 transition-transform duration-300 pb-[calc(12px+env(safe-area-inset-bottom))] ${
-        visible ? "translate-y-0 shadow-[0_-4px_12px_rgba(0,0,0,0.08)]" : "translate-y-full pointer-events-none"
+      className={`fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-[#E2E8F0] bg-white px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] transition-transform duration-300 md:hidden ${
+        visible ? "translate-y-0" : "pointer-events-none translate-y-full"
       }`}
       aria-hidden={!visible}
     >
-      <div className="flex flex-col leading-none">
+      <div className="flex min-w-0 flex-col leading-none">
         <span className="font-heading font-bold text-[20px] text-[#1A2F4C]">$38</span>
         {/* #6B7280 (4.83:1 on white), not #ABB3BB — that was 2.12:1 and failed AA. */}
-        <span className="font-body text-[11px] text-[#6B7280] mt-1">Founding Price</span>
+        <span className="mt-1 truncate font-body text-[11px] text-[#6B7280]">1 Bottle &middot; Free shipping</span>
       </div>
       {/*
         Routes to the PDP for the same reason as the hero CTA: this bar is the
@@ -61,9 +85,9 @@ const StickyMobileCTA = () => {
         onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "home_sticky_mobile" })}
         aria-label="Get Base Layer Performance Daily Face Cream — founding price $38"
         tabIndex={visible ? 0 : -1}
-        className="shrink-0 bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] uppercase px-[24px] py-[14px] rounded-[4px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C]"
+        className="min-h-12 shrink-0 rounded-[4px] bg-brand px-5 py-3 font-heading text-[12px] font-bold uppercase tracking-[0.08em] text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C]"
       >
-        GET BASE LAYER &middot; $38 &rarr;
+        GET 1 BOTTLE &middot; $38
       </Link>
     </div>
   );

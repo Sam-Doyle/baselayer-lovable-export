@@ -3,8 +3,8 @@ title: Ad & Marketing Strategy
 domain: marketing
 created: 2026-04-03
 last_compiled: 2026-08-12
-revision: 2
-sources: [ads/AI_CREATIVE_SYSTEM.md, ads/CLAUDE.md, marketing/ads/, marketing/strategy/, marketing/social/, advertorial/, content/CLAUDE.md, /last30days research (hawky.ai, prooflytics, adamigo.ai, dtcroas.com, usedaymark.io, shopify-fee-calc.com, Eightx, Shopify MER blog), subagent research (native statics), Sam interview]
+revision: 4
+sources: [ads/AI_CREATIVE_SYSTEM.md, ads/CLAUDE.md, marketing/ads/, marketing/strategy/, marketing/social/, advertorial/, content/CLAUDE.md, /last30days research (hawky.ai, prooflytics, adamigo.ai, dtcroas.com, usedaymark.io, shopify-fee-calc.com, Eightx, Shopify MER blog), subagent research (native statics), Sam interview, code audit src/config/product.ts vs objection-bank.md, ad-creative-engine skill install]
 codePaths:
   - ~/BaseLayer/ads/AI_CREATIVE_SYSTEM.md
   - ~/BaseLayer/ads/CLAUDE.md
@@ -395,8 +395,77 @@ Founder-led content + UGC demos + self-aware humor, optimized for saves/shares (
 
 ---
 
+## Pricing Source of Truth for Ad Copy (2026-08-12, code audit of `src/config/product.ts` vs `brand/references/audience/objection-bank.md`, confidence: high)
+
+⚠️ **The objection bank's pricing is stale. Do not generate ad or email copy from
+it without checking `src/config/product.ts` first.**
+
+`objection-bank.md` Objections 4 and 10 both frame the offer as a one-time $38
+single purchase. The live offer is:
+
+| Tier | Price | Note |
+|---|---|---|
+| 1 bottle | $38 | |
+| **2 bottles** | **$68** | MOST POPULAR — **PDP default** |
+| Subscribe & Save | $35 | every delivery, every 6 weeks |
+| Shipping | **Free on all orders** | no threshold |
+
+**`src/config/product.ts` is the pricing source of truth for all ad and email
+copy.** `npm run verify:pricing` reads the live Shopify plan and every variant and
+fails if the file disagrees with admin. The on-site shipping claim lives
+separately in `FREE_SHIPPING_PHRASE` (`src/config/legal.ts`) — quoting a stale
+threshold in an ad is an FTC Mail, Internet, or Telephone Order Rule mismatch.
+
+Copy should lead with the 2-pack, not the single: it is the PDP default and
+carries a **1.70x** breakeven ROAS against **1.86x** for the single (revised
+2026-08-12 on a measured packed weight and four quoted carrier lanes; the
+subscription tier is the worst at **1.99x**). The 2-pack's edge is structural —
+it ships two units inside one parcel, so shipping is 11.4% of revenue against
+18.7% on a single. See `kb/wiki/conversion-learnings.md` for the contribution
+table and `kb/wiki/shipping-economics.md` for the postage build.
+
+---
+
+## Ad Creative Engine (2026-08-12, installed from github.com/mikefutia/no-more-higgsfield, confidence: high)
+
+Pay-per-asset ad generation via fal.ai instead of subscription tools. Installed at
+`~/.claude/skills/ad-creative-engine/`; venv at `~/.config/ad-creative-engine/venv`.
+Requires a `FAL_KEY`.
+
+| Asset | Model | Cost |
+|---|---|---|
+| Static | GPT Image 2 (edit) | ~$0.061 quality medium / $0.219 high |
+| Video (cheap, silent) | Kling | low |
+| Video (UGC feel, native audio) | Seedance 2.0 | ~$1.51 per 5s @720p |
+
+Guardrails: quotes cost before firing, enforces a hard budget cap (default
+$3/session), logs every job to `generations/log.jsonl`.
+
+Brand foundation files are wired at `brand/brand-dna.md`, `brand/brand-voice.md`
+and `brand/icp-cards.md`, which route into `brand/references/` and `kb/wiki/`.
+Given the stale-pricing issue above, confirm any generated copy against
+`src/config/product.ts` before it ships.
+
+
+---
+
+## Image-Generation Routing, Measured (2026-08-12, higgsfield MCP vs. ad-creative-engine/fal.ai, confidence: high)
+
+| Path | Status | Cost | Use when |
+|---|---|---|---|
+| **fal.ai `fal-ai/nano-banana-pro`** via `ad-creative-engine` skill | **Working path** | ~$0.20/image | Photoreal human skin texture is the point of the shot |
+| GPT Image 2 @ `quality: "medium"` | Working | $0.061/image | Cheaper tier; wrong call for photoreal skin |
+| higgsfield MCP `recraft_v4_1` | **Blocked** — `403 job_minimum_basic_plan_required` | — | Account is on the free plan (10 credits); only budget models like `z_image` run |
+
+`nano-banana-pro` produced publication-grade skin texture (visible pores, fine lines, no stock-photo smile). Two images cost $0.40 actual against a $1.00 cap.
+
+**Gotcha:** the key must be sourced explicitly — `set -a; . ~/.config/fal/.env; set +a`. `FAL_KEY` is not in the ambient environment.
+
+---
+
 ## See Also
 
+- `kb/wiki/conversion-learnings.md` -- contribution margin and breakeven ROAS by tier
 - `kb/wiki/seo-strategy.md` -- SEO and content marketing strategy
 - `~/BaseLayer/marketing/ads/` -- full ad briefs, hooks, and variations
 - `~/BaseLayer/marketing/strategy/` -- launch playbook and conversion strategy

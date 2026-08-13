@@ -21,7 +21,9 @@ import { Button } from "@/components/ui/button";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 import ComparisonTable from "@/components/ComparisonTable";
+import ReviewsSection from "@/components/ReviewsSection";
 import StarRating from "@/components/StarRating";
+import { reviewAggregate } from "@/lib/reviews";
 import { merchantOfferFields } from "@/config/merchantSchema";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 
@@ -40,6 +42,20 @@ const PRODUCT_SCHEMA = {
     priceValidUntil: "2026-12-31",
     ...merchantOfferFields("38.00"),
   },
+  /*
+   * aggregateRating is spread in only once five real Judge.me reviews exist.
+   * Never emit it with reviewCount: 0 — Google's Rich Results Test treats that
+   * as an error on the Product itself, which can cost the whole rich result
+   * rather than just the stars. reviewAggregate zeroes below the gate, so this
+   * hides on exactly the same condition as <StarRating> and <ReviewsSection>.
+   */
+  ...(reviewAggregate.count > 0 && {
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: reviewAggregate.rating.toFixed(1),
+      reviewCount: reviewAggregate.count,
+    },
+  }),
 };
 
 const ingredients = [
@@ -81,13 +97,12 @@ const GALLERY = [
 
 const BUY_OPTIONS = AVAILABLE_TIERS;
 
-// F01 social-proof slot: there are zero real reviews yet. Sales opened
-// 2026-08-10, so reviews should start arriving — check before assuming 0.
-// Sanity's `product` schema already has `rating` / `reviewCount` fields
-// (see Product interface + getProductBySlug in src/lib/queries.ts) — wire
-// this constant to that query once real review data exists. count: 0
-// makes <StarRating> render nothing until then. Do not hardcode fake numbers.
-const PRODUCT_RATING = { rating: 0, count: 0 };
+// F01 social-proof slot, wired to Judge.me via src/lib/reviews.ts (data baked
+// in at build time by scripts/fetch-reviews.mjs). Reads {rating: 0, count: 0}
+// below REVIEW_GATE, which hides the rating link and keeps aggregateRating out
+// of the Product schema. Not sourced from Sanity's product.rating field, which
+// is hand-editable — the whole point is that no human can type this number.
+const PRODUCT_RATING = reviewAggregate;
 
 // Sourced from testimonialsData.ts rather than retyped, so the quote can't
 // drift from the homepage version. <TestimonialsSection /> lower on this page
@@ -101,8 +116,11 @@ const FaceCream = () => {
   const initialTier = getInitialTier(searchParams.get("offer"));
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(() => initialTier.id);
-  const [showStickyBottom, setShowStickyBottom] = useState(false);
+  // Mobile shoppers should never have to scroll just to find the purchase
+  // action. Start visible, hide only while the full buy-box CTA is on screen.
+  const [showStickyBottom, setShowStickyBottom] = useState(true);
   const ctaRef = useRef<HTMLButtonElement>(null);
+  const mobileGalleryRef = useRef<HTMLDivElement>(null);
   const addItem = useCartStore(s => s.addItem);
   // F07: the correctness fix for the cart(2)/$76 double-add lives in
   // cartStore.addItem, which now early-returns while a request is in flight —
@@ -151,18 +169,19 @@ const FaceCream = () => {
     });
 
     const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
-        setShowStickyBottom(true);
-      } else {
-        setShowStickyBottom(false);
-      }
-    });
+      setShowStickyBottom(!entry.isIntersecting);
+    }, { threshold: 0.15 });
     if (ctaRef.current) observer.observe(ctaRef.current);
     return () => observer.disconnect();
   }, []);
 
   const nextImage = () => setActiveImage((c) => (c + 1) % GALLERY.length);
   const prevImage = () => setActiveImage((c) => (c - 1 + GALLERY.length) % GALLERY.length);
+  const showMobileImage = (index: number) => {
+    const gallery = mobileGalleryRef.current;
+    if (!gallery) return;
+    gallery.scrollTo({ left: gallery.clientWidth * index, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-white text-[#1A2F4C]">
@@ -172,7 +191,7 @@ const FaceCream = () => {
       <main className="pt-24 pb-0">
         
         {/* ABOVE THE FOLD — TWO COLUMN LAYOUT */}
-        <section className="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-[55%_45%] lg:grid-cols-2 gap-[32px] lg:gap-[48px] py-8">
+        <section className="mx-auto grid max-w-[1200px] grid-cols-1 gap-0 md:grid-cols-[55%_45%] md:gap-[32px] md:px-6 md:py-8 lg:grid-cols-2 lg:gap-[48px] lg:px-12">
           
           {/* LEFT COLUMN: IMAGE GALLERY */}
           <div className="w-full flex-col gap-4 hidden md:flex">
@@ -210,8 +229,9 @@ const FaceCream = () => {
           </div>
 
           {/* MOBILE SWIPEABLE CAROUSEL */}
-          <div className="md:hidden relative w-full aspect-square bg-[#E2E8F0] overflow-hidden -mx-6 px-6 sm:mx-0 sm:px-0 sm:rounded-[2px]">
-            <div className="flex w-full h-full overflow-x-auto snap-x snap-mandatory hide-scrollbar"
+          <div className="relative aspect-square w-full overflow-hidden bg-[#E2E8F0] md:hidden">
+            <div ref={mobileGalleryRef} className="flex h-full w-full snap-x snap-mandatory overflow-x-auto hide-scrollbar"
+                 aria-label="Product image gallery"
                  onScroll={(e) => {
                    const scrollLeft = e.currentTarget.scrollLeft;
                    const width = e.currentTarget.clientWidth;
@@ -229,15 +249,24 @@ const FaceCream = () => {
                 </div>
               ))}
             </div>
-            <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-2">
+            <div className="absolute bottom-1 left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full bg-black/15 px-1 backdrop-blur-[2px]">
               {GALLERY.map((_, idx) => (
-                <div key={idx} className={`w-2 h-2 rounded-full ${activeImage === idx ? "bg-[#1A2F4C]" : "bg-white/60"}`} />
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => showMobileImage(idx)}
+                  aria-label={`Show product image ${idx + 1} of ${GALLERY.length}`}
+                  aria-current={activeImage === idx ? "true" : undefined}
+                  className="flex h-11 w-11 items-center justify-center"
+                >
+                  <span className={`h-2 w-2 rounded-full ring-1 ring-black/10 ${activeImage === idx ? "bg-[#1A2F4C]" : "bg-white/80"}`} />
+                </button>
               ))}
             </div>
           </div>
 
           {/* RIGHT COLUMN: BUY BOX */}
-          <div className="flex flex-col pt-4 md:pt-0 min-h-[500px] md:min-h-[600px]">
+          <div id="purchase-options" className="flex min-h-[500px] flex-col px-5 pb-8 pt-6 sm:px-8 md:min-h-[600px] md:px-0 md:pb-0 md:pt-0">
             {/* 1. Founding Price Badge */}
             <div className="flex items-center mb-3">
               <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-brand">Founding Price</span>
@@ -249,8 +278,29 @@ const FaceCream = () => {
               Performance Daily Face Cream
             </h1>
 
-            {/* 2b. Star Rating (renders nothing until real review data exists) */}
-            <StarRating rating={PRODUCT_RATING.rating} count={PRODUCT_RATING.count} />
+            {/* 2b. Judge.me rating summary — the "ranking widget" slot.
+                Jumps to the review block rather than being a dead badge: the
+                aggregate is the hook, the reviews are the proof, and a shopper
+                who reads the stars is already looking for them. Renders nothing
+                below the review gate, since reviewAggregate zeroes there. */}
+            {PRODUCT_RATING.count > 0 && (
+              <a
+                href="#reviews"
+                className="group mb-1 inline-flex w-fit items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A2F4C] focus-visible:ring-offset-2"
+                aria-label={`Rated ${PRODUCT_RATING.rating.toFixed(1)} out of 5 from ${PRODUCT_RATING.count} Judge.me ${PRODUCT_RATING.count === 1 ? "review" : "reviews"} — read them`}
+              >
+                <StarRating rating={PRODUCT_RATING.rating} />
+                <span className="font-body text-[13px] text-[#4A5568]">
+                  <span className="font-heading font-semibold text-[#1A2F4C]">
+                    {PRODUCT_RATING.rating.toFixed(1)}
+                  </span>
+                  <span className="mx-1.5 text-[#CBD5E1]">·</span>
+                  <span className="underline decoration-[#CBD5E1] underline-offset-[3px] transition-colors group-hover:decoration-[#1A2F4C]">
+                    {PRODUCT_RATING.count} {PRODUCT_RATING.count === 1 ? "review" : "reviews"}
+                  </span>
+                </span>
+              </a>
+            )}
 
             {/* 3. Short Desc */}
             <p className="font-body text-[15px] text-[#4A5568] mb-4">
@@ -283,7 +333,7 @@ const FaceCream = () => {
             </div>
 
             {/* 6. Quantity Selector */}
-            <div className="flex flex-row gap-[12px] mb-[20px] max-[380px]:flex-col" role="radiogroup" aria-label="Select quantity">
+            <div className="mb-[20px] grid grid-cols-3 gap-2 sm:gap-3" role="radiogroup" aria-label="Select quantity">
               {BUY_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
@@ -291,16 +341,16 @@ const FaceCream = () => {
                   role="radio"
                   aria-checked={quantity === opt.id}
                   onClick={() => setQuantity(opt.id)}
-                  className={`flex-1 p-[20px_16px] max-[380px]:p-[16px_12px] rounded-[2px] text-center relative cursor-pointer transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
+                  className={`relative min-w-0 cursor-pointer rounded-[2px] px-1.5 py-4 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:px-3 sm:py-5 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
                 >
                   {opt.badge && (
-                    <div className={`absolute -top-[10px] left-1/2 -translate-x-1/2 ${opt.badgeColor} text-white font-heading font-semibold text-[9px] tracking-[0.12em] uppercase px-[10px] py-[4px] rounded-[10px] whitespace-nowrap`}>
+                    <div className={`absolute -top-[10px] left-1/2 -translate-x-1/2 ${opt.badgeColor} whitespace-nowrap rounded-[10px] px-2 py-[4px] font-heading text-[8px] font-semibold uppercase tracking-[0.08em] text-white sm:px-[10px] sm:text-[9px] sm:tracking-[0.12em]`}>
                       {opt.badge}
                     </div>
                   )}
-                  <div className="font-heading font-bold text-[16px] text-[#1A2F4C] uppercase">{opt.label}</div>
-                  <div className="font-body font-medium text-[13px] text-[#6B7280]">{opt.duration}</div>
-                  <div className="font-heading font-extrabold text-[24px] text-[#1A2F4C] mt-[12px]">${opt.price}</div>
+                  <div className="font-heading text-[13px] font-bold uppercase leading-tight text-[#1A2F4C] sm:text-[16px]">{opt.label}</div>
+                  <div className="font-body text-[11px] font-medium leading-tight text-[#6B7280] sm:text-[13px]">{opt.duration}</div>
+                  <div className="mt-3 font-heading text-[21px] font-extrabold text-[#1A2F4C] sm:text-[24px]">${opt.price}</div>
                   {opt.savings > 0 ? (
                     <div className="font-body font-semibold text-[12px] text-[#2E7D32]">save ${opt.savings}</div>
                   ) : (
@@ -372,17 +422,21 @@ const FaceCream = () => {
         </section>
 
         {/* STICKY MOBILE CTA BAR */}
-        <div className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E2E8F0] p-[12px_16px] flex items-center justify-between transition-transform duration-300 ${showStickyBottom ? 'translate-y-0 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]' : 'translate-y-full'}`}>
+        <div
+          aria-hidden={!showStickyBottom}
+          className={`fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-[#E2E8F0] bg-white px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] transition-transform duration-300 md:hidden ${showStickyBottom ? 'translate-y-0' : 'pointer-events-none translate-y-full'}`}
+        >
           <div className="flex flex-col">
             <span className="font-heading font-bold text-[20px] text-[#1A2F4C] leading-none">${selectedOption.price}</span>
-            <span className="font-body text-[11px] text-[#ABB3BB] mt-1">Founding Price</span>
+            <span className="mt-1 font-body text-[11px] text-[#6B7280]">{selectedOption.label} · Free shipping</span>
           </div>
           <button
             disabled={isAddingToCart}
-            className="bg-brand text-white font-heading font-bold text-[13px] tracking-[0.1em] px-[24px] py-[14px] rounded-[4px] disabled:opacity-70 disabled:cursor-not-allowed"
+            tabIndex={showStickyBottom ? 0 : -1}
+            className="min-h-12 shrink-0 rounded-[4px] bg-brand px-5 py-3 font-heading text-[12px] font-bold uppercase tracking-[0.08em] text-white disabled:cursor-not-allowed disabled:opacity-70"
             onClick={() => handleAddToCart("sticky_mobile_cta")}
           >
-            {selectedOption.kind === "subscription" ? `SUBSCRIBE - $${selectedOption.price}` : `ADD TO CART - $${selectedOption.price}`}
+            {selectedOption.kind === "subscription" ? `SUBSCRIBE · $${selectedOption.price}` : `ADD ${selectedOption.label} · $${selectedOption.price}`}
           </button>
         </div>
 
@@ -469,7 +523,10 @@ const FaceCream = () => {
           </div>
         </section>
 
-        {/* 6. WHAT GUYS ACTUALLY NOTICE (Import from newly redesigned component) */}
+        {/* 6. CUSTOMER REVIEWS (Judge.me — renders nothing below 5 reviews) */}
+        <ReviewsSection />
+
+        {/* 7. WHAT GUYS ACTUALLY NOTICE (Import from newly redesigned component) */}
         <TestimonialsSection />
 
         <ComparisonTable />

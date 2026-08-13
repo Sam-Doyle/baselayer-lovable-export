@@ -2,8 +2,8 @@
 title: Brand Identity & Voice
 domain: brand
 created: 2026-04-03
-last_compiled: 2026-04-03
-revision: 1
+last_compiled: 2026-08-12
+revision: 2
 sources: [_brand-context.md, voice/tone-rules.md, voice/copy-patterns.md, identity/identity.md, identity/photography.md, guidelines/BaseLayer_Brand_Guidelines.md, HeroSection.tsx]
 ---
 
@@ -440,3 +440,19 @@ Before delivering any brand output, verify:
 4. **Product accuracy:** Correct price ($38 founding / $48 retail)? Correct claims (15 seconds, matte, fragrance-free)? No unsubstantiated claims?
 5. **Compliance:** No "clinically proven" without trial data? Cosmetic classification (not drug)? Claims use "helps", "supports", "designed to" language?
 6. **Logo:** Orange period present and round? Wordmark at Montserrat 800 (heavy), not a lighter weight? Clear space maintained? No effects or distortions?
+
+---
+
+## Imagery Rules for Advertorials (2026-08-12)
+
+### Never generate synthetic product shots (source: ConcentrationTest.tsx image-scope decision, confidence: high)
+
+The product and its packaging are real. A synthesized bottle on a page arguing *"we print what's actually on the label"* undercuts the argument and sits close to the no-invented-proof rule in `src/pages/advertorials/CLAUDE.md`.
+
+**Working split:** real photography (`src/assets/product-source/`) for anything showing the product; generated imagery only for editorial context that cannot misrepresent it — target-demo portraits, environments, abstract category visuals. Generated models also can't render text reliably, so any argument resting on a printed label has to use the real `bottle-back-ingredients.webp`.
+
+### Preset C's accent hex fails the contrast gate (source: src/pages/advertorials/CLAUDE.md vs. tailwind.config.ts, confidence: high)
+
+Advertorial Preset C ("Consumer Report") specifies `#E53E3E` for emphasis. That is **~3.9:1 on white** and fails the gate documented in `tailwind.config.ts` — any accent must clear **4.5:1** against white before shipping, and raw hexes are banned in favour of the `brand-accent` (#C4470E, 4.94:1) / `brand-accent-on-dark` (#FF7034) pair.
+
+The token system wins. Preset C's identity survives on stark black-on-white, heavy Montserrat and a 700px measure without that specific red. **Action outstanding: amend the preset spec in `src/pages/advertorials/CLAUDE.md` to name the token rather than a failing hex**, or the next build re-introduces the same conflict.

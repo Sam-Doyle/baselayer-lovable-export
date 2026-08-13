@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-sitemap.mjs && vite build",
+    "build": "node scripts/generate-sitemap.mjs && node scripts/fetch-reviews.mjs && vite build",
     "build:sitemap": "node scripts/generate-sitemap.mjs",
+    "build:reviews": "node scripts/fetch-reviews.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "typecheck": "tsc -b --force",
@@ -74,6 +75,7 @@
     "vaul": "^0.9.9",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-image-optimizer": "^2.0.3",
+    "web-vitals": "^5.3.0",
     "zod": "^3.25.76",
     "zustand": "^5.0.11"
   },

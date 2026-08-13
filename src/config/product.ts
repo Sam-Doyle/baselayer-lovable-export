@@ -32,8 +32,34 @@ const SELLING_PLAN_GID: string | null = "gid://shopify/SellingPlan/2934145095";
  * Betting on flat is a bet on retention past six months, which is also the
  * business we say we're in.
  *
- * At $35 the contribution is $18.19 on COGS $10 plus ~$5.50 landed shipping and
- * 2.9% + $0.30 in fees — 52.0% margin, breakeven ROAS 1.93x.
+ * At $35 the contribution is $17.57 on COGS $9 plus $7.12 landed shipping and
+ * 2.9% + $0.30 in fees — 50.2% margin, breakeven ROAS 1.99x.
+ *
+ * That figure took three corrections on 2026-08-12 and the sequence is the point.
+ * It started at $18.19 / 52.0% / 1.93x on an *assumed* $5.50 landed shipping.
+ * Rebuilding from published carrier tables gave $8.10 — worse, and it caught a
+ * live error, because media bought against 1.93x when breakeven was really 2.11x
+ * loses money on everything in that band. Weighing a packed unit (82 g, carton
+ * plus filled airless pump) dropped it to $7.46: at 82 g plus an ~8 g 9x12 poly
+ * mailer the parcel is 90 g / 3.17 oz and clears the USPS Ground Advantage 4 oz
+ * tier, not the 8 oz tier the tables were read against. Finally, quoting four
+ * real Shopify Shipping lanes landed it at $7.12 — $5.78 blended postage plus
+ * ~$1.34 in mailer, label, insert and tape.
+ *
+ * Each step replaced an assumption with a measurement and each one moved the
+ * number more than any pricing decision in this file. Two of the three estimates
+ * were wrong in the *direction that flattered us*, which is the failure mode to
+ * watch for.
+ *
+ * Note the error only ever bit single-unit tiers. The 2-pack ships two units in
+ * one 8 oz parcel, so shipping is 11.4% of revenue against 18.7% on a single, and
+ * contribution is $39.98 (58.8%, breakeven 1.70x). That spread, not a shipping
+ * fee, is the reason the PDP defaults to the 2-pack.
+ *
+ * Container confirmed as the airless pump on 2026-08-12, so 82 g is the shipped
+ * weight of the real Batch 01 unit and these figures are final until the carton
+ * or fill changes. The earlier note here doubted the pump because a ~58 g bottle
+ * estimate wouldn't fit 82 g — the estimate was wrong, not the scale.
  *
  * This number must match the selling plan in Shopify admin, which is the only
  * place the price is actually set — the Storefront token here is read-only and

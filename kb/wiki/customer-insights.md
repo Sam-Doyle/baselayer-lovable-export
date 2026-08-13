@@ -3,7 +3,7 @@ title: Customer Insights & Objections
 domain: brand
 created: 2026-04-03
 last_compiled: 2026-08-12
-revision: 2
+revision: 3
 sources: [TestimonialsSection, FAQSection, FaceCream.tsx, research/audience/icp-core.md, research/audience/objection-bank.md, research/audience/segments.md, research/REDDIT_SENTIMENT_AND_REAL_DISCUSSIONS.md, subagent code audit]
 ---
 
@@ -241,6 +241,23 @@ From Reddit research, four recurring narratives lead men to their first skincare
 4. **The Social Proof Loop:** Posts before/after on Reddit, gets peer validation, shifts from skeptic to advocate.
 
 **Key insight:** Men almost never start skincare from internal motivation. There is always an external trigger -- a person, a photo, or a professional. Marketing should target the trigger moment, not general awareness.
+
+
+---
+
+## Shopper Expectations for Product Reviews (2026-08-12, /last30days reviews-app research — PissedConsumer + WiserReview 2026 statistics compilations, confidence: medium)
+
+Several of these cut against instinct and directly constrain how the PDP review block is designed. **Confidence is medium** — these are aggregator compilations of third-party studies, not primary sources, and the round-number consistency across sites suggests a shared upstream citation.
+
+1. **The optimal rating band is 4.0–4.7 stars.** Below 4.0 suppresses demand; above 4.7 triggers authenticity skepticism. A perfect 5.0 *actively hurts* conversion — which means a handful of 3- and 4-star reviews is an asset, not a leak.
+2. **70% of consumers need at least five reviews before trusting a business at all.** The meaningful threshold isn't "some reviews," it's five. This argues for hiding the review block entirely below that count rather than showing a thin one — implemented as `REVIEW_GATE = 5` in `src/lib/reviews.ts`.
+3. **82% actively seek out negative reviews to establish credibility**, and 33% say they'd rather trust a brand with negative reviews if the brand responded constructively. Filtering or reordering by rating is a conversion mistake on top of being an FTC 16 CFR 465 problem.
+4. **Recency expectations are severe: 85% say reviews older than three months are no longer relevant; 44% expect one from within the last month.** Review collection is a standing process, not a launch task.
+5. **62% are more likely to buy when customer photos/video are present**, and UGC-heavy reviews correlate with ~15% fewer returns. Hence photo-first sorting in `scripts/fetch-reviews.mjs`.
+
+Beauty-specific finding from prior KB research still holds: filterable reviews by skin type/age/concern outperform an unsegmented block.
+
+**Cross-reference:** this article already records a "4.8/5 · 1,000+ customers" claim that was live and false. The build-time pipeline in `kb/wiki/site-architecture.md` exists so that no rating number can be typed by hand — the aggregate comes from the Judge.me API or it doesn't render.
 
 ---
 

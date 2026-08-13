@@ -16,16 +16,18 @@ import { getStoredConsent, setConsent, onConsentReviewRequest, type ConsentChoic
  * the dark pattern the EDPB guidance on cookie banners calls out — don't
  * reintroduce that asymmetry here.
  *
- * Mounted once in App.tsx. Renders nothing until an effect confirms there's
- * no stored decision (or the footer's "Cookie Preferences" link asks to
- * reopen it) — no localStorage read happens during the initial render, so
- * this is safe under the Puppeteer prerender in vite.config.ts.
+ * Mounted once in App.tsx. The prerendered HTML includes the banner, so the
+ * first client render does too; the effect immediately hides it for a
+ * returning visitor with a stored decision. Matching the prerender avoids a
+ * full-root hydration fallback (and its large layout shift) for new visitors.
  */
 const CookieConsentBanner = () => {
-  const [visible, setVisible] = useState(false);
+  // Apply an existing choice during the first client render. Starting at true
+  // and correcting in an effect flashes the prerendered banner for returning
+  // visitors before React has a chance to hide it.
+  const [visible, setVisible] = useState(() => getStoredConsent() === null);
 
   useEffect(() => {
-    setVisible(getStoredConsent() === null);
     return onConsentReviewRequest(() => setVisible(true));
   }, []);
 
@@ -44,7 +46,7 @@ const CookieConsentBanner = () => {
     >
       <div className="mx-auto flex max-w-[1200px] flex-col items-stretch gap-1.5 px-4 py-2 md:flex-row md:items-center md:gap-6 md:px-8 md:py-3">
         <p className="flex-1 font-body text-[12px] leading-[1.45] text-[#1A2F4C]/80 md:text-[13px]">
-          Optional cookies help us improve the site and measure ads. Required cookies stay on.{" "}
+          Optional cookies measure site performance. Required cookies stay on.{" "}
           <Link to="/privacy-policy" className="font-semibold text-[#1A2F4C] underline underline-offset-3 hover:no-underline">
             Privacy details
           </Link>

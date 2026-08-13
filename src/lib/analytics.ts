@@ -1,4 +1,14 @@
 import { hasAnalyticsConsent } from "@/lib/consent";
+import type { Metric } from "web-vitals";
+
+interface MetaPixelFunction {
+  (...args: unknown[]): void;
+  callMethod?: (...args: unknown[]) => void;
+  loaded: boolean;
+  push: MetaPixelFunction;
+  queue: unknown[][];
+  version: string;
+}
 
 let _supabase: typeof import("@/integrations/supabase/client")["supabase"] | null = null;
 
@@ -252,6 +262,39 @@ export function fireInitialCapiPageView(): void {
 }
 
 let _analyticsScriptsInitialized = false;
+let _webVitalsInitialized = false;
+
+/**
+ * Records real-user Core Web Vitals after analytics consent. Keeping the
+ * library behind a dynamic import prevents measurement code (and Supabase,
+ * which trackEvent loads only when it writes) from entering the critical
+ * homepage bundle.
+ */
+export function initWebVitalsReporting(): void {
+  if (analyticsBlocked() || _webVitalsInitialized) return;
+  _webVitalsInitialized = true;
+
+  void import("web-vitals")
+    .then(({ onCLS, onINP, onLCP }) => {
+      const report = (metric: Metric) => {
+        void trackEvent("web_vital", {
+          metric_name: metric.name,
+          value: metric.value,
+          delta: metric.delta,
+          rating: metric.rating,
+          metric_id: metric.id,
+          navigation_type: metric.navigationType,
+        });
+      };
+
+      onCLS(report);
+      onINP(report);
+      onLCP(report);
+    })
+    .catch(() => {
+      _webVitalsInitialized = false;
+    });
+}
 
 /** Loads GA4 (gtag.js) and the Meta Pixel and fires their first page_view /
  *  PageView. Consent-gated, and safe to call more than once — the GA4 and
@@ -292,10 +335,11 @@ export function initAnalyticsScripts(): void {
   // ── Meta Pixel ──
   if (!w.fbq) {
     const f = w;
-    const n = (f.fbq = function () {
-      // eslint-disable-next-line prefer-rest-params
-      n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-    });
+    const n = ((...args: unknown[]) => {
+      if (n.callMethod) n.callMethod(...args);
+      else n.queue.push(args);
+    }) as MetaPixelFunction;
+    f.fbq = n;
     if (!f._fbq) f._fbq = n;
     n.push = n;
     n.loaded = true;

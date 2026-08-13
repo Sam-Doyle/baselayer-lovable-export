@@ -1,21 +1,15 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import MidPageCTA from "@/components/MidPageCTA";
 import StickyMobileCTA from "@/components/StickyMobileCTA";
+import ProofStrip from "@/components/ProofStrip";
+import ScrollProgressBar from "@/components/ScrollProgressBar";
 import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
 import { merchantOfferFields } from "@/config/merchantSchema";
 
-const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
-const FAQSection = lazy(() => import("@/components/FAQSection"));
-const WhyMensSkinSection = lazy(() => import("@/components/WhyMensSkinSection"));
-const OurOriginSection = lazy(() => import("@/components/OurOriginSection"));
-const Footer = lazy(() => import("@/components/Footer"));
-const ProofStrip = lazy(() => import("@/components/ProofStrip"));
-const IngredientsShowcase = lazy(() => import("@/components/IngredientsShowcase"));
-const ScrollProgressBar = lazy(() => import("@/components/ScrollProgressBar"));
+const HomeBelowFold = lazy(() => import("@/components/HomeBelowFold"));
 
 const REVIEW_SCHEMA = {
   "@context": "https://schema.org",
@@ -39,46 +33,78 @@ const REVIEW_SCHEMA = {
 };
 
 const Index = () => {
+  const [showBelowFold, setShowBelowFold] = useState(false);
+
   useCanonical();
   useMetaTags({
     title: "Base Layer Skin | Built in CO for Harsh Elements",
     description: "One lightweight face moisturizer for men that hydrates, calms post-shave irritation, controls shine, and helps improve texture. Absorbs fast. No greasy finish.",
   });
 
+  useEffect(() => {
+    let idleId: number | undefined;
+    let fallbackId: number | undefined;
+    let revealed = false;
+
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      setShowBelowFold(true);
+    };
+
+    const scheduleAfterLoad = () => {
+      // Keep this chunk out of the LCP window even when requestIdleCallback
+      // fires eagerly on a quiet main thread. Immediate scroll/touch/pointer
+      // intent still bypasses the delay through the listeners below.
+      fallbackId = setTimeout(() => {
+        if ("requestIdleCallback" in window) {
+          idleId = (window as Window & {
+            requestIdleCallback: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+          }).requestIdleCallback(reveal, { timeout: 1000 });
+        } else {
+          reveal();
+        }
+      }, 3000) as unknown as number;
+    };
+
+    const intentOptions: AddEventListenerOptions = { passive: true, once: true };
+    window.addEventListener("scroll", reveal, intentOptions);
+    window.addEventListener("touchstart", reveal, intentOptions);
+    window.addEventListener("pointerdown", reveal, intentOptions);
+
+    if (document.readyState === "complete") scheduleAfterLoad();
+    else window.addEventListener("load", scheduleAfterLoad, { once: true });
+
+    return () => {
+      window.removeEventListener("load", scheduleAfterLoad);
+      window.removeEventListener("scroll", reveal);
+      window.removeEventListener("touchstart", reveal);
+      window.removeEventListener("pointerdown", reveal);
+      if (idleId !== undefined && "cancelIdleCallback" in window) {
+        (window as Window & { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+      }
+      if (fallbackId !== undefined) window.clearTimeout(fallbackId);
+    };
+  }, []);
+
   return (
     <main className="min-h-screen bg-background overflow-x-hidden">
       <JsonLd data={[REVIEW_SCHEMA]} />
       <ScrollDepthTracker />
       <SectionViewTracker />
-      <Suspense fallback={null}>
-        <ScrollProgressBar />
-      </Suspense>
+      <ScrollProgressBar />
 
       <Navbar />
 
       <HeroSection />
       <StickyMobileCTA />
 
-      <Suspense fallback={null}>
-        <ProofStrip />
-        <WhyMensSkinSection />
-        <IngredientsShowcase />
-        <MidPageCTA
-          headline="EVERYTHING YOUR SKIN NEEDS. NOTHING IT DOESN'T."
-          subhead="6 active ingredients. Clinical concentrations. Limited founding batch at $38."
-          ctaLabel="GET BASE LAYER · $38 →"
-          source="home_mid_ingredients"
-          theme="dark"
-        />
-        <TestimonialsSection />
-        <div className="content-auto">
-          <FAQSection />
-        </div>
-        <div className="content-auto">
-          <OurOriginSection />
-        </div>
-        <Footer />
-      </Suspense>
+      <ProofStrip />
+      {showBelowFold && (
+        <Suspense fallback={null}>
+          <HomeBelowFold />
+        </Suspense>
+      )}
     </main>
   );
 };

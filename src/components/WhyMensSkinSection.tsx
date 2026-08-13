@@ -218,13 +218,14 @@ const WhyMensSkinSection = () => {
         <div className="order-1 md:order-2 w-full md:w-1/2 lg:w-[55%] px-8 md:px-0 mb-8 md:mb-0 relative">
           <div className="md:sticky md:top-[100px] overflow-hidden rounded-lg aspect-[4/3] md:aspect-auto md:h-full max-h-[85vh]">
             <picture className="w-full h-full block">
-              <source type="image/webp" srcSet="/images/benefits-face-closeup.webp" />
+              <source type="image/webp" srcSet={isVisible ? "/images/benefits-face-closeup.webp" : undefined} />
               <img
-                src="/images/benefits-face-closeup.png"
+                src={isVisible ? "/images/benefits-face-closeup.png" : undefined}
                 alt="Base Layer Performance Benefits"
                 className="w-full h-full object-cover object-[center_top] md:object-[left_center] transition-all duration-600 ease-in-out"
                 style={{ filter: getFilterStyle(openIndex) }}
                 loading="lazy"
+                decoding="async"
                 width="720"
                 height="900"
                 sizes="(max-width: 768px) 100vw, 55vw"

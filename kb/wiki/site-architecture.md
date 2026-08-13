@@ -3,7 +3,7 @@ title: Site Architecture
 domain: technical
 created: 2026-04-03
 last_compiled: 2026-08-12
-revision: 2
+revision: 3
 sources: [package.json, vite.config.ts, App.tsx, netlify.toml, tailwind.config.ts, tsconfig.json, analytics.ts, sanity.ts, netlify _redirects, live Storefront API testing, production debugging, /last30days research, Sanity assets API]
 codePaths:
   - src/App.tsx
@@ -232,6 +232,8 @@ Base Layer's checkout runs through the Shopify Storefront API rather than the or
 
 **Interim mitigation:** Netlify `/cart/c/*` passthrough rules added as a backstop.
 
+**RESOLVED 2026-08-12** (source: live Judge.me API probing, which required reading the store's domain settings). Option 2 shipped — the Shopify primary domain is now `shop.baselayerskin.co`. Both myshopify handles (`kpfzdg-kw.myshopify.com` and the `base-layer-skin.myshopify.com` alias) 301 there. The "requires Shopify admin action" framing above is historical; treat the redirect loop as closed.
+
 **Also noted:** only one Shopify variant existed as of 2026-07-06 (1-bottle, $38); 2/3-bottle tiers were hidden in `src/config/product.ts` pending variant creation and GID pasting.
 
 ### Netlify Deploy Gotchas (2026-07-08, production debugging — CSP fix never deployed)
@@ -401,3 +403,68 @@ Unknown routes fall back to `__shell.html` (generic SPA shell with no page-speci
 - OG tags (title, description, image, type, url) injected per-page
 - Twitter card meta tags injected per-page
 - `sitemap.xml` generated at build time with all static + dynamic URLs
+
+---
+
+## Product Reviews on a Headless Storefront (2026-08-12, rev 3)
+
+### Vendor selection is a narrower question than the roundups suggest
+
+Source: `/last30days` reviews-app research — vendor docs + 2026 comparison roundups. Confidence: high.
+
+Generic "best Shopify reviews app" lists are close to useless here, because **theme app extensions — the delivery mechanism nearly every review app relies on — do not exist on a Vite SPA.** The only criterion that matters is whether the vendor exposes a public read API.
+
+| Vendor | Headless story | Pricing | Verdict |
+|---|---|---|---|
+| **Judge.me** | REST API v1 + explicitly documented "platform-independent widgets" for the Shopify-backend/non-Shopify-pages case | Free tier includes photo+video reviews, unlimited review requests, SEO rich snippets. $15/mo flat above | **Chosen** |
+| Okendo | Strongest architecture of the field — Storefront REST API, `@okendo/shopify-hydrogen` npm package, React and Vue reference implementations | Headless requires the **Advanced** plan; scales by order volume (free ≤50 orders → $19 → $119 → $299 at 10k) | Right answer at scale, wrong price now |
+| Loox | None documented | — | Out |
+| Yotpo / Stamped | — | $169+ quote-gated / $59–199 | Priced for a stage Base Layer isn't at |
+| Trustpilot | — | ~$199/mo entry, onboarding in days-to-weeks | Solves brand reputation across channels, **not** product reviews on a PDP. Wrong tool for a one-SKU pre-scale brand |
+
+**Compliance constraint that shapes the build regardless of vendor:** the FTC Consumer Reviews Rule (**16 CFR 465**) has been enforceable since Oct 2024, penalties up to ~$53k/violation, warning letters issued Dec 2025. Incentivized reviews are lawful only when the incentive is disclosed clearly and conspicuously **in or beside the review** AND is **not conditioned on sentiment**. Suppressing or reordering reviews by rating is a violation. See `kb/wiki/customer-insights.md` for why it's also a conversion mistake.
+
+### Judge.me API facts the public docs get wrong or omit
+
+Source: live API probing against the Base Layer store, 2026-08-12. Confidence: high. These cost about an hour to establish; don't re-derive them.
+
+1. **The public token cannot read reviews.** `GET https://api.judge.me/api/v1/reviews` returns **403 "You are using a public token which does not have enough permissions"** for the public token, 200 for the private one. Judge.me's help centre describes the public token as "suitable for making GET requests to our widget API" — the *widget* API, not the REST review API. Two consequences: reviews cannot be fetched from a browser at all, which makes the build-time fetch **architecturally required** rather than merely a prerender optimisation; and `JUDGEME_PRIVATE_TOKEN` must never carry a `VITE_` prefix, since Vite inlines those into the client bundle.
+2. **API access is not plan-gated.** It works on the free plan — the $15/mo Awesome tier is not required for the integration.
+3. **`shop_domain` is `kpfzdg-kw.myshopify.com`** — Shopify's original auto-generated handle. Not `base-layer-skin.myshopify.com` (the alias `VITE_SHOPIFY_DOMAIN` uses for the Storefront API) and not the `shop.baselayerskin.co` primary domain. All three reach the same store; **only the original handle authenticates against Judge.me.**
+4. **Judge.me returns an identical 401 "Shop domain or Api Token is wrong" for a bad domain and a bad token.** A domain mismatch reads exactly like a credential problem. Check the domain first — it's printed on the same Settings → Integrations page as the tokens.
+
+### The theme app embed is a red herring; collection flow is the real dependency
+
+Source: Judge.me collection-flow docs + observed theme-app-embed behaviour on a headless store. Confidence: high.
+
+Judge.me's install toggles a "Core Snippet" app embed into the Shopify theme. On this stack **that theme is never served** (both myshopify handles 301 to the primary domain, which DNS points at Netlify), so the embed injects script into a page no shopper loads. It is inert, not harmful, and disabling it buys nothing — Judge.me treats it as its install signal.
+
+What actually matters is **`Settings → Collection flow` → "Where customer gets redirected when writing reviews from emails" → set to "External form."** Left on the default "In-store review form," every review request email deep-links into the dead theme and the customer lands on the homepage with no form, **silently wasting the request.** Available on all plans, needs no widget.
+
+**Generalises beyond Judge.me:** when evaluating any review/UGC app for a headless store, the question is never "does it have a theme block" but *"can review collection complete without touching the theme, and can the data be read server-side."*
+
+Cold-start tool: `Settings → Request reviews → Links, QR codes` generates a widget-free shareable review link. It is **public by design** — anyone holding it can submit — so do not put it anywhere indexable.
+
+### Research-method note: `/last30days` is the wrong instrument here
+
+Source: two full `/last30days` runs on the reviews-app topic, 2026-08-12. Confidence: high.
+
+Both runs returned effectively zero signal. Reddit 403'd on every targeted subreddit (r/shopify, r/ecommerce, r/shopifyDev, r/ShopifyeCommerce, r/bigseo, plus the global search endpoint), X surfaced three marginally relevant posts across both runs, and the topic keyword "Judge" poisoned Polymarket with county-judge elections and Aaron Judge prop markets. The usable answer came entirely from vendor documentation via WebSearch.
+
+**Rule:** tooling/vendor selection lives in docs and blogs, not in 30 days of social chatter — lead with WebSearch and use the social pipeline only for sentiment on things people actually argue about (creative, pricing changes, platform policy shifts). Also note the Reddit 403s look like a persistent block on the public JSON endpoints rather than transient rate limiting, and no ScrapeCreators key is configured as a backup (`INCLUDE_SOURCES=none`) — **Reddit is currently dark for this skill regardless of topic.**
+
+### As-built integration
+
+- `scripts/fetch-reviews.mjs` — runs in `npm run build` before `vite build`. Paginates all published reviews, computes the aggregate across the full set, sorts photo-first then newest, writes the top 50 to `src/data/reviews.json`. **Never fails the build**: any error warns and exits 0, leaving the committed snapshot in place, so a Judge.me outage degrades to last-known-good rather than an empty page.
+- `src/lib/reviews.ts` — single source of truth. `REVIEW_GATE = 5`; below it the aggregate is zeroed and the list is empty, so the section, the star rating and the JSON-LD all hide on one condition.
+- `src/components/ReviewsSection.tsx` — PDP block. Verified badge renders only when Judge.me confirms the buyer.
+- `vite.config.ts` — `REVIEW_AGGREGATE` reads the same snapshot at config load and spreads `aggregateRating` into the three SEO landing-route Product schemas. The gate is duplicated there and **must stay in sync** with `src/lib/reviews.ts`.
+- CSP: `img-src` must allow **`https://review-images.judgeme.com`** — that is the host Judge.me actually serves review photos from, confirmed against live review data on 2026-08-12. Judge.me's docs point at `judgeme.imgix.net` / `cdn.judge.me`; those are kept in the allowlist but **were not sufficient on their own and would have blocked every review photo in production.** This lives in **both** `netlify.toml` and `public/_headers` — separate files, must be edited together.
+
+### Verified badges depend on order matching, not on the review existing
+
+First real data (2026-08-12): four reviews arrived with **`verified: false` on all four.** Judge.me only sets the verified-buyer flag when it can tie the reviewer to a confirmed order — reviews submitted through a shared review link carry no order, so no badge renders. This is the practical argument for setting Collection flow → External form and driving requests off real orders: unverified reviews still display, but they forfeit the single strongest trust signal on the block.
+
+Also note the aggregate at this point is **5.0**, above the 4.7 authenticity-skepticism ceiling in `kb/wiki/customer-insights.md`. A perfect average is a conversion liability, not a win.
+
+**FTC exposure to watch:** reviews authored by the founder, employees, or their households are insider reviews under 16 CFR 465 and require clear and conspicuous disclosure of the material connection — the same rule that governs incentivized reviews. Check reviewer identities before a review block goes live.

@@ -102,7 +102,7 @@ codePaths:
 - **Founding price:** $38 (displayed on site as primary price)
 - **Retail / strikethrough price:** $48 (displayed as line-through on HeroSection and StickyCartBar)
 - **Discount framing:** "21% off" (StickyCartBar)
-- **Shipping:** Free over $50, standard $5.99, express $9.99
+- **Shipping:** Free on all orders, no threshold (2026-08-12). The "free over $50 / $5.99 standard / $9.99 express" structure above it was built and then removed in commit `fb4814a`; `freeShippingOnAllOrders: true` in `src/config/legal.ts` is the source of truth and `FREE_SHIPPING_PHRASE` exists so the claim is stated once.
 
 ### Price Anchoring on Site
 
@@ -120,16 +120,53 @@ codePaths:
 - **Batch 02 (month 4-5):** Raise to $48 retail
 - **Repeat purchases at $48:** Second purchase at retail price, lower shipping cost, $0 CAC
 
-### Unit Economics at $38
+### Unit Economics (revised 2026-08-12, verified shipping cost)
 
-| Line Item | Per Unit | Total (1,000 units) |
-|-----------|----------|---------------------|
-| Revenue | $38.00 | $38,000 |
-| Total COGS | ($12.00) | ($12,000) |
-| Gross Margin | $26.00 (68.4%) | $26,000 |
-| Total Fulfillment | ($7.00) | ($7,000) |
-| Contribution Margin (pre-marketing) | $19.00 (50%) | $19,000 |
-| **Breakeven CAC** | **$19** | -- |
+COGS $9/bottle (product landed into the carton). Shipping is USPS Ground Advantage
+from Denver at a zone-blended below-Commercial rate plus mailer/label/insert/tape.
+Fees are Shopify Payments 2.9% + $0.30.
+
+| Line Item | 1 bottle $38 | 2-pack $68 | Subscribe $35 |
+|-----------|-------------|-----------|--------------|
+| Revenue | $38.00 | $68.00 | $35.00 |
+| COGS | ($9.00) | ($18.00) | ($9.00) |
+| Shipping (landed) | ($7.12) | ($7.75) | ($7.12) |
+| Payment fees | ($1.40) | ($2.27) | ($1.32) |
+| **Contribution margin** | **$20.48 (53.9%)** | **$39.98 (58.8%)** | **$17.57 (50.2%)** |
+| Shipping as % of revenue | 18.7% | 11.4% | 20.3% |
+| **Breakeven ROAS** | **1.86x** | **1.70x** | **1.99x** |
+
+USPS tier detail, rebuilt 2026-08-12 on a **measured** 82 g packed unit (carton +
+filled airless pump) in the 9x12 plain poly mailer actually bought (~8 g,
+$0.0433/ea): 1 bottle ships 90 g / 3.17 oz → **4 oz tier**; 2 bottles ship
+172 g / 6.07 oz → **8 oz tier**. The second bottle costs $0.63 more to ship and
+earns $30 more revenue, which is the whole argument for the 2-pack PDP default.
+
+Postage is **$5.78 blended for the single, from four quoted Shopify Shipping
+rates** (Berkeley $5.48, NYC $5.62, Juneau $5.97, rural MT $7.46) at a 12% rural
+weighting. Two findings from those quotes reshaped the model: **zone is nearly
+irrelevant** ($0.14 across Zone 5 → Zone 7) and **rural ZIPs are the only material
+variable** (+36%). The 2-pack's $6.22 is still derived rather than quoted — the
+last estimate in this table.
+
+**Supersedes two prior versions.** The original table (COGS $12, fulfillment $7,
+CM $19.00, breakeven CAC $19) omitted payment fees and assumed $5.50 landed
+shipping. The first correction rebuilt shipping from carrier rate tables at
+$8.10/$8.49 — which caught a real error, since the subscription's breakeven was
+2.11x against a claimed 1.93x. This version replaces the estimate with a scale
+reading and drops both tiers a USPS band. **Rule: do not model unit economics on
+an unweighed parcel.**
+
+✅ **Container confirmed as the airless pump** (Sam, 2026-08-12), so 82 g is the
+real Batch 01 shipped weight and the table above is final until the carton or fill
+changes. A briefly-held doubt — that 82 g implied a tube — came from a ~58 g
+empty-bottle estimate that was ~30 g too heavy, not from the measurement.
+
+⚠️ **Open item:** the $12 COGS above and the $10 in `src/config/product.ts` both
+predate the $9 figure Sam gave on 2026-08-12, which is used here. Confirm whether
+$9 and $12 are measuring the same scope — if the old $12 included shipper
+materials, the two are closer than they look. Every CM figure on this page moves
+dollar-for-dollar with that number.
 
 ### Waitlist Incentive
 

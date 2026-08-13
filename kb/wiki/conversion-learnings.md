@@ -3,8 +3,8 @@ title: Conversion Learnings
 domain: conversion
 created: 2026-08-12
 last_compiled: 2026-08-12
-revision: 1
-sources: [experiments, code, research]
+revision: 4
+sources: [experiments, code, research, verified USPS + SupplyHut landed shipping cost rebuild, measured packed-unit weight 2026-08-12]
 ---
 
 # Conversion Learnings
@@ -34,7 +34,49 @@ Base Layer moved the PDP default from the $38 single bottle to the $68 2-pack an
 
 > ⚠️ **SUPERSEDED 2026-08-12 — the $50 threshold no longer exists.** Commit `fb4814a` ("free shipping on all orders, subscription discount moves to retention") removed it; `814c647` had introduced it one commit earlier. Shipping is now unconditional on every order and the subscription discount is a retention lever rather than a shipping exemption. Code truth is `FREE_SHIPPING_PHRASE` in `src/config/legal.ts`, which exists specifically so this phrase is stated once — a stale "free shipping over $50" anywhere on the site is an FTC Mail/Internet/Telephone Order Rule mismatch. The 2-pack contribution economics above still hold and still justify the $68 default; only the threshold mechanism is dead, and the "watch metric" note is now moot. (2026-08-12, git log + src/config/legal.ts)
 
-*Cross-reference: see the "Breakeven Math" subsection of `kb/wiki/ad-strategy.md` for the general breakeven-ROAS formula this analysis applies.*
+> ⚠️ **CORRECTED 2026-08-12 — the contribution figures above are overstated on single-unit tiers.** The `$5.50 landed shipping` input was an estimate and is wrong. Verified cost from Denver is **$8.10**: USPS Ground Advantage 8 oz tier at a $6.59 zone-blended below-Commercial rate (12% rural weighting) plus ~$1.51 in mailer, label, insert and tape. With COGS at $9 (Sam, 2026-08-12, superseding the $10 modelled here):
+>
+> | Tier | Old CM | **Real CM** | Old BE ROAS | **Real BE ROAS** | Ship % rev |
+> |---|---|---|---|---|---|
+> | 1 bottle $38 | $21.10 | **$19.50** (51.3%) | 1.80x | **1.95x** | 21.3% |
+> | 2-pack $68 | $38.73 | **$39.24** (57.7%) | 1.76x | **1.73x** | 12.5% |
+> | Subscribe $35 | $18.19 | **$16.58** (47.4%) | 1.93x | **2.11x** | 23.1% |
+>
+> **The error only bites single-unit tiers.** Two bottles ride one 12 oz parcel ($6.79 postage vs. $6.59 for one), so the 2-pack amortises shipping and its old estimate happened to land within $0.51. The directional conclusion of the section above therefore survives intact — the 2-pack default is still right, and by a slightly wider margin than originally argued. What does not survive is any media decision made against the old single-unit breakevens.
+>
+> **Live implication:** the $35 subscription is now the *worst*-margin tier on a customer we want the most LTV from, and a 50ml bottle at ~1ml/day is ~7 weeks of product against a 6-week cadence — so the plan over-ships. Moving the plan to **2 bottles / $70 / every 12 weeks** holds price-per-bottle and consumption constant, halves shipments, and lifts contribution with no price change to the customer. Untested; it is a Shopify admin edit, not a code change.
+
+> ✅ **REVISED AGAIN 2026-08-12 (same day) — a packed unit was weighed, and both tiers drop a USPS band.** Sam measured carton + filled container at **82 g** and bought the **9x12 plain poly mailer (~8 g, $0.0433/ea)** rather than the #1 bubble the correction above priced at $0.215. Shipped weight is therefore **90 g / 3.17 oz single (4 oz tier)** and **172 g / 6.07 oz 2-pack (8 oz tier)** — one band better than the corrected figures, two better than the original estimate. Landed shipping: **$7.46 single, $8.12 2-pack.**
+>
+> | Tier | Original est. | Corrected | **Measured** | **BE ROAS** | Ship % rev |
+> |---|---|---|---|---|---|
+> | 1 bottle $38 | $21.10 | $19.50 | **$20.14** (53.0%) | **1.89x** | 19.6% |
+> | 2-pack $68 | $38.73 | $39.24 | **$39.61** (58.2%) | **1.72x** | 11.9% |
+> | Subscribe $35 | $18.19 | $16.58 | **$17.23** (49.2%) | **2.03x** | 21.3% |
+>
+> The 2-bottle/12-week subscription proposal above is worth **$41.55 per 12 weeks** against $34.46 on the current plan (+$7.09, +21%). Still the highest-return untested move on the list.
+>
+> **The methodological point outranks the numbers.** This tier went $5.50 (assumed) → $8.10 (carrier tables) → $7.46 (scale). The middle step was worth doing — it caught a live media-buying error where breakeven was 2.11x against a claimed 1.93x. The third step was worth doing because it moved landed cost more than any pricing decision made this month. **Do not model unit economics on an unweighed parcel.**
+>
+> ✅ **FINAL 2026-08-12 — postage rebuilt from quoted rates, not tables.** Four Shopify Shipping quotes at 82 g from 80206: Berkeley $5.48 (Z5), NYC $5.62 (Z7), Juneau AK $5.97, rural White Sulphur Springs MT **$7.46**. Blended at 12% rural = **$5.78**, landed **$7.12 single / $7.75 2-pack**.
+>
+> | Tier | Landed | **CM** | Margin | **BE ROAS** |
+> |---|---|---|---|---|
+> | 1 bottle $38 | $7.12 | **$20.48** | 53.9% | **1.86x** |
+> | 2-pack $68 | $7.75 *(est.)* | **$39.98** | 58.8% | **1.70x** |
+> | Subscribe $35 | $7.12 | **$17.57** | 50.2% | **1.99x** |
+>
+> **Two structural findings, both of which change how to think about shipping rather than just the number:**
+> 1. **Zone is nearly irrelevant.** Zone 5 → Zone 7 costs $0.14 at 82 g. Every prior revision blended across a Denver zone map; that was solving the wrong problem.
+> 2. **Rural ZIPs are the only material variable, at +36%.** This was the one input flagged as least certain in the prior revision, and it is the one that held (predicted +32%, measured +36%). Alaska, predicted as a penalty lane, came in at only +9% — that prediction was wrong.
+>
+> The blend is insensitive to the rural weighting, which remains unmeasured: 5% rural → $5.65, 20% → $5.94. No need to pin it down.
+>
+> ⚠️ **One estimate left:** the 2-pack's $6.22 postage is scaled from the 4→8 oz step, not quoted. Re-run the four ZIPs at 164 g to close it. Prediction to test: if rural bills at the top sub-1-lb rate regardless of weight, rural 2-pack should quote the same $7.46.
+
+> ✅ **Container confirmed (Sam, 2026-08-12): airless pump.** An earlier note here doubted that, on the reasoning that 82 g minus ~50 g product and ~14 g carton leaves ~18 g of container — tube territory. The bad input was the ~58 g empty-bottle estimate, not the scale reading; a thin-wall mono-material PP airless at 50 mL runs 25-30 g. **The figures above stand and are safe to buy media against.** What the confirmation does change is packaging: the mailer is unpadded 2-mil film around a pump actuator, which is a protection question tracked in `kb/wiki/shipping-economics.md`, not an economics one — the bubble-mailer fallback costs $0.172/unit and stays inside the same USPS tiers.
+
+*Cross-reference: see the "Breakeven Math" subsection of `kb/wiki/ad-strategy.md` for the general breakeven-ROAS formula this analysis applies. Verified shipping inputs live in `kb/_inbox.md` entries dated 2026-08-12 targeting `shipping-economics`.*
 
 ---
 
@@ -92,6 +134,26 @@ Two objection-handling decisions made for the peptide-led creative angle (paired
 ## Technical: Advertorial Hero Image Layout (2026-08-12, PeptideStack.tsx build, measured in dev at 1280px, confidence: high)
 
 Advertorial hero images need an explicit height cap. The source-kit product renders are 1000x1500 (2:3), and at `w-full h-auto` inside the 800px article column that draws 1125px tall, pushing the opening hook entirely below a 900px fold. **Fix:** `w-auto h-auto max-h-[440px] max-w-full object-contain` on a centered flex container. Worth checking on any advertorial that uses portrait product photography.
+
+
+---
+
+## Concentration Framing: A Live Contradiction, Flagged Not Blended (2026-08-12, ConcentrationTest.tsx build vs. this article's prior conclusion, confidence: medium)
+
+This article previously concluded: **don't fight on concentration**, because 0.03% GHK-Cu loses a percentage duel against brands advertising higher numbers — reframe to the six-active stack. `/article/concentration-test` deliberately does the opposite.
+
+The unlock is that the published GHK-Cu literature works in a **0.01%–1% effective range**, so 0.03% sits *inside* the researched band. That turns the number from a liability into proof, and changes the argument from "ours is bigger" (which loses) to **"a percentage means nothing without the band the research used, and almost no men's brand publishes either."**
+
+Two live advertorials now run opposing arguments about the same ingredient: `/article/peptide-stack` argues breadth, `/article/concentration-test` argues dose-in-context. **Usable as an A/B, but it should be a deliberate one — don't scale spend behind both without deciding which claim the brand stands behind.** Untested; needs paid validation.
+
+## Safer Construction for Competitor Comparison Tables (2026-08-12, ConcentrationTest.tsx build vs. live ComparisonTable.tsx, confidence: high)
+
+Make every row a claim about **what a brand publishes**, never about what its formula contains.
+
+- ✅ "Brickell states no active concentrations" — checkable against their own product page.
+- ❌ "Brickell contains no niacinamide" — a formulation claim the brand can't defend from public information.
+
+The live `ComparisonTable.tsx` uses the stronger presence/absence framing. The disclosure-only framing is strictly more conservative *and* lands harder on a transparency angle, because **the absence of a published number is itself the argument.** Pair it with a dated "as reviewed [month]" footnote plus an explicit line that the table describes disclosure practice, not formulation quality.
 
 ---
 

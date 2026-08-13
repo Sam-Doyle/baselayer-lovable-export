@@ -3,7 +3,7 @@ title: Product Formula & Ingredients
 domain: product
 created: 2026-04-03
 last_compiled: 2026-08-12
-revision: 2
+revision: 3
 sources: [catalog.md, ingredient-database.md, compliance.md, FaceCream.tsx, IngredientDetail.tsx, INGREDIENT_SCIENCE_AND_COMPLIANCE_RESEARCH.md, PubMed 36917520, aad.org]
 codePaths:
   - ~/BaseLayer/product/catalog.md
@@ -362,6 +362,18 @@ The product page (FaceCream.tsx) links to 7 skin concern pages:
 | Sensitive Skin | sensitive-skin-men |
 
 Source: FaceCream.tsx concerns array. Date: 2026-04-03.
+
+
+---
+
+## Live Banned-Claim Violations Found by Grep (2026-08-12, compliance sweep across live advertorial + PDP components, confidence: high)
+
+Two violations were live in production, **both missed by earlier reviews because the sweep was done by eye rather than by grep.**
+
+1. `src/pages/advertorials/PeptideStack.tsx:248` — **"Rebuilds the moisture barrier."** "Rebuilds" is banned in this article's claim-restriction section.
+2. `src/components/IngredientsShowcase.tsx:28` — **"Signals fibroblasts to produce collagen and elastin. Shown to increase collagen synthesis by up to 70% in clinical studies."** This is a drug-structure/function claim for a cosmetic, plus an unattributed figure.
+
+**Process lesson (the durable part):** run the banned-verb check as a build-adjacent script rather than a manual read. A scripted sweep for claim verbs, `increases` + collagen/elastin, brand banned words, AI vocabulary, `!`/`?` in headings, and Meta second-person attributes catches these in seconds and is worth wiring into CI. Manual review has now demonstrably missed them twice.
 
 ---
 
