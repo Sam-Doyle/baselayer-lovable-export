@@ -1,6 +1,6 @@
 ---
 article_count: 11
-inbox_count: 4
+inbox_count: 6
 last_updated: 2026-08-12
 ---
 

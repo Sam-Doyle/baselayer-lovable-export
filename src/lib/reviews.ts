@@ -30,6 +30,12 @@ interface ReviewsFile {
   fetchedAt: string | null;
   rating: number;
   count: number;
+  /**
+   * Star counts across every review, index 0 = 1-star. Optional because
+   * snapshots committed before 2026-08-13 predate the field; see `histogram`
+   * below for how that case degrades.
+   */
+  histogram?: number[];
   reviews: Review[];
 }
 
@@ -67,6 +73,46 @@ export const hasReviews = data.count >= REVIEW_GATE;
 export const reviewAggregate = hasReviews
   ? { rating: data.rating, count: data.count }
   : { rating: 0, count: 0 };
+
+/*
+ * Minimum review count before the star-breakdown bars render.
+ *
+ * Separate from REVIEW_GATE because the two answer different questions.
+ * REVIEW_GATE asks "is there anything to show." This asks "does showing the
+ * distribution help." A breakdown is a density display: at 200 reviews it reads
+ * as depth and lets a skeptic jump straight to the 1-stars, which is what 82%
+ * of shoppers do. At 4 it renders two short bars above three empty rows, and
+ * the emptiness of the sample becomes the most legible thing on the page.
+ *
+ * Set to 1 anyway, matching REVIEW_GATE, because the counterargument is also
+ * real: the bars make the one mildly critical review findable, and hiding the
+ * distribution until it flatters us is the wrong instinct for a section whose
+ * whole credibility rests on not curating. The gate exists so this is one
+ * number to change — raise it to ~10 if the bars read thin once they are live.
+ */
+export const HISTOGRAM_GATE = 1;
+
+/**
+ * Star counts, index 0 = 1-star, or null when the breakdown should not render.
+ *
+ * Null in three cases: below the gate, below REVIEW_GATE, and — the awkward one
+ * — when reading a snapshot written before the fetch script emitted the field.
+ * The pre-field fallback only derives counts when every review made the
+ * DISPLAY_CAP slice, because past the cap the bars would undercount and stop
+ * summing to the "Based on N reviews" line directly above them. Silently wrong
+ * bars are worse than absent ones, so that case hides until the next
+ * `npm run build:reviews`.
+ */
+export const histogram: number[] | null = (() => {
+  if (!hasReviews || data.count < HISTOGRAM_GATE) return null;
+  if (data.histogram?.length === 5) return data.histogram;
+  if (data.reviews.length !== data.count) return null;
+  const bins = [0, 0, 0, 0, 0];
+  for (const r of data.reviews) {
+    if (r.rating >= 1 && r.rating <= 5) bins[r.rating - 1] += 1;
+  }
+  return bins;
+})();
 
 /**
  * Display list, already sorted photo-first then newest by the fetch script.

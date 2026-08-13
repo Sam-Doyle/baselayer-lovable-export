@@ -111,6 +111,37 @@ async function fetchAllReviews(shopDomain, apiToken) {
 
 /* ── shape ───────────────────────────────────────────────────────────── */
 
+/*
+ * Judge.me's `verified` field is an enum, not a boolean, and five of its values
+ * mean "this person bought it":
+ *
+ *   buyer                   — came from a Judge.me review request email
+ *   confirmed-buyer         — web review, email matched an order, link clicked
+ *   verified-purchase       — buyer tied to the specific order being reviewed
+ *   semi-verified-purchase  — resubmission of the same purchase
+ *   admin                   — verified by hand by a Judge.me agent
+ *
+ * Three mean it isn't: `nothing`, `not-yet`, `unconfirmed-buyer`.
+ *
+ * This accepted only 'buyer' until 2026-08-12, which is why the first real
+ * verified review showed a tick in the Judge.me dashboard and no badge on the
+ * site — hers came back `confirmed-buyer`. The bug was invisible for exactly as
+ * long as there were no verified reviews to render, which is the worst shape a
+ * bug can have: it looked like "we have no verified buyers yet."
+ *
+ * Deliberately an allowlist rather than "anything not in the unverified set". A
+ * status Judge.me adds later should default to *no* badge. Claiming a
+ * verification that doesn't exist is the 16 CFR 465 failure; missing one that
+ * does is a smaller, self-correcting problem.
+ */
+const VERIFIED_STATUSES = new Set([
+  'buyer',
+  'confirmed-buyer',
+  'verified-purchase',
+  'semi-verified-purchase',
+  'admin',
+]);
+
 function normalize(raw) {
   return {
     id: raw.id,
@@ -118,7 +149,7 @@ function normalize(raw) {
     title: raw.title ?? '',
     body: raw.body ?? '',
     reviewer: raw.reviewer?.name ?? 'Anonymous',
-    verified: raw.verified === 'buyer' || raw.verified === true,
+    verified: raw.verified === true || VERIFIED_STATUSES.has(raw.verified),
     createdAt: (raw.created_at ?? '').slice(0, 10),
     pictures: (raw.pictures ?? []).map(p => p.urls?.huge ?? p.urls?.original).filter(Boolean).map(sizePhoto),
   };
@@ -143,8 +174,31 @@ function sizePhoto(url) {
   }
 }
 
+/*
+ * Judge.me serves the shop's *store* reviews from the same endpoint as product
+ * reviews, tagged product_external_id 0 / "Judge.me Shop Reviews". They are real
+ * reviews, but they are about the brand, and rendering them under "Customer
+ * Reviews" on a product page attributes them to the product — a
+ * misattribution 16 CFR 465 covers directly. It also double-counts anyone who
+ * left both, which is what put the same reviewer on the PDP twice.
+ *
+ * Filtering client-side rather than passing product_id to the API: one request
+ * either way at this volume, and the drop count gets logged, which a
+ * server-side filter would hide.
+ *
+ * Must match PRODUCT_GID in src/config/product.ts. There is one SKU; when there
+ * are two, this becomes a parameter and the snapshot becomes per-product.
+ */
+const PRODUCT_EXTERNAL_ID = 7469557612615;
+
 function build(rawReviews) {
-  const reviews = rawReviews.map(normalize);
+  const forProduct = rawReviews.filter(r => Number(r.product_external_id) === PRODUCT_EXTERNAL_ID);
+  const dropped = rawReviews.length - forProduct.length;
+  if (dropped > 0) {
+    console.log(`   ${dropped} review(s) excluded — store reviews or another product, not this PDP.`);
+  }
+
+  const reviews = forProduct.map(normalize);
   const count = reviews.length;
 
   /*
@@ -170,10 +224,24 @@ function build(rawReviews) {
     return photos || b.createdAt.localeCompare(a.createdAt);
   });
 
+  /*
+   * Star counts for the breakdown bars, index 0 = 1-star.
+   *
+   * Computed across every review, not the DISPLAY_CAP slice, for the same
+   * reason `rating` is: the bars sit directly under "Based on N reviews" and
+   * have to sum to that N. Deriving them client-side from the capped array
+   * would quietly undercount the moment the 51st review lands.
+   */
+  const histogram = [0, 0, 0, 0, 0];
+  for (const r of reviews) {
+    if (r.rating >= 1 && r.rating <= 5) histogram[r.rating - 1] += 1;
+  }
+
   return {
     fetchedAt: new Date().toISOString().slice(0, 10),
     rating,
     count,
+    histogram,
     reviews: sorted.slice(0, DISPLAY_CAP),
   };
 }

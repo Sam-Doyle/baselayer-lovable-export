@@ -80,3 +80,33 @@ target_article: site-architecture
 confidence: high
 ---
 **Judge.me's own star-rating widget cannot run on this site, so the "ranking widget" is rendered natively from the build-time snapshot.** Two independent blockers, either one sufficient: (1) Judge.me ships its preview badge as a Shopify *theme app extension* — there is no theme here, only a Vite SPA on Netlify; (2) their platform-independent JS widget authenticates with the **public** token, which 403s on `/api/v1/reviews` ("You are using a public token which does not have enough permissions"), so a browser-side call can never reach review data under this setup. Consequence: any rating UI on baselayerskin.co has to be built from `src/data/reviews.json`, which the private-token build step writes. This is a net win rather than a workaround — the native version is captured by the Puppeteer prerender (crawler-visible text, zero CLS, no third-party JS on the critical path), whereas a JS widget would paint after hydration and shift the buy box. Implementation: a `<a href="#reviews">` in the buy box under the H1 showing stars + `4.8 · 4 reviews`, with `scroll-mt-[96px]` on the review section to clear the fixed Navbar. **Do not "fix" this later by pasting a Judge.me embed script** — it will render empty and cost a CSP `script-src` exception for nothing.
+
+---
+date: 2026-08-12
+category: technical
+source: probed the live Judge.me /api/v1/reviews endpoint against the admin dashboard
+confidence: high
+target_article: site-architecture
+---
+**Three defects in the Judge.me → PDP pipeline, all found by comparing the live API response to the admin dashboard. The earlier "0 verified badges because Judge.me matched no orders" claim in this inbox is wrong and is superseded by this entry.**
+
+**(1) `verified` is an enum, not a boolean.** `scripts/fetch-reviews.mjs` tested `raw.verified === 'buyer'`, which is one of *five* values meaning the person bought it: `buyer` (came from a review-request email), `confirmed-buyer` (web review, email matched an order, link clicked), `verified-purchase` (tied to the specific order), `semi-verified-purchase` (resubmission), `admin` (verified by hand by a Judge.me agent). Three mean unverified: `nothing`, `not-yet`, `unconfirmed-buyer`. The first real verified review came back `confirmed-buyer`, showed a green tick in the Judge.me dashboard, and rendered no badge on the site. **The bug was invisible for exactly as long as there were no verified reviews to render** — it presented as "we have no verified buyers yet," which is the worst shape a bug can have. Fixed with a `VERIFIED_STATUSES` allowlist rather than a "not in the unverified set" denylist, deliberately: a status Judge.me adds later should default to *no* badge, because claiming a verification that doesn't exist is the 16 CFR 465 failure while missing one that does is smaller and self-correcting.
+
+**(2) Judge.me serves store reviews from the same endpoint as product reviews.** `/api/v1/reviews` returns both, distinguished only by `product_external_id` — `0` / product_title "Judge.me Shop Reviews" for brand-level reviews. They were landing under "Customer Reviews" on the PDP, which attributes a review of the *brand* to the *product* (a misattribution 16 CFR 465 covers directly) and double-counts anyone who left both. That is what put the same reviewer on the PDP twice. Fixed with a `PRODUCT_EXTERNAL_ID` filter in `build()` that logs its drop count. Must stay in sync with `PRODUCT_GID` in `src/config/product.ts`; becomes a parameter when there are two SKUs.
+
+**(3) The live site serves the committed snapshot, so Judge.me deletions do not propagate until the next deploy.** A review deleted in the Judge.me dashboard kept rendering on baselayerskin.co. Not a bug — it is the intended failure mode of the build-time architecture (a Judge.me outage degrades to the last good copy rather than an empty page), but the corollary is that **moderating a review in Judge.me is not a publishing action.** Anything removed for legal or accuracy reasons needs a deploy to actually come down. Worth knowing before a takedown request arrives with a clock on it.
+
+Post-fix state: **4 reviews (was 6), 4.8 average, 1 verified badge.**
+
+---
+date: 2026-08-12
+category: conversion
+source: PDP star-breakdown build
+confidence: medium
+target_article: conversion-learnings.md
+---
+**Star breakdown built natively from the build-time snapshot, with click-to-filter and a customer-photo strip.** Judge.me's own widget can't run here (see the theme-app-extension / public-token entry above), so the histogram is computed in `build()` across *every* review rather than the `DISPLAY_CAP` slice — the bars sit directly under "Based on N reviews" and have to sum to that N, and deriving them client-side would silently undercount the moment the 51st review lands.
+
+Three design calls worth keeping: **(a)** rows **filter**, they do not **sort**. Filtering is user-initiated, offers every populated rating including the bad ones, and clears; reordering to bury negatives is the 16 CFR 465 problem. Default state is unfiltered, which matters beyond taste because Puppeteer prerenders the component — whatever renders at `useState`'s initial value is the review text Google reads. **(b)** Zero-count rows are **disabled, not hidden**, so the shape of the distribution stays readable. **(c)** The photo strip has its own threshold (`PHOTO_STRIP_MIN = 3`) separate from the review gate: a handful of photos is persuasive at any sample size, whereas a *distribution* needs volume to mean anything. The strip reuses the same `width=320` URLs the inline images already request, so it costs no extra bytes, and each thumb links to its review rather than opening a lightbox.
+
+**Open question worth measuring:** `HISTOGRAM_GATE` is set to 1, so at n=4 the breakdown renders two short bars above three empty rows. The argument for showing it anyway is that it makes the single mildly-critical review findable (82% of shoppers go hunting for negatives) and that hiding a distribution until it flatters us is the wrong instinct for a section whose credibility rests on not curating. The argument against is that empty rows advertise a thin sample. One constant in `src/lib/reviews.ts` switches it; raise to ~10 if the bars read thin in practice.

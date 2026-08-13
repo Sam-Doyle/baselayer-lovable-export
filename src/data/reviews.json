@@ -1,8 +1,27 @@
 {
-  "fetchedAt": "2026-08-12",
+  "fetchedAt": "2026-08-13",
   "rating": 4.8,
   "count": 4,
+  "histogram": [
+    0,
+    0,
+    0,
+    1,
+    3
+  ],
   "reviews": [
+    {
+      "id": 1294378990,
+      "rating": 5,
+      "title": "",
+      "body": "Bought this product for my husband and he absolutely LOOOOOVES it!!! Finally a product that doesn’t scare him away from maintaining great skin.",
+      "reviewer": "Molly Pedowicz",
+      "verified": true,
+      "createdAt": "2026-08-12",
+      "pictures": [
+        "https://review-images.judgeme.com/base-layer-skin/1786569977__1786569974778-image__original.jpg?quality=80&width=320"
+      ]
+    },
     {
       "id": 1294349054,
       "rating": 4,
@@ -38,16 +57,6 @@
       "pictures": [
         "https://review-images.judgeme.com/base-layer-skin/1786566497__1786566494428-img_4569__original.jpeg?quality=80&width=320"
       ]
-    },
-    {
-      "id": 1294321348,
-      "rating": 5,
-      "title": "",
-      "body": "Super easy to use",
-      "reviewer": "Matt B",
-      "verified": false,
-      "createdAt": "2026-08-12",
-      "pictures": []
     }
   ]
 }
