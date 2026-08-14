@@ -31,7 +31,7 @@ The `useMetaTags` hook dynamically sets per-page:
 - `og:title`, `og:description`, `og:type`, `og:url`, `og:image`, `og:image:alt`, `og:site_name`, `og:locale`
 - `twitter:card` (summary_large_image), `twitter:title`, `twitter:description`, `twitter:image`, `twitter:site`, `twitter:creator`
 
-**Default OG image:** `https://baselayerskin.co/og-image.jpg`
+**Default OG image:** `https://baselayerskin.co/og-mountain-product-v2.jpg`
 **Twitter handle:** `@baselayerskin`
 
 **Limitation (2026-03-18, IG_AD_AUDIT):** Because meta tags are injected client-side (React SPA), crawlers that don't execute JS (including Facebook's sharing debugger) may not see per-page OG data. This is a known issue flagged in the IG Ad Audit Implementation Checklist. Prerendering (see below) is the mitigation path.

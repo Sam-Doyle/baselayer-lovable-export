@@ -17,7 +17,7 @@ const ARTICLE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "Peptides Went Mainstream. The Men Who Need Them Most Are Still Doing Nothing.",
-  "image": "https://baselayerskin.com/og-image.jpg",
+  "image": "https://baselayerskin.co/og-mountain-product-v2.jpg",
   "datePublished": new Date().toISOString().split('T')[0],
   "author": { "@type": "Organization", "name": "Base Layer" }
 };

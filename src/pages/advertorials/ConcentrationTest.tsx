@@ -18,7 +18,7 @@ const ARTICLE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "Most Men's Anti-Aging Creams Won't Tell You How Much Is In Them",
-  "image": "https://baselayerskin.com/og-image.jpg",
+  "image": "https://baselayerskin.co/og-mountain-product-v2.jpg",
   "datePublished": new Date().toISOString().split('T')[0],
   "author": { "@type": "Organization", "name": "Base Layer" }
 };

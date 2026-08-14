@@ -43,7 +43,7 @@ All brand imagery consolidated from the live site and source files.
 | File | Size | Description |
 |---|---|---|
 | `og-default.jpg` | 48 KB | Default Open Graph / social sharing image |
-| `og-face-cream.jpg` | 56 KB | OG image for product page |
+| `og-mountain-product-v2.jpg` | 88 KB | Current 1200×630 social/product preview using the mountain hero shot |
 | `og-articles.jpg` | 72 KB | OG image for articles hub |
 | `og-ingredients.jpg` | 48 KB | OG image for ingredients hub |
 | `og-skin-concerns.jpg` | 52 KB | OG image for skin concerns hub |

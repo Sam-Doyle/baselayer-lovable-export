@@ -114,3 +114,21 @@ and 2505734419891235 (created 2026-08-13 by the channel connection).
 `base-layer-skin.myshopify.com` and `kpfzdg-kw.myshopify.com` are one store:
 both 301 to shop.baselayerskin.co and both authenticate the same read-only
 Storefront token against product GID 7469557612615.
+
+---
+date: 2026-08-14
+category: conversion
+source: user first-impression review + responsive browser QA at 390x844 and 1440x900
+confidence: medium
+target_article: wiki/conversion-learnings.md
+---
+At five customer reviews, an above-fold aggregate (`4.8/5 from 5 customer
+reviews`) made the small sample size more salient than the positive score and
+read as negative social proof. The homepage hero now features one unedited
+sentence from a real 5-star Judge.me review that Judge.me marks verified:
+"So smooth going on, no grease or shine." The whole proof card links to the
+complete PDP reviews section, where the 4.8 average, count, histogram, critical
+review, photos, and per-review verification remain visible. Responsive QA kept
+the $38 price and primary CTA in the first 390x844 viewport. This is a design
+hypothesis, not a measured lift; evaluate against homepage-to-PDP click-through
+and purchase conversion before treating it as a proven CRO result.

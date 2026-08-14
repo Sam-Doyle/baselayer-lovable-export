@@ -85,6 +85,16 @@ function expectPdpLinkNoCartAdd(link: Element | null, source: string, expectedHr
 }
 
 describe("CTA funnel routing", () => {
+  it("HeroSection leads with a verified individual review instead of a weak aggregate count", () => {
+    const { getByRole, getByText, queryByText } = render(<HeroSection />, { wrapper: MemoryRouter });
+
+    expect(
+      getByRole("link", { name: /rated 5 out of 5 by mark, verified buyer/i }),
+    ).toHaveAttribute("href", "/face-cream#reviews");
+    expect(getByText(/so smooth going on, no grease or shine/i)).toBeInTheDocument();
+    expect(queryByText(/from 5 customer reviews/i)).not.toBeInTheDocument();
+  });
+
   it("HeroSection primary CTA links to the PDP and never calls the add-to-cart path", () => {
     const { getByRole } = render(<HeroSection />, { wrapper: MemoryRouter });
     const link = getByRole("link", { name: /get base layer/i });

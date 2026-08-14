@@ -19,7 +19,7 @@ const ARTICLE_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "The One-Bottle Experiment: What Happened When Men Stopped Buying Serums, Toners, and Eye Cream",
-  "image": "https://baselayerskin.com/og-image.jpg",
+  "image": "https://baselayerskin.co/og-mountain-product-v2.jpg",
   "datePublished": new Date().toISOString().split('T')[0],
   "author": { "@type": "Organization", "name": "Base Layer" }
 };

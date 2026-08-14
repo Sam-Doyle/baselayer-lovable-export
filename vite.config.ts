@@ -13,6 +13,8 @@ import * as http from "http";
 // ── Prerender plugin (closeBundle) ────────────────────────────────
 
 const BASE_URL = "https://baselayerskin.co";
+const PRODUCT_OG_IMAGE = `${BASE_URL}/og-mountain-product-v2.jpg`;
+const PRODUCT_OG_IMAGE_ALT = "Base Layer Daily Face Cream bottle and carton in the Colorado mountains";
 
 /*
  * Judge.me aggregate for the Product schemas below, read from the same snapshot
@@ -66,7 +68,7 @@ const STATIC_PAGES: PageMeta[] = [
     title: "Best Men's Face Moisturizer 2026 | Base Layer Face Cream | $38",
     description: "Lightweight face moisturizer for men. Niacinamide 5%, copper peptide, hyaluronic acid. Absorbs in 15 seconds, stays matte all day. $38.",
     ogType: "product",
-    ogImage: `${BASE_URL}/og-face-cream.jpg`,
+    ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "1.0",
     // jsonLd handled by React FaceCream.tsx component during Puppeteer SSR
@@ -115,7 +117,7 @@ const STATIC_PAGES: PageMeta[] = [
     title: "Matte Moisturizer for Men — Zero Shine, All Day | Base Layer",
     description: "The best matte moisturizer for men. Niacinamide 5% controls oil, squalane absorbs in 15 seconds. No shine, no grease, no fragrance. $38.",
     ogType: "product",
-    ogImage: `${BASE_URL}/og-face-cream.jpg`,
+    ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "0.9",
     jsonLd: [
@@ -126,7 +128,7 @@ const STATIC_PAGES: PageMeta[] = [
         description: "Matte-finish men's face moisturizer with niacinamide 5% and squalane. Controls shine all day without drying your skin. Fragrance-free. $38.",
         brand: { "@type": "Brand", name: "Base Layer" },
         offers: { "@type": "Offer", price: "38.00", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${BASE_URL}/matte-moisturizer-for-men`, priceValidUntil: "2026-12-31" },
-        image: `${BASE_URL}/og-face-cream.jpg`,
+        image: PRODUCT_OG_IMAGE,
         url: `${BASE_URL}/matte-moisturizer-for-men`,
         sku: "BL-PDFC-50ML",
         ...REVIEW_AGGREGATE,
@@ -138,7 +140,7 @@ const STATIC_PAGES: PageMeta[] = [
     title: "Non-Greasy Moisturizer for Men — Absorbs in 15 Seconds | Base Layer",
     description: "The best non-greasy moisturizer for men. Squalane absorbs in 15 seconds. Niacinamide 5% controls oil. No residue, no fragrance, no subscriptions. $38.",
     ogType: "product",
-    ogImage: `${BASE_URL}/og-face-cream.jpg`,
+    ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "0.9",
     jsonLd: [
@@ -149,7 +151,7 @@ const STATIC_PAGES: PageMeta[] = [
         description: "Non-greasy men's face moisturizer that absorbs in 15 seconds. Squalane-based formula with niacinamide 5%, copper peptide, and hyaluronic acid. $38.",
         brand: { "@type": "Brand", name: "Base Layer" },
         offers: { "@type": "Offer", price: "38.00", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${BASE_URL}/non-greasy-moisturizer-for-men`, priceValidUntil: "2026-12-31" },
-        image: `${BASE_URL}/og-face-cream.jpg`,
+        image: PRODUCT_OG_IMAGE,
         url: `${BASE_URL}/non-greasy-moisturizer-for-men`,
         sku: "BL-PDFC-50ML",
         ...REVIEW_AGGREGATE,
@@ -161,7 +163,7 @@ const STATIC_PAGES: PageMeta[] = [
     title: "All-in-One Skincare for Men — One Product. Done. | Base Layer",
     description: "Replace your serum, moisturizer, and eye cream with one product. 6 active ingredients, $38, absorbs in 15 seconds. The simplest men's skincare routine.",
     ogType: "product",
-    ogImage: `${BASE_URL}/og-face-cream.jpg`,
+    ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "0.9",
     jsonLd: [
@@ -172,7 +174,7 @@ const STATIC_PAGES: PageMeta[] = [
         description: "All-in-one men's skincare product with 6 active ingredients. Replaces moisturizer, serum, and eye cream. $38.",
         brand: { "@type": "Brand", name: "Base Layer" },
         offers: { "@type": "Offer", price: "38.00", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${BASE_URL}/all-in-one-skincare-for-men`, priceValidUntil: "2026-12-31" },
-        image: `${BASE_URL}/og-face-cream.jpg`,
+        image: PRODUCT_OG_IMAGE,
         url: `${BASE_URL}/all-in-one-skincare-for-men`,
         sku: "BL-PDFC-50ML",
         ...REVIEW_AGGREGATE,
@@ -230,7 +232,7 @@ function replaceMetaTag(html: string, attr: "name" | "property", key: string, co
 }
 
 function injectMeta(html: string, page: PageMeta): string {
-  const ogImage = page.ogImage || `${BASE_URL}/og-image.jpg`;
+  const ogImage = page.ogImage || PRODUCT_OG_IMAGE;
   const ogType = page.ogType || "website";
   const canonicalUrl = `${BASE_URL}${page.path}`;
 
@@ -245,7 +247,8 @@ function injectMeta(html: string, page: PageMeta): string {
   html = replaceMetaTag(html, "name", "twitter:image", escapeAttr(ogImage));
 
   // Update og:image:alt and og:site_name for social crawlers
-  html = replaceMetaTag(html, "property", "og:image:alt", `${escapeAttr(page.title)} - Base Layer Men's Skincare`);
+  html = replaceMetaTag(html, "property", "og:image:alt", PRODUCT_OG_IMAGE_ALT);
+  html = replaceMetaTag(html, "name", "twitter:image:alt", PRODUCT_OG_IMAGE_ALT);
 
   // Add canonical URL
   if (!html.includes('rel="canonical"')) {

@@ -8,9 +8,31 @@ import mountainPackshotMobile480 from "@/assets/generated-creatives/responsive/h
 import mountainPackshotMobile824 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-mobile-824w.webp";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 import { trackEvent } from "@/lib/analytics";
-import { reviewAggregate } from "@/lib/reviews";
+import { reviews, type Review } from "@/lib/reviews";
+
+/**
+ * A small aggregate can read as "hardly anyone has bought this" in the first
+ * viewport. Feature one truthful, verified outcome instead, while the linked
+ * PDP section continues to show the complete count, histogram, and every
+ * review. The preferred ID is intentionally explicit editorial curation; if
+ * Judge.me ever removes it, the block falls back to another verified review
+ * rather than inventing proof or rendering a broken card.
+ */
+const HERO_REVIEW_ID = 1295448160;
+
+const selectHeroReview = (reviewList: readonly Review[]): Review | null =>
+  reviewList.find((review) => review.id === HERO_REVIEW_ID && review.verified) ??
+  reviewList.find((review) => review.verified && review.rating >= 4) ??
+  null;
+
+const firstSentence = (body: string): string => {
+  const sentence = body.match(/^.*?[.!?]+(?=\s|$)/)?.[0];
+  return sentence ?? body;
+};
 
 const HeroSection = () => {
+  const featuredReview = selectHeroReview(reviews);
+
   return (
     <section className="w-full bg-[#F2EFE8] pt-[96px]">
       <div className="mx-auto grid min-h-[calc(100svh-96px)] max-w-[1440px] md:grid-cols-[1.02fr_0.98fr]">
@@ -50,15 +72,40 @@ const HeroSection = () => {
               Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Apply it. Forget it&apos;s there.
             </p>
 
-            <Link
-              to={reviewAggregate.count > 0 ? "/face-cream#reviews" : "#testimonials"}
-              className="mt-4 inline-flex min-h-7 items-center gap-2 font-body text-[12px] font-semibold text-[#1A2F4C] underline decoration-[#1A2F4C]/30 underline-offset-4 transition-colors hover:text-brand-accent md:mt-6 md:text-[13px]"
-            >
-              <Star className="h-4 w-4 fill-brand-accent text-brand-accent" strokeWidth={2.25} aria-hidden="true" />
-              {reviewAggregate.count > 0
-                ? `${reviewAggregate.rating.toFixed(1)}/5 from ${reviewAggregate.count} customer reviews`
-                : "3 product testers · Read their feedback"}
-            </Link>
+            {featuredReview && (
+              <Link
+                to="/face-cream#reviews"
+                aria-label={`Rated ${featuredReview.rating} out of 5 by ${featuredReview.reviewer}, verified buyer. Read all customer reviews`}
+                className="group mt-4 block min-h-[58px] max-w-[520px] border-l-[3px] border-brand bg-white/55 px-3.5 py-2.5 transition-colors hover:bg-white/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C] md:mt-6 md:px-4 md:py-3"
+              >
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="flex shrink-0 gap-0.5"
+                    role="img"
+                    aria-label={`${featuredReview.rating} out of 5 stars`}
+                  >
+                    {Array.from({ length: 5 }, (_, index) => (
+                      <Star
+                        key={index}
+                        className={`h-3.5 w-3.5 ${
+                          index < featuredReview.rating
+                            ? "fill-brand-accent text-brand-accent"
+                            : "fill-transparent text-[#1A2F4C]/20"
+                        }`}
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                    ))}
+                  </span>
+                  <span className="font-body text-[9px] font-bold uppercase tracking-[0.14em] text-[#1A2F4C]/70 md:text-[10px]">
+                    {featuredReview.reviewer} &middot; Verified buyer
+                  </span>
+                </div>
+                <blockquote className="mt-1 font-body text-[12px] font-semibold leading-[1.4] text-[#1A2F4C] md:text-[13px]">
+                  &ldquo;{firstSentence(featuredReview.body)}&rdquo;
+                </blockquote>
+              </Link>
+            )}
 
             <div className="mt-5 flex items-end gap-3 md:mt-7">
               <span className="font-heading text-[32px] font-black leading-none text-[#1A2F4C] md:text-[38px]">$38</span>

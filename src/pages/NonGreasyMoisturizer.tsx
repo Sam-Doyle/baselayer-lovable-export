@@ -30,7 +30,7 @@ const PRODUCT_SCHEMA = {
     priceValidUntil: "2026-12-31",
     ...merchantOfferFields("38.00"),
   },
-  image: "https://baselayerskin.co/og-face-cream.jpg",
+  image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   url: "https://baselayerskin.co/non-greasy-moisturizer-for-men",
   sku: "BL-PDFC-50ML",
 };
@@ -89,7 +89,7 @@ const NonGreasyMoisturizer = () => {
     description:
       "Non-greasy moisturizer for men that absorbs in 15 seconds with zero residue. Squalane-based, fragrance-free. $38 — try Base Layer.",
     type: "product",
-    image: "https://baselayerskin.co/og-face-cream.jpg",
+    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   });
 
   useEffect(() => {

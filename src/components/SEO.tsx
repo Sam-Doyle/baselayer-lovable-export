@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const BASE_URL = "https://baselayerskin.co";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-mountain-product-v2.jpg`;
+const DEFAULT_OG_IMAGE_ALT = "Base Layer Daily Face Cream bottle and carton in the Colorado mountains";
 
 // ── Canonical Tag ──────────────────────────────────────────────────
 
@@ -55,16 +56,17 @@ export function useMetaTags({ title, description, type = "website", image, url }
     setMeta("property", "og:type", type);
     setMeta("property", "og:url", pageUrl);
     setMeta("property", "og:image", ogImage);
-    setMeta("property", "og:image:alt", `${title} - Base Layer Men's Skincare`);
+    setMeta("property", "og:image:alt", image ? `${title} - Base Layer Men's Skincare` : DEFAULT_OG_IMAGE_ALT);
     setMeta("property", "og:site_name", "Base Layer");
     setMeta("property", "og:locale", "en_US");
     setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", title);
     setMeta("name", "twitter:description", description);
     setMeta("name", "twitter:image", ogImage);
+    setMeta("name", "twitter:image:alt", image ? `${title} - Base Layer Men's Skincare` : DEFAULT_OG_IMAGE_ALT);
     setMeta("name", "twitter:site", "@baselayerskin");
     setMeta("name", "twitter:creator", "@baselayerskin");
-  }, [title, description, type, pageUrl, ogImage]);
+  }, [title, description, type, image, pageUrl, ogImage]);
 }
 
 // ── JSON-LD ────────────────────────────────────────────────────────

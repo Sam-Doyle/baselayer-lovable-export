@@ -26,7 +26,7 @@ const PRODUCT_SCHEMA = {
     url: "https://baselayerskin.co/all-in-one-skincare-for-men",
     priceValidUntil: "2026-12-31",
   },
-  image: "https://baselayerskin.co/og-face-cream.jpg",
+  image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   url: "https://baselayerskin.co/all-in-one-skincare-for-men",
   sku: "BL-PDFC-50ML",
 };
@@ -85,7 +85,7 @@ const AllInOneSkincare = () => {
     description:
       "All-in-one men's skincare: 6 active ingredients replace your moisturizer, serum, and eye cream. 60-second routine. $38 — try Base Layer.",
     type: "product",
-    image: "https://baselayerskin.co/og-face-cream.jpg",
+    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   });
 
   useEffect(() => {

@@ -19,7 +19,7 @@ const REVIEW_SCHEMA = {
   sku: "BL-PDFC-50ML",
   description:
     "Advanced men's face moisturizer with niacinamide, copper peptide GHK-Cu, panthenol, centella asiatica, squalane, and hyaluronic acid. Fragrance-free. 50mL.",
-  image: "https://baselayerskin.co/og-face-cream.jpg",
+  image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   url: "https://baselayerskin.co/face-cream",
   offers: {
     "@type": "Offer",

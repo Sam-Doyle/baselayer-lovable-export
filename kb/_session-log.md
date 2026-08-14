@@ -664,3 +664,17 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **GA4 config completed by hand**: cross-domain, referral exclusions, data retention, Google & YouTube channel connected, `CTA location` custom dimension registered, `add_to_cart` / `begin_checkout` marked as key events (`purchase` is auto-marked and locked), internal traffic rule on `174.16.148.24` with the exclude filter set to Active.
 - **Open**: Confirm Shopify's `InitiateCheckout` fired on the real test order — the site no longer sends one, so if Shopify's copy is also absent the site's must be restored. Confirm Meta's 2x Purchase is one Browser + one Server, not two of either. Identify `G-SNVX80PSF9`, a second GA4 property collecting on the checkout domain. Delete the probable `baselayer.skin` typo from the cross-domain list. Meta domain verification for `baselayerskin.co` and Purchase at the top of the AEM priority list. Cancel and restock the refunded test order #4711006N. `qualify_lead` and `close_convert_lead` are GA4 pre-populated key events, not site events, and will never fire.
 - **KB updates**: Two inbox entries (GA4 reserved traffic-source params; `_gl` on subdomain hops), both targeting `wiki/site-architecture.md`.
+
+## 2026-08-14 — Homepage verified-review hero proof
+
+- **Task**: Replaced the homepage hero's low-volume `4.8/5 from 5 customer reviews` aggregate with a compact, high-contrast verified-buyer review module linked to the complete PDP reviews section.
+- **Findings**: The selected Judge.me review is a real verified 5-star purchase and its first sentence directly supports the hero's zero-shine promise. The aggregate count remains fully visible lower in the funnel; the hero no longer turns a five-review sample into the first trust signal.
+- **Files changed**: `src/components/HeroSection.tsx`, `src/test/ctaRouting.test.tsx`, `kb/_inbox.md`, `kb/_session-log.md`.
+- **Verification**: Focused test 8/8, full suite 95/95, typecheck, focused ESLint, production build (60 routes / 0 failures), desktop 1440x900 and mobile 390x844 visual QA, working review-anchor navigation, and zero browser console errors. Repository-wide lint remains red on 341 pre-existing errors, including files under `.claude/worktrees`; neither changed file reports a lint error.
+- **KB updates**: Added one conversion hypothesis to the inbox for later compilation after performance data is available.
+
+## 2026-08-14 — Current-product social preview
+
+- **Task**: Replaced the legacy link-preview bottle with the current mountain product hero across the homepage, PDP, product landing pages, and advertorial product schemas.
+- **Changes**: Added a cache-busting 1200×630 progressive JPEG (`public/og-mountain-product-v2.jpg`) cropped deterministically from the current production hero so the exact capped bottle, carton, logos, and Colorado setting are preserved. Updated Open Graph, X/Twitter, prerender defaults, and product structured-data image URLs; also added descriptive image-alt metadata.
+- **Verification**: Asset is 1200×630 JPEG; typecheck passes; all 95 tests pass; focused ESLint has zero errors; production build renders 60 routes with zero failures. Generated homepage, PDP, and product landing HTML all point to the new image and contain no legacy preview references.

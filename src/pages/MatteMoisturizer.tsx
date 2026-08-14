@@ -29,7 +29,7 @@ const PRODUCT_SCHEMA = {
     priceValidUntil: "2026-12-31",
     ...merchantOfferFields("38.00"),
   },
-  image: "https://baselayerskin.co/og-face-cream.jpg",
+  image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   url: "https://baselayerskin.co/matte-moisturizer-for-men",
   sku: "BL-PDFC-50ML",
 };
@@ -88,7 +88,7 @@ const MatteMoisturizer = () => {
     description:
       "Matte moisturizer for men with niacinamide 5% and squalane. Controls shine 8-12 hours, absorbs in 15 seconds. $38 — try Base Layer.",
     type: "product",
-    image: "https://baselayerskin.co/og-face-cream.jpg",
+    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   });
 
   useEffect(() => {

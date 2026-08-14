@@ -117,7 +117,7 @@ const FaceCream = () => {
     title: "Best Men's Face Moisturizer - Base Layer Performance Daily Face Cream | $38",
     description: "The fast-absorbing, one-step daily face cream for men. Niacinamide 5% + Copper Peptides. $38 a bottle, 2-pack $68, 30-day guarantee.",
     type: "product",
-    image: "https://baselayerskin.co/og-face-cream.jpg",
+    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   });
 
   useEffect(() => {
