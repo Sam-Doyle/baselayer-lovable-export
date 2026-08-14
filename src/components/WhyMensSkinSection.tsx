@@ -11,42 +11,42 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
 
 const benefits = [
   {
-    title: "OIL CONTROL",
+    title: "LESS SHINE",
     statNumber: "5%",
-    statLabel: "niacinamide — the clinical dose that actually works",
+    statLabel: "niacinamide — concentration published on our label",
     bullets: [
-      "Stops the noon shine. Niacinamide regulates oil production at the source",
-      "Visibly reduces pore size within 2-4 weeks",
-      "No more blotting, no more \"is my face shiny?\" in meetings",
+      "A matte finish designed to avoid the heavy feel of a traditional cream",
+      "Niacinamide selected to help balance the appearance of oil over time",
+      "Light enough to layer under sunscreen without adding another greasy step",
     ],
     detail:
-      "Men produce up to 50% more sebum than women. That's why your face looks like a frying pan by lunch. Most moisturizers just add more moisture on top of the oil. Base Layer uses Niacinamide at 5% — the exact concentration shown in clinical studies to reduce sebum production and tighten pores. Your skin stays matte. All day.",
-    link: { text: "See the formula", href: "/face-cream" },
+      "Base Layer pairs 5% niacinamide with a lightweight emollient system. The goal is simple: add daily moisture without making already-shiny skin feel coated. Individual results and timing vary.",
+    link: { text: "See the formula evidence", href: "/face-cream#formula" },
   },
   {
-    title: "ZERO GREASE",
-    statNumber: "15s",
-    statLabel: "full absorption — then you forget it's there",
+    title: "LIGHT HYDRATION",
+    statNumber: "1 STEP",
+    statLabel: "moisturizer plus serum-style ingredients",
     bullets: [
-      "Absorbs in 15 seconds. No residue. No shine. Completely invisible",
-      "Squalane hydrates without sitting on top of your skin like a film",
-      "Works under sunscreen, hats, helmets — or nothing at all",
+      "Squalane helps hold moisture without a waxy finish",
+      "Hyaluronic acid supports hydration in dry indoor and outdoor air",
+      "Designed to work alone or under your daily sunscreen",
     ],
     detail:
-      "\"That greasy feeling 30 minutes after applying\" — it's the reason most guys quit moisturizing. We built the formula around Squalane, a lightweight lipid that matches your skin's own chemistry. It absorbs into the skin instead of coating it. The finish is matte and invisible. You will forget you put anything on.",
+      "The formula combines a daily moisturizer with serum-style ingredients in one bottle. Squalane and hyaluronic acid support hydration, while the finish stays lightweight enough for a routine you can repeat.",
     link: null,
   },
   {
-    title: "BREAKOUT DEFENSE",
-    statNumber: "42%",
-    statLabel: "of men in their 20s deal with adult acne",
+    title: "POST-SHAVE COMFORT",
+    statNumber: "2%",
+    statLabel: "panthenol — concentration published on our label",
     bullets: [
-      "Niacinamide unclogs pores by regulating the oil that blocks them",
-      "Centella Asiatica calms the redness and inflammation around breakouts",
-      "No salicylic acid burn. No benzoyl peroxide bleaching your pillowcase",
+      "Panthenol helps soothe skin and support its natural moisture barrier",
+      "Centella was selected for comfortable-feeling skin after shaving",
+      "Fragrance-free, with no added scent competing with your routine",
     ],
     detail:
-      "Adult acne isn't a teenage problem — 42% of men in their 20s still deal with it. The cause is usually the same: excess oil, clogged pores, inflammation. Most acne products nuke your face with harsh acids that leave you dry, red, and peeling. Niacinamide tackles the root cause by regulating oil production and tightening pores, while Centella Asiatica calms the inflammation that turns a clogged pore into a visible breakout. Prevention, not punishment.",
+      "Shaving can leave skin feeling tight or uncomfortable. Base Layer uses 2% panthenol alongside centella to support post-shave comfort. If your skin is raw or broken, let it settle before applying.",
     link: { text: "Full ingredient breakdown", href: "/ingredients" },
   },
 ];
@@ -139,7 +139,7 @@ const BenefitRow = ({
 const WhyMensSkinSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [openIndex, setOpenIndex] = useState<number | null>(0); // First item open by default
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const ref = sectionRef.current;
@@ -171,9 +171,9 @@ const WhyMensSkinSection = () => {
     <section
       id="why-mens-skin"
       ref={sectionRef}
-      className="bg-[#E8E4DC] relative overflow-hidden pt-[80px]"
+      className="relative overflow-hidden bg-[#E8E4DC] pt-14 md:pt-20"
     >
-      <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row gap-0 md:gap-[40px] lg:gap-[60px] pb-16 md:pb-24">
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-0 pb-14 md:flex-row md:gap-[40px] md:pb-20 lg:gap-[60px]">
 
         {/* Left: Benefits accordion */}
         <div className="order-2 md:order-1 w-full md:w-1/2 lg:w-[45%] px-8 md:px-0 flex flex-col justify-center">
@@ -184,9 +184,9 @@ const WhyMensSkinSection = () => {
             style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "20px"})` }}
           >
             <p className="font-body text-[10px] md:text-xs tracking-[0.3em] uppercase text-[#1A2F4C]/40 mb-3">
-              One Product. Three Problems Solved.
+              One Product. Three Daily Needs.
             </p>
-            <h2 className="font-heading text-2xl md:text-3xl font-bold tracking-tight text-[#1A2F4C] leading-snug">
+            <h2 className="font-heading text-2xl font-bold uppercase leading-snug tracking-tight text-[#1A2F4C] md:text-3xl">
               Built for how men's skin actually works
             </h2>
           </div>
@@ -207,16 +207,16 @@ const WhyMensSkinSection = () => {
 
           {/* New CTA */}
           <a 
-            href="#formula" 
+            href="#formula"
             className="inline-flex mt-8 font-heading font-semibold text-[14px] text-[#1A2F4C] tracking-[0.05em] no-underline group transition-colors self-start"
           >
-            See the full formula <span className="ml-2 group-hover:text-brand-accent transition-colors">→</span>
+            Explore the six key ingredients <span className="ml-2 group-hover:text-brand-accent transition-colors">→</span>
           </a>
         </div>
 
         {/* Right: Product image */}
         <div className="order-1 md:order-2 w-full md:w-1/2 lg:w-[55%] px-8 md:px-0 mb-8 md:mb-0 relative">
-          <div className="md:sticky md:top-[100px] overflow-hidden rounded-lg aspect-[4/3] md:aspect-auto md:h-full max-h-[85vh]">
+          <div className="aspect-[4/3] max-h-[85vh] overflow-hidden rounded-[2px] md:sticky md:top-[100px] md:h-full md:aspect-auto">
             <picture className="w-full h-full block">
               <source type="image/webp" srcSet={isVisible ? "/images/benefits-face-closeup.webp" : undefined} />
               <img

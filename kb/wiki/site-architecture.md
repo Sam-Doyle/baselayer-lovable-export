@@ -2,8 +2,8 @@
 title: Site Architecture
 domain: technical
 created: 2026-04-03
-last_compiled: 2026-08-12
-revision: 3
+last_compiled: 2026-08-13
+revision: 4
 sources: [package.json, vite.config.ts, App.tsx, netlify.toml, tailwind.config.ts, tsconfig.json, analytics.ts, sanity.ts, netlify _redirects, live Storefront API testing, production debugging, /last30days research, Sanity assets API]
 codePaths:
   - src/App.tsx
@@ -468,3 +468,25 @@ First real data (2026-08-12): four reviews arrived with **`verified: false` on a
 Also note the aggregate at this point is **5.0**, above the 4.7 authenticity-skepticism ceiling in `kb/wiki/customer-insights.md`. A perfect average is a conversion liability, not a win.
 
 **FTC exposure to watch:** reviews authored by the founder, employees, or their households are insider reviews under 16 CFR 465 and require clear and conspicuous disclosure of the material connection — the same rule that governs incentivized reviews. Check reviewer identities before a review block goes live.
+
+## Judge.me Production Pipeline Corrections (2026-08-12, live API and dashboard comparison, confidence: high)
+
+The review gate is now **1**, not 5. Four real reviews at 4.8 with three customer-photo reviews were more useful than an empty section; the zero gate remains essential because `aggregateRating` with `reviewCount: 0` can invalidate Product rich-result markup. The constant is duplicated in `src/lib/reviews.ts`, `vite.config.ts`, and `scripts/fetch-reviews.mjs`; update all three together. This supersedes the older as-built notes above.
+
+The rating UI is native and build-time by design. Judge.me's theme extension cannot render on this Vite/Netlify storefront, and its public token receives 403 on the reviews REST API. `src/data/reviews.json` is therefore the only safe client source; do not add a Judge.me embed script later.
+
+Three live-data corrections are now load-bearing:
+
+1. `verified` is an enum. Only `buyer`, `confirmed-buyer`, `verified-purchase`, `semi-verified-purchase`, and `admin` earn a badge. Unknown values fail closed through `VERIFIED_STATUSES`.
+2. Product and store reviews share the endpoint. `PRODUCT_EXTERNAL_ID` filters shop-level reviews so brand feedback is never attributed to the moisturizer.
+3. The committed snapshot is the live source. Moderating a review in Judge.me does not remove it from production until the next build/deploy.
+
+Post-fix snapshot: 4 product reviews, 4.8 average, 1 verified purchase.
+
+## Analytics Funnel Audit (2026-08-13, live resource/event inspection, confidence: high)
+
+Cold PDP landings previously dropped browser `ViewContent` and GA4 `view_item` because React fired before deferred analytics globals existed. The fix is an event queue flushed after script initialization, preserving the Meta event ID used for CAPI deduplication. The same audit corrected invented catalog IDs, the hardcoded $38 value on the preselected $68 tier, missing GA4 `items`, duplicate advertorial pageviews, and CTA events that never mapped to Meta.
+
+The Shopify checkout remains a separate measurement surface. External inspection found no Facebook & Instagram or Google & YouTube app pixel (`facebookCapiEnabled` was false); a hidden custom-pixel implementation cannot be excluded without Shopify admin. When Shopify-side tags are connected, only one surface should own checkout-start events or they will double-count. GA4 cross-domain settings alone are insufficient while the handoff uses `window.location.href`, because the linker decorates real anchor/form interactions.
+
+Deployment state must be verified independently from the working tree: a correct local bundle can remain unpushed while production continues serving stale event IDs and consent behavior.

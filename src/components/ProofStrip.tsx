@@ -1,6 +1,6 @@
 const proofPoints = [
-  { value: "Niacinamide + Peptides", label: "Clinical Actives" },
-  { value: "15 sec", label: "Full absorption" },
+  { value: "5% Niacinamide", label: "Published concentration" },
+  { value: "2% Panthenol", label: "Published concentration" },
   { value: "30 days", label: "Money-back guarantee" },
   { value: "Free", label: "U.S. shipping" },
 ];
@@ -11,7 +11,7 @@ const ProofStrip = () => {
       <dl className="mx-auto grid max-w-[1200px] grid-cols-2 px-4 py-1 md:grid-cols-4 md:px-8">
         {proofPoints.map((point, index) => (
           <div
-            key={point.label}
+            key={point.value}
             className={`flex min-h-[82px] flex-col justify-center px-4 py-4 text-center md:min-h-[92px] ${
               index % 2 === 1 ? "border-l border-[#1A2F4C]/12" : ""
             } ${index > 1 ? "border-t border-[#1A2F4C]/12 md:border-t-0" : ""} ${

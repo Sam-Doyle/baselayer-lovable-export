@@ -3,11 +3,12 @@ import { describe, expect, it } from "vitest";
 import ProofStrip from "@/components/ProofStrip";
 
 describe("ProofStrip", () => {
-  it("leads with the clinical-actives proof point", () => {
+  it("leads with published formula concentrations", () => {
     render(<ProofStrip />);
 
-    expect(screen.getByText("Niacinamide + Peptides")).toBeInTheDocument();
-    expect(screen.getByText("Clinical Actives")).toBeInTheDocument();
+    expect(screen.getByText("5% Niacinamide")).toBeInTheDocument();
+    expect(screen.getByText("2% Panthenol")).toBeInTheDocument();
+    expect(screen.getAllByText("Published concentration")).toHaveLength(2);
     expect(screen.queryByText("Early testers")).not.toBeInTheDocument();
   });
 });

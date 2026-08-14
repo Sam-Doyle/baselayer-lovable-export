@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
-import { LEGAL } from "@/config/legal";
+import { FREE_SHIPPING_CODE, LEGAL } from "@/config/legal";
 
 /*
  * SHIPPING POLICY
@@ -20,14 +20,14 @@ import { LEGAL } from "@/config/legal";
  * The shipping charge below mirrors a rule that lives in Shopify admin (the US
  * shipping profile's rate), not anything this codebase enforces. Checkout is the
  * authority; this page is a representation of it. If the admin rule changes,
- * change LEGAL.freeShippingOnAllOrders in the same pass.
+ * change the values in LEGAL in the same pass.
  */
 
 const ShippingPolicy = () => {
   useCanonical();
   useMetaTags({
     title: "Shipping Policy | Base Layer",
-    description: "Free US shipping on every order, order processing times, tracking, and how we handle lost or damaged packages.",
+    description: `Free US standard shipping with code ${FREE_SHIPPING_CODE} or on orders $${LEGAL.freeShippingThresholdUsd}+, plus processing times and tracking.`,
   });
 
   return (
@@ -48,16 +48,23 @@ const ShippingPolicy = () => {
           <h1 className="font-heading text-3xl md:text-4xl font-bold mb-4">Shipping Policy</h1>
 
           <p className="font-body text-sm text-muted-foreground mb-10">
-            Effective date: {LEGAL.effectiveDate}
+            Effective date: {LEGAL.shippingPolicyEffectiveDate}
           </p>
 
           <div className="space-y-10 font-body text-muted-foreground leading-relaxed">
             <section>
               <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-3 text-foreground">Shipping Costs</h2>
               <p>
-                Standard shipping is free on every order. There is no minimum, no threshold, and no
-                separate shipping charge at checkout. The price you see on the product page is the
-                price you pay, plus any sales tax your state requires.
+                Standard U.S. shipping is ${LEGAL.standardShippingPriceUsd.toFixed(2)} for merchandise
+                subtotals under ${LEGAL.freeShippingThresholdUsd} and free for merchandise subtotals of
+                ${LEGAL.freeShippingThresholdUsd} or more. Every checkout started from this site applies code{" "}
+                <strong className="text-foreground">{FREE_SHIPPING_CODE}</strong> automatically, making
+                standard U.S. shipping free regardless of order value.
+              </p>
+              <p className="mt-3">
+                {FREE_SHIPPING_CODE} applies to standard U.S. shipping only. Expedited shipping, when
+                available, is charged at the rate displayed during checkout. Sales tax is calculated
+                separately where required.
               </p>
               <p className="mt-3">
                 We currently ship to addresses within the United States, including Alaska and Hawaii. We do not ship to PO

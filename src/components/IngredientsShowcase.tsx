@@ -17,47 +17,47 @@ const ingredients = [
     name: "Niacinamide",
     slug: "niacinamide",
     concentration: "5%",
-    why: "Regulates oil production, reduces pore size, and strengthens the skin barrier. The most studied active in men's skincare.",
+    why: "Selected to help balance the appearance of oil and support the skin's natural moisture barrier.",
     image: "/images/ingredients/niacinamide.png",
     responsiveImage: "/images/ingredients/responsive/niacinamide",
   },
   {
     name: "Copper Peptide GHK-Cu",
     slug: "copper-peptide",
-    concentration: null,
-    why: "Signals fibroblasts to produce collagen and elastin. Shown to increase collagen synthesis by up to 70% in clinical studies.",
+    concentration: "0.03%",
+    why: "A signal peptide included alongside the moisturizer's barrier-supporting ingredients.",
     image: "/images/ingredients/copper-peptide.png",
     responsiveImage: "/images/ingredients/responsive/copper-peptide",
   },
   {
     name: "Centella Asiatica",
     slug: "centella-asiatica",
-    concentration: null,
-    why: "Calms post-shave irritation and active inflammation. Accelerates wound healing without steroids or harsh chemicals.",
+    concentration: "2%",
+    why: "Selected to support comfortable-feeling skin, especially after shaving or exposure to dry air.",
     image: "/images/ingredients/centella.png",
     responsiveImage: "/images/ingredients/responsive/centella",
   },
   {
     name: "Hyaluronic Acid",
     slug: "hyaluronic-acid",
-    concentration: null,
-    why: "Holds 1,000x its weight in water. Pulls deep hydration into the skin without adding weight or shine.",
+    concentration: "0.5%",
+    why: "A humectant that helps draw and hold water at the skin's surface without adding a heavy feel.",
     image: "/images/ingredients/hyaluronic-acid.png",
     responsiveImage: "/images/ingredients/responsive/hyaluronic-acid",
   },
   {
     name: "Squalane",
     slug: "squalane",
-    concentration: null,
-    why: "Plant-derived lipid that matches your skin's natural oils. Absorbs in seconds, locks in moisture, zero greasiness.",
+    concentration: "3%",
+    why: "A lightweight emollient that helps reduce moisture loss without the waxy feel of a traditional cream.",
     image: "/images/ingredients/squalane.png",
     responsiveImage: "/images/ingredients/responsive/squalane",
   },
   {
     name: "Panthenol",
     slug: "panthenol",
-    concentration: null,
-    why: "Vitamin B5 derivative that repairs the moisture barrier and soothes wind-chapped, sun-exposed skin on contact.",
+    concentration: "2%",
+    why: "A vitamin B5 derivative selected to soothe skin and support its natural moisture barrier.",
     image: "/images/ingredients/panthenol.png",
     responsiveImage: "/images/ingredients/responsive/panthenol",
   },
@@ -143,26 +143,26 @@ const IngredientsShowcase = () => {
   }, []);
 
   return (
-    <section ref={ref} className="py-20 md:py-28 px-8 md:px-12 bg-[#E8E4DC]">
+    <section id="formula" ref={ref} className="bg-[#E8E4DC] px-6 py-14 sm:px-8 md:px-12 md:py-24">
       <div className="max-w-[1440px] mx-auto">
         {/* Header */}
         <div
-          className="text-center mb-14 md:mb-20 transition-all duration-700"
+          className="mb-10 text-center transition-all duration-700 md:mb-16"
           style={{ opacity: isVisible ? 1 : 0, transform: `translateY(${isVisible ? "0" : "20px"})` }}
         >
           <p className="font-body text-[10px] md:text-xs tracking-[0.3em] uppercase text-[#1A2F4C]/40 mb-3">
             Precision Skincare
           </p>
-          <h2 className="font-heading text-2xl md:text-4xl font-bold tracking-tight text-[#1A2F4C] mb-4">
-            Clinically-backed ingredients
+          <h2 className="mb-4 font-heading text-2xl font-bold uppercase tracking-tight text-[#1A2F4C] md:text-4xl">
+            Formula, without the mystery
           </h2>
           <p className="font-body text-sm md:text-base text-[#1A2F4C]/50 max-w-2xl mx-auto">
-            Six active ingredients at clinical concentrations. No filler. Every ingredient selected from peer-reviewed research on men's skin biology.
+            Six key ingredients at disclosed concentrations. See why each one is here.
           </p>
         </div>
 
         {/* 6-column ingredient grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-9 sm:grid-cols-3 md:gap-8 lg:grid-cols-6">
           {ingredients.map((ingredient, i) => (
             <IngredientCard
               key={ingredient.slug}
@@ -175,7 +175,7 @@ const IngredientsShowcase = () => {
 
         {/* CTA */}
         <div
-          className="text-center mt-14 transition-all duration-700"
+          className="mt-10 text-center transition-all duration-700 md:mt-14"
           style={{
             opacity: isVisible ? 1 : 0,
             transitionDelay: "600ms",

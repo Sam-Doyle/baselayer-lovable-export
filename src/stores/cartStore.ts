@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { storefrontApiRequest, ShopifyHttpError, ShopifyProduct } from '@/lib/shopify';
 import { trackEvent } from '@/lib/analytics';
 import { metaContentId } from '@/config/product';
+import { FREE_SHIPPING_CODE } from '@/config/legal';
 
 export interface Money { amount: string; currencyCode: string }
 
@@ -201,6 +202,10 @@ function reconcileItems(items: CartItem[], cart: ShopifyCart | null | undefined)
 function formatCheckoutUrl(checkoutUrl: string): string {
   try {
     const url = new URL(checkoutUrl);
+    // Keep Shopify's required `key` parameter intact while carrying the
+    // evergreen shipping offer into checkout. This also repairs checkout URLs
+    // restored from localStorage before SHIP26 went live.
+    url.searchParams.set('discount', FREE_SHIPPING_CODE);
     url.searchParams.set('channel', 'online_store');
     return url.toString();
   } catch {
@@ -397,7 +402,7 @@ interface CreateCartResult {
 async function createShopifyCart(item: CartItem): Promise<CreateCartResult> {
   try {
     const data = await requestWithRetry(CART_CREATE_MUTATION, {
-      input: { lines: [toLineInput(item)] },
+      input: { lines: [toLineInput(item)], discountCodes: [FREE_SHIPPING_CODE] },
     });
     if (data === undefined) return { success: false, errorKind: 'silent', errorMessage: 'Storefront request blocked (402 — see prior toast).' };
     const userErrors: ShopifyUserError[] = data?.data?.cartCreate?.userErrors || [];
@@ -724,7 +729,10 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [], cartId: null, checkoutUrl: null, cost: null, isOpen: false }),
-      getCheckoutUrl: () => get().checkoutUrl,
+      getCheckoutUrl: () => {
+        const checkoutUrl = get().checkoutUrl;
+        return checkoutUrl ? formatCheckoutUrl(checkoutUrl) : null;
+      },
 
       /*
        * Runs every time the drawer opens. Besides dropping a cart Shopify no

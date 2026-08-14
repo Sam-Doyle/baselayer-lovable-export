@@ -136,10 +136,10 @@ Fees are Shopify Payments 2.9% + $0.30.
 | Shipping as % of revenue | 18.7% | 11.4% | 20.3% |
 | **Breakeven ROAS** | **1.86x** | **1.70x** | **1.99x** |
 
-USPS tier detail, rebuilt 2026-08-12 on a **measured** 82 g packed unit (carton +
+USPS tier detail, updated 2026-08-13 on a **measured** 88 g packed unit (carton +
 filled airless pump) in the 9x12 plain poly mailer actually bought (~8 g,
-$0.0433/ea): 1 bottle ships 90 g / 3.17 oz → **4 oz tier**; 2 bottles ship
-172 g / 6.07 oz → **8 oz tier**. The second bottle costs $0.63 more to ship and
+$0.0433/ea): 1 bottle ships 96 g / 3.39 oz → **4 oz tier**; 2 bottles ship
+184 g / 6.49 oz → **8 oz tier**. The second bottle costs $0.63 more to ship and
 earns $30 more revenue, which is the whole argument for the 2-pack PDP default.
 
 Postage is **$5.78 blended for the single, from four quoted Shopify Shipping
@@ -157,7 +157,7 @@ $8.10/$8.49 — which caught a real error, since the subscription's breakeven wa
 reading and drops both tiers a USPS band. **Rule: do not model unit economics on
 an unweighed parcel.**
 
-✅ **Container confirmed as the airless pump** (Sam, 2026-08-12), so 82 g is the
+✅ **Container confirmed as the airless pump**; the 2026-08-13 re-weigh makes 88 g the
 real Batch 01 shipped weight and the table above is final until the carton or fill
 changes. A briefly-held doubt — that 82 g implied a tube — came from a ~58 g
 empty-bottle estimate that was ~30 g too heavy, not from the measurement.

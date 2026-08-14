@@ -2,9 +2,9 @@
 title: Shipping Economics & Packaging
 domain: technical
 created: 2026-08-12
-last_compiled: 2026-08-12
-revision: 3
-sources: [Shopify admin shipping rate calculator (4 quoted lanes, 2026-08-12), /last30days research (Pirate Ship support docs, DimMath 2026 GA + Cubic rate tables, SellerEssentials, Ship.com, TransImpact, Shopify Community), SupplyHut product pages, PackagingSupplies.com, USPS DIM rules, packaging weight math, Sam's scale measurement 2026-08-12, Shopify Admin GraphQL mutation reference]
+last_compiled: 2026-08-13
+revision: 4
+sources: [Shopify admin shipping rate calculator (4 quoted lanes, 2026-08-12), /last30days research (Pirate Ship support docs, DimMath 2026 GA + Cubic rate tables, SellerEssentials, Ship.com, TransImpact, Shopify Community), SupplyHut product pages, PackagingSupplies.com, USPS DIM rules, packaging weight math, Sam's corrected scale measurement 2026-08-13, Shopify Admin GraphQL mutation reference]
 codePaths:
   - ~/baselayer-lovable-export/src/config/legal.ts
   - ~/baselayer-lovable-export/src/config/product.ts
@@ -19,16 +19,17 @@ strictly about cost.
 
 ## The Short Version
 
-Rebuilt 2026-08-12 (rev 3) against a **measured** 82 g packed unit — carton plus
+Rebuilt 2026-08-13 (rev 4) against a **measured** 88 g packed unit — carton plus
 filled airless pump, on Sam's scale — the 9x12 plain poly mailer actually bought,
 and **four quoted carrier rates** rather than published rate tables. Rev 1 was
-estimated end to end; rev 2 fixed the weight; rev 3 fixes the postage.
+estimated end to end; rev 2 added the first scale reading; rev 3 fixed the
+postage; rev 4 records the corrected 88 g scale reading.
 
 | | 1 bottle | 2-pack |
 |---|---|---|
-| Product + carton (measured) | 82 g | 164 g |
+| Product + carton (measured) | 88 g | 176 g |
 | Mailer (9x12, 2 mil) | 8 g | 8 g |
-| Shipped weight | **90 g / 3.17 oz** | **172 g / 6.07 oz** |
+| Shipped weight | **96 g / 3.39 oz** | **184 g / 6.49 oz** |
 | USPS tier | **4 oz** | **8 oz** |
 | Postage (blended) | **$5.78** (measured) | **$6.22** (est.) |
 | Materials | ~$1.34 | ~$1.53 |
@@ -46,8 +47,8 @@ than quoted — see "Rebuilt blend" below.
 > 12 oz tiers, and $8.10 / $8.49 landed. Rev 1 was wrong because it estimated the
 > 50 mL airless pump at ~58 g empty. **The container is confirmed as the airless
 > pump (Sam, 2026-08-12)** — the bottle is simply much lighter than estimated,
-> around 25-30 g for a thin-wall mono-material PP airless. 82 g is the real
-> shipped weight of a Batch 01 unit.
+> around 25-30 g for a thin-wall mono-material PP airless. 88 g is the canonical
+> product-plus-carton weight of a Batch 01 unit.
 
 Weighing one packed box moved landed cost more than any pricing decision made
 this month. Do it before modelling, not after.
@@ -355,19 +356,22 @@ carries the mailer, so do not bake it into both or you double-count.
 
 | Setting | Value |
 |---|---|
-| Variant weight — 1 Bottle | **82 g** |
-| Variant weight — 2 Bottles | **164 g** |
+| Variant weight — 1 Bottle | **88 g** |
+| Variant weight — 2 Bottles | **176 g** |
 | Package type | Soft package / poly mailer |
 | Package dimensions | **9 × 12 × 2 in** |
 | Package weight | **8 g** |
-| US rate | Single flat rate, `Free shipping`, $0.00, no conditions |
+| US rate under $60 | `Standard Shipping`, $5.95 |
+| US rate at $60+ | `Free Standard Shipping`, $0.00 |
+| Evergreen promotion | `SHIP26`, free U.S. standard shipping |
 
-Resulting billed weights: **90 g (3.17 oz)** single → 4 oz tier with 23 g headroom;
-**172 g (6.07 oz)** 2-pack → 8 oz tier with 55 g headroom.
+Resulting billed weights: **96 g (3.39 oz)** single → 4 oz tier with 17 g headroom;
+**184 g (6.49 oz)** 2-pack → 8 oz tier with 43 g headroom.
 
-With `freeShippingOnAllOrders: true` in `src/config/legal.ts`, Shopify never
-calculates a rate — these weights matter only for label accuracy. Remove any
-carrier-calculated rates from the US zone.
+The Storefront API attaches `SHIP26` when it creates a cart and also carries it
+in the checkout URL for older saved carts. Shopify still calculates the eligible
+standard rate, then the promotion discounts that rate to zero. These weights
+also remain the source of truth for label accuracy.
 
 ⚠️ **Check the Rest of World zone.** If it is open at $0.00, international orders
 lose $25-50 each.

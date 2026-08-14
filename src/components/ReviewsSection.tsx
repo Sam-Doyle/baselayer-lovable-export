@@ -95,7 +95,7 @@ const ReviewsSection = () => {
   );
 
   return (
-    <section id="reviews" className="scroll-mt-[96px] px-6 py-20 bg-[#F8FAFC]">
+    <section id="reviews" className="scroll-mt-[160px] px-6 py-20 bg-[#F8FAFC]">
       <div className="max-w-[860px] mx-auto">
         <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-8 text-[#1A2F4C]">
           Customer Reviews

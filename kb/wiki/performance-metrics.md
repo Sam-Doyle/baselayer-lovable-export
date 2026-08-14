@@ -2,8 +2,8 @@
 title: Performance Metrics & Optimization
 domain: technical
 created: 2026-04-03
-last_compiled: 2026-08-12
-revision: 3
+last_compiled: 2026-08-13
+revision: 4
 sources: [vite.config.ts, netlify.toml, index.html, src/App.tsx, src/pages/Index.tsx, src/components/HeroSection.tsx, package.json, Lighthouse 13 lab audits of live baselayerskin.co (3 mobile + 3 desktop), Lighthouse 13 local production audit post-remediation]
 codePaths:
   - vite.config.ts
@@ -399,3 +399,9 @@ with **no `error` handler on the stream**. `existsSync` is checked before the st
 **Status:** pre-existing (present at `HEAD`, unrelated to any current change) and **not yet fixed.** The one-line fix is `.on("error", () => { res.statusCode = 500; res.end(); })` on the stream, or `res.writeHead` deferred until the stream's `open` event fires.
 
 **Why it matters:** on Netlify this surfaces as a random red deploy that goes green on retry — the most expensive kind of flake to diagnose later, because it looks like a platform problem rather than a code one.
+
+## Judge.me Customer-Photo Sizing (2026-08-12, measured live URLs, confidence: high)
+
+Judge.me returns review images with an existing `?width=1024` parameter, roughly 200 KB per image. `scripts/fetch-reviews.mjs` now rewrites that parameter to `width=320`, appropriate for a 160px rendered image at 2x DPR, reducing observed files to 16–30 KB (about 7x smaller) with no visible quality loss. The rewrite only changes an existing width parameter so a future CDN URL-shape change degrades to the original asset rather than a 404.
+
+Production CSP must allow `https://review-images.judgeme.com` in both `netlify.toml` and `public/_headers`; the hosts named in Judge.me documentation were not sufficient for the live customer-photo URLs.

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
-import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { FREE_SHIPPING_ANNOUNCEMENT } from "@/config/legal";
 import { useCartStore } from "@/stores/cartStore";
 
 const Navbar = () => {
@@ -54,7 +54,7 @@ const Navbar = () => {
     >
       <div className="relative z-50 flex h-[28px] w-full items-center justify-center bg-[#1A2F4C] px-4 text-center text-white shadow-sm">
         <span className="font-heading text-[10px] font-semibold uppercase leading-none tracking-[0.14em] sm:text-[11px]">
-          {FREE_SHIPPING_PHRASE.toUpperCase()} ON EVERY U.S. ORDER
+          {FREE_SHIPPING_ANNOUNCEMENT}
         </span>
       </div>
 

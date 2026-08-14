@@ -11,7 +11,7 @@ const Footer = () => {
           <div>
             <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-[#121212] mb-4">Shop</h3>
             <ul className="space-y-2">
-              <li><Link to="/face-cream" className="font-body text-xs text-[#7A8077] hover:text-[#121212] transition-colors py-2 inline-block">Daily Face Cream</Link></li>
+              <li><Link to="/face-cream" className="font-body text-xs text-[#4A5560] hover:text-[#121212] transition-colors py-2 inline-block">Daily Face Cream</Link></li>
             </ul>
           </div>
 
@@ -19,10 +19,10 @@ const Footer = () => {
           <div>
             <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-foreground mb-4">Learn</h3>
             <ul className="space-y-2">
-              <li><Link to="/articles" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Articles</Link></li>
-              <li><Link to="/ingredients" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Ingredients</Link></li>
-              <li><Link to="/skin-concerns" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Skin Concerns</Link></li>
-              <li><Link to="/comparisons" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Compare Moisturizers</Link></li>
+              <li><Link to="/articles" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Articles</Link></li>
+              <li><Link to="/ingredients" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Ingredients</Link></li>
+              <li><Link to="/skin-concerns" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Skin Concerns</Link></li>
+              <li><Link to="/comparisons" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Compare Moisturizers</Link></li>
             </ul>
           </div>
 
@@ -30,14 +30,14 @@ const Footer = () => {
           <div>
             <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-foreground mb-4">Company</h3>
             <ul className="space-y-2">
-              <li><Link to="/about" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">About</Link></li>
-              <li><Link to="/privacy-policy" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Privacy Policy</Link></li>
-              <li><Link to="/terms-of-service" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Terms of Service</Link></li>
+              <li><Link to="/about" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">About</Link></li>
+              <li><Link to="/privacy-policy" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Terms of Service</Link></li>
               <li>
                 <button
                   type="button"
                   onClick={requestConsentReview}
-                  className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block text-left"
+                  className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block text-left"
                 >
                   Cookie Preferences
                 </button>
@@ -49,12 +49,12 @@ const Footer = () => {
           <div>
             <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-foreground mb-4">Support</h3>
             <ul className="space-y-2">
-              <li><a href="mailto:contact@baselayerskin.co" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">contact@baselayerskin.co</a></li>
-              <li><Link to="/refund-policy" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Returns & Refunds</Link></li>
-              <li><Link to="/shipping-policy" className="font-body text-xs text-muted-foreground hover:text-foreground transition-colors py-2 inline-block">Shipping</Link></li>
+              <li><a href="mailto:contact@baselayerskin.co" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">contact@baselayerskin.co</a></li>
+              <li><Link to="/refund-policy" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Returns & Refunds</Link></li>
+              <li><Link to="/shipping-policy" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Shipping</Link></li>
             </ul>
             <div className="flex items-center gap-3 mt-4">
-              <a href="https://www.instagram.com/baselayerskin/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors p-2 -m-2" aria-label="Follow Base Layer on Instagram">
+              <a href="https://www.instagram.com/baselayerskin/" target="_blank" rel="noopener noreferrer" className="text-[#4A5560] hover:text-foreground transition-colors p-2 -m-2" aria-label="Follow Base Layer on Instagram">
                 <Instagram className="w-4 h-4" />
               </a>
             </div>
@@ -63,17 +63,17 @@ const Footer = () => {
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <p className="font-body text-xs text-muted-foreground tracking-wide">
+            <p className="font-body text-xs text-[#4A5560] tracking-wide">
               © 2026 Base Layer. All rights reserved.
             </p>
-            <p className="font-body text-[10px] text-muted-foreground tracking-wide">
+            <p className="font-body text-[10px] text-[#4A5560] tracking-wide">
               Base Layer Skin · Breckenridge, CO 80424
             </p>
-            <p className="font-body text-[10px] text-muted-foreground tracking-wide">
+            <p className="font-body text-[10px] text-[#4A5560] tracking-wide">
               Founded by Sam Doyle in Breckenridge, CO
             </p>
           </div>
-          <p className="font-body text-[10px] text-muted-foreground max-w-md text-center md:text-right leading-relaxed">
+          <p className="font-body text-[10px] text-[#4A5560] max-w-md text-center md:text-right leading-relaxed">
             These statements have not been evaluated by the FDA. This product is not intended to diagnose, treat, cure, or prevent any disease.
           </p>
         </div>

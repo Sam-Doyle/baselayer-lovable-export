@@ -4,19 +4,15 @@ import { ChevronDown } from "lucide-react";
 const faqs = [
   {
     question: "Will it feel greasy?",
-    answer: "No. It absorbs fast and dries down matte.",
+    answer: "It is designed to absorb quickly with a lightweight, matte finish. Skin varies, so the 30-day guarantee gives you time to judge the finish on your own face.",
   },
   {
     question: "Can I use it after shaving?",
-    answer: "Yes. It's built to calm post-shave irritation without stinging.",
+    answer: "Yes. The formula includes 2% panthenol to help soothe skin and support its natural moisture barrier. If shaving leaves your skin raw or broken, let it settle before applying.",
   },
   {
     question: "Is it scented?",
     answer: "No. It's fragrance-free.",
-  },
-  {
-    question: "Do I need other products?",
-    answer: "No. This is made for men who want one product, not a full routine.",
   },
   {
     question: "Is this a subscription?",
@@ -24,11 +20,11 @@ const faqs = [
   },
   {
     question: "What if it doesn't work for me?",
-    answer: "Full refund within 30 days. Keep the bottle. We don't want it back. No questions asked.",
+    answer: "Your first order is covered by our 30-day guarantee. Contact us within 30 days of delivery for a refund; no return shipment is required.",
   },
   {
     question: "How long does one bottle last?",
-    answer: "About 6 to 8 weeks with daily use.",
+    answer: "About six weeks when you use one pump morning and night. Actual duration varies with how much you apply.",
   },
   {
     question: "When will it ship?",
@@ -40,9 +36,9 @@ const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="py-24 md:py-32 px-6 md:px-12 bg-[#F4F4F0] border-t border-[#1E201E]/10">
+    <section id="faq" className="border-t border-[#1E201E]/10 bg-[#F4F4F0] px-6 py-14 md:px-12 md:py-24">
       <div className="max-w-[1440px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-start">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-24">
           
           {/* Left Column (Sticky Header) */}
           <div className="lg:col-span-5 lg:sticky lg:top-32">
@@ -67,7 +63,7 @@ const FAQSection = () => {
                   <div key={i} className="border-b border-[#1E201E]/20 group">
                     <button
                       onClick={() => setOpenIndex(isOpen ? null : i)}
-                      className="w-full flex items-center justify-between py-6 md:py-8 text-left transition-colors hover:text-[#F95D1A]"
+                      className="flex min-h-14 w-full items-center justify-between py-5 text-left transition-colors hover:text-[#F95D1A] md:py-7"
                       aria-expanded={isOpen}
                     >
                       <span className={`font-heading text-lg md:text-xl lg:text-2xl font-bold uppercase tracking-tight pr-6 transition-colors duration-300 ${isOpen ? "text-[#F95D1A]" : "text-[#1E201E]"}`}>
@@ -81,7 +77,7 @@ const FAQSection = () => {
                     </button>
                     
                     <div 
-                      className="grid transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                      className="grid transition-all duration-300 ease-[cubic-bezier(0.4,_0,_0.2,_1)]"
                       style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
                     >
                       <div className="overflow-hidden">

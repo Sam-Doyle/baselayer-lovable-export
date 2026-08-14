@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { AVAILABLE_TIERS, DEFAULT_TIER, getInitialTier } from "@/config/product";
+import {
+  AVAILABLE_TIERS,
+  DEFAULT_TIER,
+  getInitialTier,
+  tierCtaLabel,
+  tierSummary,
+} from "@/config/product";
 
 describe("homepage offer selection", () => {
   it("selects the $38 single bottle when the homepage offer query is present", () => {
@@ -9,5 +15,19 @@ describe("homepage offer selection", () => {
   it("preserves the global PDP default for direct visits", () => {
     expect(getInitialTier(null)).toEqual(DEFAULT_TIER);
     expect(AVAILABLE_TIERS).toContain(DEFAULT_TIER);
+  });
+});
+
+describe("PDP tier labels", () => {
+  it("keeps total and per-bottle pricing explicit for the default two-pack", () => {
+    expect(tierSummary(DEFAULT_TIER)).toBe("$68 total · $34 each");
+    expect(tierCtaLabel(DEFAULT_TIER)).toBe("ADD 2 BOTTLES · $68");
+  });
+
+  it("states the subscription charge cadence", () => {
+    const subscription = AVAILABLE_TIERS.find((tier) => tier.kind === "subscription");
+    expect(subscription).toBeDefined();
+    expect(tierSummary(subscription!)).toBe("$35 per delivery · 1 bottle every 6 weeks");
+    expect(tierCtaLabel(subscription!)).toBe("SUBSCRIBE · $35 PER DELIVERY");
   });
 });

@@ -18,7 +18,7 @@ const HomeBelowFold = () => (
     <IngredientsShowcase />
     <MidPageCTA
       headline="EVERYTHING YOUR SKIN NEEDS. NOTHING IT DOESN'T."
-      subhead="6 active ingredients. Clinical concentrations. Limited founding batch at $38."
+      subhead="Six key ingredients. Every concentration disclosed. Limited founding batch at $38."
       ctaLabel="GET BASE LAYER · $38 →"
       source="home_mid_ingredients"
       theme="dark"

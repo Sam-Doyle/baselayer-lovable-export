@@ -1,4 +1,4 @@
-import { Check, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import mountainPackshot from "@/assets/generated-creatives/hero-mountain-packshot-v2.webp";
 import mountainPackshot480 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-480w.webp";
@@ -8,6 +8,7 @@ import mountainPackshotMobile480 from "@/assets/generated-creatives/responsive/h
 import mountainPackshotMobile824 from "@/assets/generated-creatives/responsive/hero-mountain-packshot-v2-mobile-824w.webp";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 import { trackEvent } from "@/lib/analytics";
+import { reviewAggregate } from "@/lib/reviews";
 
 const HeroSection = () => {
   return (
@@ -46,16 +47,18 @@ const HeroSection = () => {
             </h1>
 
             <p className="mt-4 max-w-[560px] font-body text-[15px] leading-[1.5] text-[#1A2F4C]/78 sm:text-[16px] md:mt-6 md:text-[18px] md:leading-[1.6]">
-              Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Put it on in 15 seconds. Forget it&apos;s there.
+              Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Apply it. Forget it&apos;s there.
             </p>
 
-            <a
-              href="#testimonials"
+            <Link
+              to={reviewAggregate.count > 0 ? "/face-cream#reviews" : "#testimonials"}
               className="mt-4 inline-flex min-h-7 items-center gap-2 font-body text-[12px] font-semibold text-[#1A2F4C] underline decoration-[#1A2F4C]/30 underline-offset-4 transition-colors hover:text-brand-accent md:mt-6 md:text-[13px]"
             >
-              <Check className="h-4 w-4 text-brand-accent" strokeWidth={2.75} aria-hidden="true" />
-              50 early testers &middot; Read their results
-            </a>
+              <Star className="h-4 w-4 fill-brand-accent text-brand-accent" strokeWidth={2.25} aria-hidden="true" />
+              {reviewAggregate.count > 0
+                ? `${reviewAggregate.rating.toFixed(1)}/5 from ${reviewAggregate.count} customer reviews`
+                : "3 product testers · Read their feedback"}
+            </Link>
 
             <div className="mt-5 flex items-end gap-3 md:mt-7">
               <span className="font-heading text-[32px] font-black leading-none text-[#1A2F4C] md:text-[38px]">$38</span>

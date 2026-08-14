@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useCartStore, type CartItem } from "@/stores/cartStore";
 import { ShopifyHttpError } from "@/lib/shopify";
+import { FREE_SHIPPING_CODE } from "@/config/legal";
 
 // The cart mutation guards are the revenue path: every CTA on the site
 // funnels through addItem/updateQuantity/removeItem, all wrapping the
@@ -106,6 +107,33 @@ beforeEach(() => {
     isOpen: false,
     isLoading: false,
     isSyncing: false,
+  });
+});
+
+describe("cartStore — SHIP26 checkout handoff", () => {
+  it("creates new Shopify carts with the free-shipping code already attached", async () => {
+    mockStorefrontApiRequest.mockResolvedValueOnce(cartCreateResponse());
+
+    await useCartStore.getState().addItem(testItem);
+
+    expect(mockStorefrontApiRequest).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        input: expect.objectContaining({ discountCodes: [FREE_SHIPPING_CODE] }),
+      }),
+    );
+  });
+
+  it("adds SHIP26 without dropping Shopify's required checkout key", () => {
+    useCartStore.setState({
+      checkoutUrl: "https://example.myshopify.com/cart/c/abc123?key=secret-key",
+    });
+
+    const checkoutUrl = new URL(useCartStore.getState().getCheckoutUrl());
+
+    expect(checkoutUrl.searchParams.get("key")).toBe("secret-key");
+    expect(checkoutUrl.searchParams.get("discount")).toBe(FREE_SHIPPING_CODE);
+    expect(checkoutUrl.searchParams.get("channel")).toBe("online_store");
   });
 });
 
@@ -495,7 +523,12 @@ describe("cartStore addItem — cartNotFound recovery actually recreates and ret
     const [, secondCallVars] = mockStorefrontApiRequest.mock.calls[1];
     // Confirms the recovery call is a real cartCreate carrying the item the
     // shopper actually tried to add, not just clearCart() with nothing after.
-    expect(secondCallVars).toEqual({ input: { lines: [{ quantity: 1, merchandiseId: testItem.variantId }] } });
+    expect(secondCallVars).toEqual({
+      input: {
+        lines: [{ quantity: 1, merchandiseId: testItem.variantId }],
+        discountCodes: [FREE_SHIPPING_CODE],
+      },
+    });
 
     expect(result.success).toBe(true);
     expect(useCartStore.getState().cartId).toBe("gid://shopify/Cart/1");

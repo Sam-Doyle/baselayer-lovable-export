@@ -4,6 +4,7 @@ import { X, Minus, Plus, Trash2, ExternalLink, Loader2, ShoppingCart } from "luc
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
 import { BUY_TIERS, buildCartItem, metaContentId } from "@/config/product";
+import { FREE_SHIPPING_CODE } from "@/config/legal";
 
 /** "$35" for a round number, "$34.50" otherwise. For prices sitting inside a sentence. */
 const inlinePrice = (amount: string) => `$${parseFloat(amount).toFixed(2).replace(/\.00$/, "")}`;
@@ -115,6 +116,7 @@ const ShopifyCartDrawer = () => {
         <div className="fixed inset-0 bg-black/60 z-50 transition-opacity" onClick={() => toggleCart(false)} />
       )}
       <div 
+        data-prerender-handoff-hide
         className={`fixed top-0 right-0 h-full w-full max-w-[400px] bg-background z-50 shadow-2xl transform transition-transform duration-300 flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
         aria-hidden={!isOpen}
         {...(!isOpen ? { inert: "true" } : {})}
@@ -201,6 +203,13 @@ const ShopifyCartDrawer = () => {
                 <span className="font-heading text-sm font-bold uppercase tracking-wide">Subtotal</span>
                 <span className="font-body text-sm">${totalPrice.toFixed(2)}</span>
               </div>
+              <div className="flex items-center justify-between gap-3 font-body text-[11px] text-[#2F7D3C]">
+                <span>U.S. standard shipping</span>
+                <span className="font-semibold">FREE · {FREE_SHIPPING_CODE}</span>
+              </div>
+              <p className="font-body text-[10px] text-muted-foreground text-center">
+                {FREE_SHIPPING_CODE} is applied automatically at Shopify checkout.
+              </p>
               {items.some(i => i.sellingPlanId) && (
                 <p className="font-body text-[11px] text-muted-foreground text-center">
                   Your cart includes a subscription. It renews automatically — pause or cancel anytime, no commitment.

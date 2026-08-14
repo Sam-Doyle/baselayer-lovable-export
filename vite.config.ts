@@ -330,7 +330,11 @@ function prerenderPlugin(): Plugin {
         return `<link rel="preload" as="image" type="image/webp"${mediaAttribute} imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="high">`;
       }
 
-      const fcSrcset = heroSrcset("product-hero-rock");
+      // /face-cream now opens on the first product-carousel image. Keep its
+      // preload in lockstep with that actual LCP resource; preloading the old
+      // product-on-rock creative caused an avoidable second image transfer.
+      const productGallerySrcset = heroSrcset("base-layer-carousel-01-primary");
+      const legacyLandingSrcset = heroSrcset("product-hero-rock");
 
       const homeProductImage = findBuilt(/^hero-mountain-packshot-v2-(?!480w-|768w-|1200w-|mobile-)[^.]+\.webp$/);
       const homeResponsiveSrcset = heroSrcset("hero-mountain-packshot-v2");
@@ -346,10 +350,13 @@ function prerenderPlugin(): Plugin {
 
       const heroPreloadForPage: Record<string, string> = {
         "/": homeProductPreload,
-        "/face-cream": preloadTag(fcSrcset),
-        "/matte-moisturizer-for-men": preloadTag(fcSrcset),
-        "/non-greasy-moisturizer-for-men": preloadTag(fcSrcset),
-        "/all-in-one-skincare-for-men": preloadTag(fcSrcset),
+        "/face-cream": preloadTag(
+          productGallerySrcset,
+          "(max-width: 768px) 100vw, min(50vw, 576px)",
+        ),
+        "/matte-moisturizer-for-men": preloadTag(legacyLandingSrcset),
+        "/non-greasy-moisturizer-for-men": preloadTag(legacyLandingSrcset),
+        "/all-in-one-skincare-for-men": preloadTag(legacyLandingSrcset),
       };
 
       // ── LCP Optimization 2: Hero image in HTML skeleton ───────
@@ -366,21 +373,26 @@ function prerenderPlugin(): Plugin {
       const homeHeroPicture = homeProductImage
         ? `<picture><source media="(max-width: 768px)" srcset="${homeMobileSrcset}" sizes="100vw"><img src="/assets/${homeProductImage}" srcset="${homeProductSrcset}" sizes="min(49vw, 706px)" alt="Base Layer Daily Face Cream bottle and carton on Colorado alpine granite" width="1536" height="1536" fetchpriority="high"></picture>`
         : "";
-      const fcHeroPicture = heroPictureTag("product-hero-rock", "Base Layer face cream");
+      const productGalleryFallback = findBuilt(/^base-layer-carousel-01-primary-768w[^.]*\.webp$/);
+      const productGalleryPicture = productGallerySrcset && productGalleryFallback
+        ? `<picture><img src="/assets/${productGalleryFallback}" srcset="${productGallerySrcset}" sizes="(max-width: 768px) 100vw, min(50vw, 576px)" alt="Base Layer Daily Face Cream bottle and carton" width="1254" height="1254" fetchpriority="high" style="display:block;width:100%;height:100%;object-fit:cover"></picture>`
+        : "";
+      const legacyLandingHeroPicture = heroPictureTag("product-hero-rock", "Base Layer face cream");
 
       // ── LCP Optimization 3: Above-the-fold skeletons ───────────
       // Bake real hero content into the HTML so LCP paints with FCP,
       // before React hydrates. Saves ~500-1000ms on mobile.
       const homeSkeleton = `<style>#bl-home-skeleton{min-height:100svh;background:#F2EFE8;padding-top:96px;display:flex;flex-direction:column;overflow:hidden}#bl-home-visual{height:226px;position:relative;overflow:hidden;order:1;background:#D8D3CA}#bl-home-visual img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 51%}#bl-home-copy{order:2;padding:28px 20px;color:#1A2F4C}#bl-home-copy p{font-family:Inter,sans-serif}#bl-home-copy h1{font-family:Montserrat,sans-serif;font-size:clamp(40px,10.8vw,60px);font-weight:900;text-transform:uppercase;line-height:.91;letter-spacing:-.05em;word-spacing:.1em;margin:0;color:#1A2F4C}@media(min-width:769px){#bl-home-skeleton{display:grid;grid-template-columns:1.02fr .98fr;min-height:100svh}#bl-home-visual{order:2;height:calc(100svh - 96px)}#bl-home-visual img{object-position:center}#bl-home-copy{order:1;padding:64px 80px;display:flex;flex-direction:column;justify-content:center}#bl-home-copy h1{font-size:clamp(60px,5.2vw,82px)}}</style><div id="bl-home-skeleton"><div id="bl-home-visual">${homeHeroPicture}</div><div id="bl-home-copy"><p style="font-size:11px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:rgba(26,47,76,.65);margin:0 0 12px">Daily Face Moisturizer</p><h1>ONE STEP.<br>ZERO SHINE.</h1><p style="font-size:16px;line-height:1.55;color:rgba(26,47,76,.78);max-width:560px;margin:20px 0 0">Fast-absorbing hydration for dry air, sun, wind, and bad sleep. Put it on in 15 seconds. Forget it's there.</p></div></div>`;
 
-      const fcSkeleton = `<div style="min-height:100vh;background:#0a0a0a;position:relative;overflow:hidden;padding-top:88px">${fcHeroPicture}<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.7))"></div><div style="position:relative;z-index:10;max-width:80rem;margin:0 auto;padding:2rem 1.5rem;text-align:center"><h1 style="font-family:'DM Sans',sans-serif;font-size:2rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#ebebeb;margin:0 0 1rem">Best Men's Face Moisturizer</h1><p style="font-family:Inter,sans-serif;font-size:1.5rem;font-weight:700;color:#ebebeb;margin:0">$38</p></div></div>`;
+      const productGallerySkeleton = `<div style="min-height:100vh;background:#fff;padding-top:96px"><div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;padding:32px 48px"><div style="aspect-ratio:1;background:#e2e8f0">${productGalleryPicture}</div><div style="padding-top:8px;color:#1a2f4c"><p style="font-family:Inter,sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px">Founding Offer</p><h1 style="font-family:Montserrat,sans-serif;font-size:28px;line-height:1.2;margin:0 0 20px">Performance Daily Face Cream</h1><p style="font-family:Montserrat,sans-serif;font-size:32px;font-weight:700;margin:0">$68</p></div></div><style>@media(max-width:768px){#root>div>div{display:block!important;padding:0!important}#root>div>div>div:nth-child(2){padding:24px 20px!important}}</style></div>`;
+      const legacyLandingSkeleton = `<div style="min-height:100vh;background:#0a0a0a;position:relative;overflow:hidden;padding-top:88px">${legacyLandingHeroPicture}<div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.3),rgba(0,0,0,.7))"></div><div style="position:relative;z-index:10;max-width:80rem;margin:0 auto;padding:2rem 1.5rem;text-align:center"><h1 style="font-family:'DM Sans',sans-serif;font-size:2rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#ebebeb;margin:0 0 1rem">Best Men's Face Moisturizer</h1><p style="font-family:Inter,sans-serif;font-size:1.5rem;font-weight:700;color:#ebebeb;margin:0">$38</p></div></div>`;
 
       const skeletonForPage: Record<string, string> = {
         "/": homeSkeleton,
-        "/face-cream": fcSkeleton,
-        "/matte-moisturizer-for-men": fcSkeleton,
-        "/non-greasy-moisturizer-for-men": fcSkeleton,
-        "/all-in-one-skincare-for-men": fcSkeleton,
+        "/face-cream": productGallerySkeleton,
+        "/matte-moisturizer-for-men": legacyLandingSkeleton,
+        "/non-greasy-moisturizer-for-men": legacyLandingSkeleton,
+        "/all-in-one-skincare-for-men": legacyLandingSkeleton,
       };
 
       // Save generic shell (SPA fallback for unknown routes)
@@ -750,27 +762,51 @@ function prerenderPlugin(): Plugin {
         }
 
         // Extract the exact CSS rules used in the first viewport on mobile and
-        // desktop, then make the full homepage stylesheet non-render-blocking.
-        // Other prerendered routes intentionally retain their normal blocking
-        // stylesheet until they receive the same visual-regression coverage.
+        // desktop, then make the full stylesheet non-render-blocking on the two
+        // paid-traffic entry routes. Both routes receive mobile + desktop
+        // browser coverage below before their blocking stylesheet is deferred.
         try {
-          const criticalRules = new Set<string>();
           const criticalViewports = [
             { width: 375, height: 812, deviceScaleFactor: 2 },
             { width: 1440, height: 900, deviceScaleFactor: 1 },
           ];
+          const criticalTargets = [
+            {
+              route: "/",
+              htmlPath: indexPath,
+              readySelector: "#hero-primary-cta",
+              containerSelectors: [
+                "nav",
+                "#hero-primary-cta",
+                '[aria-label="Cookie consent"]',
+              ],
+            },
+            {
+              route: "/face-cream",
+              htmlPath: path.join(distDir, "face-cream", "index.html"),
+              readySelector: "#purchase-options",
+              containerSelectors: [
+                "nav",
+                "#offer",
+                '[aria-label="Cookie consent"]',
+              ],
+            },
+          ];
 
-          for (const viewport of criticalViewports) {
-            const criticalPage = await browser.newPage();
-            try {
-              await criticalPage.setViewport(viewport);
-              await criticalPage.goto(`http://127.0.0.1:${PORT}/`, {
-                waitUntil: "networkidle0",
-                timeout: PAGE_TIMEOUT,
-              });
-              await criticalPage.waitForSelector("#hero-primary-cta", { timeout: PAGE_TIMEOUT });
+          for (const target of criticalTargets) {
+            const criticalRules = new Set<string>();
 
-              const viewportRules = await criticalPage.evaluate(() => {
+            for (const viewport of criticalViewports) {
+              const criticalPage = await browser.newPage();
+              try {
+                await criticalPage.setViewport(viewport);
+                await criticalPage.goto(`http://127.0.0.1:${PORT}${target.route}`, {
+                  waitUntil: "networkidle0",
+                  timeout: PAGE_TIMEOUT,
+                });
+                await criticalPage.waitForSelector(target.readySelector, { timeout: PAGE_TIMEOUT });
+
+                const viewportRules = await criticalPage.evaluate((containerSelectors) => {
                 const visibleElements = new Set<Element>();
                 const viewportBottom = window.innerHeight;
                 const viewportRight = window.innerWidth;
@@ -797,11 +833,12 @@ function prerenderPlugin(): Plugin {
                 // extraction viewport, which gives them no bounding box. Keep
                 // the entire first-viewport component subtree so md:hidden and
                 // the closed mobile-menu rules are present before full CSS.
-                const criticalContainers = [
-                  document.querySelector("nav"),
-                  document.querySelector("#hero-primary-cta")?.closest("section"),
-                  document.querySelector('[aria-label="Cookie consent"]'),
-                ].filter((element): element is Element => element !== null && element !== undefined);
+                const criticalContainers = containerSelectors
+                  .map((selector) => {
+                    const element = document.querySelector(selector);
+                    return selector === "#hero-primary-cta" ? element?.closest("section") : element;
+                  })
+                  .filter((element): element is Element => element !== null && element !== undefined);
 
                 for (const container of criticalContainers) {
                   visibleElements.add(container);
@@ -869,38 +906,39 @@ function prerenderPlugin(): Plugin {
                     // and therefore not part of this build's critical CSS.
                   }
                 }
-                return collected;
-              });
+                  return collected;
+                }, target.containerSelectors);
 
-              viewportRules.forEach((rule) => criticalRules.add(rule));
-            } finally {
-              await criticalPage.close().catch(() => {});
+                viewportRules.forEach((rule) => criticalRules.add(rule));
+              } finally {
+                await criticalPage.close().catch(() => {});
+              }
             }
-          }
 
-          console.log(`  🔎 / critical CSS scan found ${criticalRules.size} rules`);
+            console.log(`  🔎 ${target.route} critical CSS scan found ${criticalRules.size} rules`);
 
-          if (criticalRules.size > 0) {
-            let homepageHtml = fs.readFileSync(indexPath, "utf-8");
-            const stylesheetPattern = /<link rel="stylesheet" crossorigin href="([^"]+\.css)">/;
-            const stylesheetMatch = homepageHtml.match(stylesheetPattern);
+            if (criticalRules.size > 0 && fs.existsSync(target.htmlPath)) {
+              let routeHtml = fs.readFileSync(target.htmlPath, "utf-8");
+              const stylesheetPattern = /<link rel="stylesheet" crossorigin href="([^"]+\.css)">/;
+              const stylesheetMatch = routeHtml.match(stylesheetPattern);
 
-            if (stylesheetMatch) {
-              const stylesheetHref = stylesheetMatch[1];
-              const criticalCss = Array.from(criticalRules).join("");
-              const deferredStyles = [
-                `<style id="bl-critical-css">${criticalCss}</style>`,
-                `<link rel="stylesheet" href="${stylesheetHref}" media="print" onload="this.onload=null;this.media='all'">`,
-                `<noscript><link rel="stylesheet" href="${stylesheetHref}"></noscript>`,
-              ].join("\n  ");
+              if (stylesheetMatch) {
+                const stylesheetHref = stylesheetMatch[1];
+                const criticalCss = Array.from(criticalRules).join("");
+                const deferredStyles = [
+                  `<style id="bl-critical-css">${criticalCss}</style>`,
+                  `<link rel="stylesheet" href="${stylesheetHref}" media="print" onload="this.onload=null;this.media='all'">`,
+                  `<noscript><link rel="stylesheet" href="${stylesheetHref}"></noscript>`,
+                ].join("\n  ");
 
-              homepageHtml = homepageHtml.replace(stylesheetPattern, deferredStyles);
-              fs.writeFileSync(indexPath, homepageHtml);
-              console.log(`  ⚡ / critical CSS (${Math.round(Buffer.byteLength(criticalCss) / 1024)}KB, ${criticalRules.size} rules)`);
+                routeHtml = routeHtml.replace(stylesheetPattern, deferredStyles);
+                fs.writeFileSync(target.htmlPath, routeHtml);
+                console.log(`  ⚡ ${target.route} critical CSS (${Math.round(Buffer.byteLength(criticalCss) / 1024)}KB, ${criticalRules.size} rules)`);
+              }
             }
           }
         } catch (err) {
-          console.warn("  ⚠️  Homepage critical CSS extraction failed; keeping blocking CSS:", (err as Error).message);
+          console.warn("  ⚠️  Critical CSS extraction failed; keeping blocking CSS:", (err as Error).message);
         }
 
         await browser.close();

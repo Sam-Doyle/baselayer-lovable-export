@@ -2,8 +2,8 @@
 title: Competitor Landscape
 domain: competitive
 created: 2026-04-03
-last_compiled: 2026-08-12
-revision: 2
+last_compiled: 2026-08-13
+revision: 3
 sources: [ComparisonTable.tsx, ComparisonDetail.tsx, Comparisons.tsx, FaceCream.tsx, marketing/competitive/profiles.md, marketing/competitive/lumin-audit-2026-03-18.md, marketing/competitive/positioning-map.md, research/BASE_LAYER_MARKET_RESEARCH_2025-2026.md, research/REDDIT_SENTIMENT_AND_REAL_DISCUSSIONS.md, research/dtc-skincare.md, research/audience/objection-bank.md, research/BASE_LAYER_STRATEGIC_RECOMMENDATIONS.md, calderalab.com sitemap crawl + SERP verification]
 codePaths:
   - ~/baselayer-lovable-export/src/components/ComparisonTable.tsx
@@ -375,6 +375,16 @@ Base Layer competes with **inertia and fear**, not with CeraVe's price or Geolog
 ```
 
 Base Layer sits in the upper-center: high quality at an accessible-premium price. The white space is "clinical actives + single purchase + male-specific + single SKU." No other brand occupies this exact position.
+
+## Blueprint / Bryan Johnson Moisturizer PDP (2026-08-13, live desktop/mobile teardown and storefront HTML, confidence: high)
+
+Blueprint is a heavily customized native Shopify **Eurus 9.4.0** theme, not a bespoke/headless storefront. Its uploaded/copied production theme layers custom anchor navigation, ingredient/benefit/standards sections, and Rebuy, Okendo, Klaviyo, and Gorgias onto Eurus.
+
+Blueprint leads on proof sequencing, long-page navigation, ingredient storytelling, explicit subscription mechanics, and review depth (24 reviews at 4.9 during the audit). Base Layer leads on first-screen clarity, one-step positioning, visible mobile purchase access, free U.S. shipping, lower app/navigation clutter, and price-volume value: its $68 two-pack is 100 mL versus Blueprint's observed $69 one-time 50 mL bottle.
+
+Transferable priorities were implemented on Base Layer: selected-offer price/CTA coherence, sticky PDP anchors, a substantiation-limited evidence module, a single responsive gallery, and verified customer proof separated from compensated tester stories. Do not copy Blueprint's interruptive mobile popup, subscription-first default, catalog-heavy navigation, or irrelevant routine cross-sells.
+
+The same audit found Base Layer's concrete performance debt: an unused rock-hero preload, duplicate desktop/mobile galleries, and a 1.56 MB below-fold PNG. These were replaced on the PDP by the actual gallery preload, one responsive gallery track, and AVIF/WebP how-to sources. A genuine absorption/invisible-finish video remains a source-content dependency and should not be fabricated.
 
 ---
 

@@ -3,7 +3,7 @@ title: Product Formula & Ingredients
 domain: product
 created: 2026-04-03
 last_compiled: 2026-08-12
-revision: 3
+revision: 4
 sources: [catalog.md, ingredient-database.md, compliance.md, FaceCream.tsx, IngredientDetail.tsx, INGREDIENT_SCIENCE_AND_COMPLIANCE_RESEARCH.md, PubMed 36917520, aad.org]
 codePaths:
   - ~/BaseLayer/product/catalog.md
@@ -72,23 +72,18 @@ Source: catalog.md, ingredient-database.md (synergy section). Date: 2026-04-03.
 
 ## Full Ingredient List
 
-The formula contains 6 key active ingredients. Full INCI list is not yet public (formulation proprietary). Known concentrations are listed where disclosed.
+The formula contains six highlighted ingredients. Base Layer publishes the concentration of all six and prints the full ordered INCI on the product. This corrects the earlier KB assumption that only niacinamide, GHK-Cu, and panthenol were public (user correction, 2026-08-13).
 
-### Ingredients with Known Concentrations
+### Published Formula Concentrations
 
 | # | Ingredient | Concentration | Source |
 |---|-----------|---------------|--------|
 | 1 | Niacinamide (Vitamin B3) | 5% | catalog.md, FaceCream.tsx, ingredient-database.md |
 | 2 | Copper Peptide GHK-Cu | 0.03% | FaceCream.tsx PRODUCT_SCHEMA, IngredientDetail.tsx meta |
 | 3 | Panthenol (Vitamin B5) | 2% | FaceCream.tsx ingredients array, IngredientDetail.tsx meta |
-
-### Ingredients with Proprietary Concentrations
-
-| # | Ingredient | Effective Range (Literature) | Source |
-|---|-----------|------------------------------|--------|
-| 4 | Centella Asiatica | 0.1-1% effective range | ingredient-database.md |
-| 5 | Squalane | 2-10% typical | ingredient-database.md |
-| 6 | Hyaluronic Acid | 0.1-2% effective range | ingredient-database.md |
+| 4 | Centella Asiatica | 2% | product source materials; user confirmed published in INCI materials, 2026-08-13 |
+| 5 | Squalane | 3% | product source materials; user confirmed published in INCI materials, 2026-08-13 |
+| 6 | Hyaluronic Acid | 0.5% | product source materials; user confirmed published in INCI materials, 2026-08-13 |
 
 **Note on concentration discrepancy (2026-04-03):** FaceCream.tsx FAQ section states "Copper peptide at 1% stimulates collagen synthesis" but the PRODUCT_SCHEMA and IngredientDetail.tsx meta descriptions consistently state 0.03%. The 0.03% figure appears canonical; the FAQ text may be a copy error that should be reviewed.
 

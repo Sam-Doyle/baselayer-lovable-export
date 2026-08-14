@@ -37,27 +37,23 @@ export const LEGAL = {
   entityState: "Colorado",
   contactEmail: "contact@baselayerskin.co",
   siteDomain: "baselayerskin.co",
-  /** Shown at the top of all four policy pages. Bump on material revision. */
+  /** Shared by privacy, terms, and refund. Shipping has its own revision date. */
   effectiveDate: "August 10, 2026",
+  /** Shipping changed when the SHIP26 promotion and paid fallback rate went live. */
+  shippingPolicyEffectiveDate: "August 13, 2026",
 
   // Fulfilment
   processingDays: "1–2 business days",
   deliveryWindow: "3–7 business days",
   shipsInternationally: false,
 
+  /* Shopify's standard U.S. rate before the evergreen SHIP26 promotion. */
+  standardShippingPriceUsd: 5.95,
+  freeShippingThresholdUsd: 60,
   /*
-   * Shipping charges. This is the on-site representation of a rule that
-   * actually lives in Shopify admin — the US shipping profile's rate. If admin
-   * and this flag disagree, the site is making a deceptive shipping
-   * representation, so change them together or not at all.
-   *
-   * A $50 free-shipping threshold with a $5.95 flat rate below it was built and
-   * then reversed before it went live. The reason it lost: $38 + $5.95 and a
-   * flat $44 collect the same contribution to within four cents, so the fee
-   * bought no margin a price change couldn't — it only added a second line item
-   * at checkout, on the cheapest tier, for a brand whose whole pitch is that it
-   * doesn't play billing games. If shipping ever needs to be paid for, raise the
-   * bottle price instead of reintroducing a threshold.
+   * Every purchase path on this storefront applies SHIP26 automatically, so
+   * customers who enter checkout from the site receive free standard shipping.
+   * This must flip with merchant structured data if that promotion ends.
    */
   freeShippingOnAllOrders: true,
 
@@ -84,3 +80,7 @@ export const GUARANTEE_WINDOW_PHRASE = `${LEGAL.guaranteeDays} days from the dat
  * Mail, Internet, or Telephone Order Merchandise Rule punishes.
  */
 export const FREE_SHIPPING_PHRASE = "Free shipping";
+
+/** Evergreen U.S. checkout promotion surfaced in the shared site announcement bar. */
+export const FREE_SHIPPING_CODE = "SHIP26";
+export const FREE_SHIPPING_ANNOUNCEMENT = `FREE U.S. SHIPPING — USE CODE ${FREE_SHIPPING_CODE}`;

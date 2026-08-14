@@ -2,8 +2,8 @@
 title: Conversion Learnings
 domain: conversion
 created: 2026-08-12
-last_compiled: 2026-08-12
-revision: 4
+last_compiled: 2026-08-13
+revision: 6
 sources: [experiments, code, research, verified USPS + SupplyHut landed shipping cost rebuild, measured packed-unit weight 2026-08-12]
 ---
 
@@ -73,6 +73,8 @@ Base Layer moved the PDP default from the $38 single bottle to the $68 2-pack an
 > The blend is insensitive to the rural weighting, which remains unmeasured: 5% rural → $5.65, 20% → $5.94. No need to pin it down.
 >
 > ⚠️ **One estimate left:** the 2-pack's $6.22 postage is scaled from the 4→8 oz step, not quoted. Re-run the four ZIPs at 164 g to close it. Prediction to test: if rural bills at the top sub-1-lb rate regardless of weight, rural 2-pack should quote the same $7.46.
+
+> ✅ **WEIGHT CORRECTION 2026-08-13 — canonical product-plus-carton weight is 88 g per unit, not 82 g.** With the purchased ~8 g poly mailer, the single ships at **96 g / 3.39 oz** and the 2-pack at **184 g / 6.49 oz**. Both remain in the same 4 oz / 8 oz Shopify Shipping tiers, so the landed-cost and contribution figures above do not change. Set Shopify variant weights to **88 g / 176 g**; the package preset supplies the separate 8 g mailer.
 
 > ✅ **Container confirmed (Sam, 2026-08-12): airless pump.** An earlier note here doubted that, on the reasoning that 82 g minus ~50 g product and ~14 g carton leaves ~18 g of container — tube territory. The bad input was the ~58 g empty-bottle estimate, not the scale reading; a thin-wall mono-material PP airless at 50 mL runs 25-30 g. **The figures above stand and are safe to buy media against.** What the confirmation does change is packaging: the mailer is unpadded 2-mil film around a pump actuator, which is a protection question tracked in `kb/wiki/shipping-economics.md`, not an economics one — the bubble-mailer fallback costs $0.172/unit and stays inside the same USPS tiers.
 
@@ -154,6 +156,18 @@ Make every row a claim about **what a brand publishes**, never about what its fo
 - ❌ "Brickell contains no niacinamide" — a formulation claim the brand can't defend from public information.
 
 The live `ComparisonTable.tsx` uses the stronger presence/absence framing. The disclosure-only framing is strictly more conservative *and* lands harder on a transparency angle, because **the absence of a published number is itself the argument.** Pair it with a dated "as reviewed [month]" footnote plus an explicit line that the table describes disclosure practice, not formulation quality.
+
+## Discount Floor and Friends-and-Family Guardrails (2026-08-12, landed-shipping model + FTC 16 CFR 465, confidence: high)
+
+For the single bottle, contribution margin at charged price `P` is `CM = 0.971P - 16.42`. Cash breakeven is **$16.91 / 55.5% off**; a 100%-off order costs $16.12 because no payment fee is charged at $0. Reference points: 20% off → $13.10 CM; 25% → $11.25; 30% → $9.41; 40% → $5.72; 50% → $2.03.
+
+Two operational constraints follow. Restrict friends-and-family percentage codes to the first subscription order or the discount repeats on every $35 delivery. Any friend, family member, employee, or recipient of free/discounted product who leaves a review must disclose that material connection in or beside the review, even if Judge.me also marks the order verified.
+
+## Review Breakdown and Photo Strip (2026-08-12, native PDP implementation, confidence: medium)
+
+The histogram is calculated from the complete build-time review set, not the display cap, so its bars always reconcile to the published aggregate. Rating rows filter only after user action; they never reorder or suppress the default review list. Empty rating rows stay visible but disabled, and customer-photo thumbnails link back to their associated review. `PHOTO_STRIP_MIN = 3` is intentionally separate from the review gate.
+
+`HISTOGRAM_GATE = 1` remains an experiment. At four reviews, the breakdown exposes the one critical review but also makes the small sample obvious. Raise the gate around ten only if measured behavior shows the thin distribution harms trust; do not hide it merely because the distribution is unflattering.
 
 ---
 

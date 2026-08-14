@@ -21,7 +21,7 @@ const OurOriginSection = () => {
     }, []);
 
     return (
-        <section id="origin" ref={sectionRef} className="bg-[#1A2F4C] py-20 md:py-28">
+        <section id="origin" ref={sectionRef} className="bg-[#1A2F4C] py-14 md:py-24">
             <div className="max-w-[1200px] mx-auto px-6 md:px-12">
 
                 <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -76,7 +76,7 @@ const OurOriginSection = () => {
                                 We didn't build Base Layer in a lab and ship it to Colorado. We built it here because our own faces were getting destroyed every day. If it works at altitude, it works in your apartment.
                             </p>
                             <p className="font-body text-base md:text-lg text-white/60 leading-relaxed">
-                                6 active ingredients. Clinical concentrations. One bottle that replaces your serum, moisturizer, and eye cream. $38.
+                                Six key ingredients. Every concentration disclosed. One daily moisturizer. $38.
                             </p>
                         </div>
 

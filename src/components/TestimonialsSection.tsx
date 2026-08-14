@@ -6,7 +6,7 @@ import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsD
 const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], index: number, isVisible: boolean }) => {
   return (
     <div 
-      className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.08)] rounded-lg p-8 flex flex-col h-full transition-all duration-500 ease-out"
+      className="flex h-full flex-col rounded-[2px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.06)] p-6 transition-all duration-500 ease-out md:p-8"
       style={{
         opacity: isVisible ? 1 : 0,
         transform: `translateY(${isVisible ? "0" : "20px"})`,
@@ -59,7 +59,13 @@ const TestimonialCard = ({ t, index, isVisible }: { t: typeof testimonials[0], i
   );
 };
 
-const TestimonialsSection = () => {
+interface TestimonialsSectionProps {
+  ctaLabel?: string;
+  ctaDisabled?: boolean;
+  onCtaClick?: () => void;
+}
+
+const TestimonialsSection = ({ ctaLabel, ctaDisabled = false, onCtaClick }: TestimonialsSectionProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const { pathname } = useLocation();
@@ -85,7 +91,7 @@ const TestimonialsSection = () => {
     <section
       id="testimonials"
       ref={sectionRef}
-      className="py-[60px] md:py-[100px] px-5 md:px-12 bg-[#1A2F4C] text-[#FFFFFF] relative overflow-hidden"
+      className="relative overflow-hidden bg-[#1A2F4C] px-5 py-14 text-[#FFFFFF] md:px-12 md:py-24"
     >
       <div className="max-w-[1200px] mx-auto relative z-10">
         
@@ -121,12 +127,23 @@ const TestimonialsSection = () => {
             30-day money-back guarantee. Keep the bottle.
           </p>
 
-          <Link
-            to={productHref}
-            className="inline-flex items-center justify-center px-[36px] py-[14px] bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto mt-2"
-          >
-            GET BASE LAYER · $38 →
-          </Link>
+          {onCtaClick ? (
+            <button
+              type="button"
+              disabled={ctaDisabled}
+              onClick={onCtaClick}
+              className="mt-2 inline-flex w-full items-center justify-center rounded-[4px] bg-brand px-[36px] py-[14px] font-heading text-[14px] font-bold uppercase tracking-[0.1em] text-white transition-colors duration-300 hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+            >
+              {ctaLabel ?? "GET BASE LAYER"}
+            </button>
+          ) : (
+            <Link
+              to={productHref}
+              className="inline-flex items-center justify-center px-[36px] py-[14px] bg-brand text-white font-heading font-bold text-[14px] tracking-[0.1em] uppercase rounded-[4px] hover:bg-brand-hover transition-colors duration-300 w-full sm:w-auto mt-2"
+            >
+              GET BASE LAYER · $38 →
+            </Link>
+          )}
         </div>
 
       </div>
