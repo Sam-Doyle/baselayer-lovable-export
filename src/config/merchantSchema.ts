@@ -8,7 +8,8 @@ import { LEGAL } from "@/config/legal";
  * Values must stay consistent with /shipping-policy and /refund-policy:
  * free US standard shipping through the automatically applied SHIP26 offer,
  * 1–2 business day handling, 3–7 business day transit, and a 30-day
- * keep-the-bottle guarantee (no physical return — KeepProduct).
+ * keep-the-bottle guarantee (no physical return; see the returnMethod note
+ * below for why that last part cannot be expressed in schema.org).
  *
  * shippingRate is "0" for every offer because every purchase path applies the
  * shipping promotion. This is only true while LEGAL.freeShippingOnAllOrders
@@ -38,7 +39,21 @@ export function merchantOfferFields(price: string, priceCurrency = "USD") {
       applicableCountry: "US",
       returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
       merchantReturnDays: LEGAL.guaranteeDays,
-      returnMethod: "https://schema.org/KeepProduct",
+      /*
+       * returnMethod is deliberately absent. It used to say
+       * "https://schema.org/KeepProduct", which Search Console rejected on
+       * 2026-08-17 as `Invalid enum value in field "returnMethod"` on the
+       * homepage Merchant listing. KeepProduct is not a member of schema.org's
+       * ReturnMethodEnumeration — the only valid values are ReturnByMail,
+       * ReturnInStore and ReturnAtKiosk, and none of them is true here.
+       *
+       * There is no markup vocabulary for "keep the bottle, we don't want it
+       * back", so the honest move is to omit the field rather than claim a
+       * return channel we don't operate. The three fields that remain already
+       * describe the policy accurately: a finite 30-day window at no cost to
+       * the customer. The keep-the-product part belongs in Merchant Center's
+       * own return settings, which do model it, not in schema.org.
+       */
       returnFees: "https://schema.org/FreeReturn",
     },
     priceSpecification: {
