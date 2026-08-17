@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import ReviewsSection from "@/components/ReviewsSection";
 import StarRating from "@/components/StarRating";
-import { reviewAggregate } from "@/lib/reviews";
+import { reviewAggregate, reviewSchema } from "@/lib/reviews";
 import { merchantOfferFields } from "@/config/merchantSchema";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 import ProductGallery from "@/components/ProductGallery";
@@ -31,6 +31,19 @@ const PRODUCT_SCHEMA = {
   name: "Base Layer Men's Performance Daily Face Cream",
   description: "Fast-absorbing men's face moisturizer with niacinamide 5%, copper peptide GHK-Cu 0.03%, panthenol, centella asiatica, squalane, and hyaluronic acid. Fragrance-free. 50mL.",
   brand: { "@type": "Brand", name: "Base Layer" },
+  /*
+   * image, sku and url were absent here while every other Product schema on the
+   * site carried them. image is the one that costs something: Google will not
+   * render a product rich result without it, so this page — the only route with
+   * a real rating attached — was the least eligible of the four.
+   *
+   * sku matches the 1-bottle variant in Shopify and the SKU the other pages
+   * declare, which is what lets Google treat all four as one product rather
+   * than four thin duplicates of the same $38 cream.
+   */
+  image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
+  sku: "BL-PDFC-50ML",
+  url: "https://baselayerskin.co/face-cream",
   offers: {
     "@type": "Offer",
     price: "38.00",
@@ -46,6 +59,11 @@ const PRODUCT_SCHEMA = {
    * as an error on the Product itself, which can cost the whole rich result
    * rather than just the stars. reviewAggregate zeroes below the gate, so this
    * hides on exactly the same condition as <StarRating> and <ReviewsSection>.
+   *
+   * `review` rides the same gate and answers the other half of the Search
+   * Console warning ("Missing field review"). It is safe here and only here:
+   * this page renders every one of those reviews below the fold, and Google
+   * requires marked-up reviews to be visible on the page carrying them.
    */
   ...(reviewAggregate.count > 0 && {
     aggregateRating: {
@@ -53,6 +71,7 @@ const PRODUCT_SCHEMA = {
       ratingValue: reviewAggregate.rating.toFixed(1),
       reviewCount: reviewAggregate.count,
     },
+    review: reviewSchema,
   }),
 };
 

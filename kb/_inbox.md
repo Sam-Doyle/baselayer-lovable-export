@@ -132,3 +132,59 @@ review, photos, and per-review verification remain visible. Responsive QA kept
 the $38 price and primary CTA in the first 390x844 viewport. This is a design
 hypothesis, not a measured lift; evaluate against homepage-to-PDP click-through
 and purchase conversion before treating it as a proven CRO result.
+
+---
+date: 2026-08-17
+category: technical
+source: Google Search Console warning on "Base Layer Performance Daily Face Cream" + reading served HTML on baselayerskin.co
+confidence: high
+target_article: technical-seo
+---
+GSC's "Missing field review / aggregateRating (optional)" on the face cream was
+firing on the homepage, not the PDP. The exact schema name in the warning
+("Base Layer Performance Daily Face Cream", no "Men's") matches Index.tsx, and
+/face-cream already carried aggregateRating. Lesson: match the warning's item
+name against the `name` field in each Product block before assuming which URL
+it refers to. Five routes on this site emit a Product schema with five
+different names and one shared SKU.
+
+---
+date: 2026-08-17
+category: technical
+source: reading served HTML on /matte-moisturizer-for-men, /non-greasy-moisturizer-for-men, /all-in-one-skincare-for-men
+confidence: high
+target_article: technical-seo
+---
+Those three landing pages each shipped TWO conflicting Product entities: one
+injected by STATIC_PAGES in vite.config.ts (named "Base Layer Performance Face
+Moisturizer — …", carrying aggregateRating 4.8/5 but a bare offer) and one from
+the React component (named "Base Layer Performance Daily Face Cream — …", no
+rating, full merchant offer fields). Same sku BL-PDFC-50ML, different names,
+same page. Google picks one of a pair like that arbitrarily.
+
+Worse, none of the three renders a star rating anywhere in its UI. Google
+requires the rating in aggregateRating markup to be visible to the user on the
+same page. Marked-up-but-unshown ratings risk rich-result suppression beyond
+the offending URL. Only /face-cream displays the Judge.me aggregate, so it is
+now the only route claiming one. Removed the vite.config injection on
+2026-08-17.
+
+Generalisable rule for this codebase: prerender-time JSON-LD injection and
+component-level JsonLd are two sources for the same entity. Pick one per route
+and say so in a comment, or the two drift.
+
+---
+date: 2026-08-17
+category: technical
+source: curl against baselayerskin.co host variants, 2026-08-17
+confidence: high
+target_article: technical-seo
+---
+Host/protocol variants resolve correctly: http apex 301s to https apex, https
+www 301s to apex, http www takes two hops (http www -> https www -> apex).
+Apex returns 200 to a Googlebot user agent with a self-referencing canonical
+and no robots meta. All 60 sitemap URLs return 200 with zero redirects or
+404s. So a GSC "Page with redirect" on the homepage is the www or http variant
+being reported, which is the expected and correct state, not an indexing
+blocker. Check which property variant the report is scoped to before treating
+it as a bug.

@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
+import { merchantOfferFields } from "@/config/merchantSchema";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import { Droplets, Timer, Shield, Leaf, Zap, FlaskConical, CheckCircle2, ArrowRight, DollarSign, Package, Clock } from "lucide-react";
@@ -25,6 +26,10 @@ const PRODUCT_SCHEMA = {
     availability: "https://schema.org/InStock",
     url: "https://baselayerskin.co/all-in-one-skincare-for-men",
     priceValidUntil: "2026-12-31",
+    // The other three Product pages carry these; this one was the odd page out,
+    // and shippingDetails + hasMerchantReturnPolicy are exactly what Search
+    // Console flagged as missing on offers back on 2026-08-10.
+    ...merchantOfferFields("38.00"),
   },
   image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
   url: "https://baselayerskin.co/all-in-one-skincare-for-men",

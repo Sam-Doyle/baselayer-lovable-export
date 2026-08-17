@@ -132,3 +132,27 @@ export const histogram: number[] | null = (() => {
  * its own path before any discounted review goes live.
  */
 export const reviews: Review[] = hasReviews ? data.reviews : [];
+
+/**
+ * Product.review objects, built from the same snapshot <ReviewsSection>
+ * renders. Google Search Console reports `review` as a missing optional field
+ * on Product markup that only carries aggregateRating.
+ *
+ * Derived from `reviews`, not from `data.reviews`, so it is empty on exactly
+ * the condition the visible section is empty. That is the constraint that
+ * matters: Google requires marked-up reviews to be visible on the same page,
+ * so this may only be spread into a Product schema on a route that actually
+ * renders <ReviewsSection>. Today that is /face-cream and nowhere else.
+ *
+ * `name` and `reviewBody` are omitted when blank rather than sent empty —
+ * Judge.me allows a review with no title, and an empty string is a worse
+ * signal than an absent field.
+ */
+export const reviewSchema = reviews.map(r => ({
+  "@type": "Review",
+  reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
+  author: { "@type": "Person", name: r.reviewer },
+  datePublished: r.createdAt,
+  ...(r.title && { name: r.title }),
+  ...(r.body && { reviewBody: r.body }),
+}));

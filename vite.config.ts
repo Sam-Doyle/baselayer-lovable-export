@@ -17,32 +17,30 @@ const PRODUCT_OG_IMAGE = `${BASE_URL}/og-mountain-product-v2.jpg`;
 const PRODUCT_OG_IMAGE_ALT = "Base Layer Daily Face Cream bottle and carton in the Colorado mountains";
 
 /*
- * Judge.me aggregate for the Product schemas below, read from the same snapshot
- * scripts/fetch-reviews.mjs writes and src/lib/reviews.ts imports — the number is
- * never typed by hand in either place.
+ * This file used to read src/data/reviews.json and inject an aggregateRating
+ * into Product schemas for /matte-moisturizer-for-men,
+ * /non-greasy-moisturizer-for-men and /all-in-one-skincare-for-men. Removed on
+ * 2026-08-17 for two reasons, both found by reading the served HTML.
  *
- * The gate must stay in sync with REVIEW_GATE in src/lib/reviews.ts (see the note
- * there on why it dropped from 5 to 1). Below it the spread is empty, which is the
- * point: Google's Rich Results Test errors on aggregateRating with reviewCount 0,
- * and an erroring Product schema can cost the rich result for the whole page.
+ * First, each of those routes is a React page that already emits its own
+ * Product block, so every one of them shipped two Product entities with the
+ * same sku (BL-PDFC-50ML) and *different* names — the injected one said
+ * "Base Layer Performance Face Moisturizer — …", the component said
+ * "Base Layer Performance Daily Face Cream — …". Google picks one of a pair
+ * like that on its own and the rated half was the one with the weaker offer
+ * (no shippingDetails, no hasMerchantReturnPolicy, no priceSpecification).
+ *
+ * Second and more seriously: none of those three pages renders a star rating
+ * anywhere in its UI. Google requires the rating in aggregateRating markup to
+ * be visible to the user on the same page, so this was marked-up-but-unshown
+ * proof — the shape of thing that costs rich results site-wide, not just on
+ * the offending URL. /face-cream is the only route that displays the Judge.me
+ * aggregate, and it is now the only route that claims one.
+ *
+ * If a landing page ever gets a visible <StarRating>, import reviewAggregate
+ * from src/lib/reviews.ts in that component rather than reviving this — one
+ * source, and it can't drift from what the page actually shows.
  */
-const REVIEW_GATE = 1;
-const readReviewAggregate = () => {
-  try {
-    const snapshot = JSON.parse(fs.readFileSync(path.resolve(__dirname, "src/data/reviews.json"), "utf-8"));
-    if (!snapshot || snapshot.count < REVIEW_GATE) return {};
-    return {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: Number(snapshot.rating).toFixed(1),
-        reviewCount: snapshot.count,
-      },
-    };
-  } catch {
-    return {};
-  }
-};
-const REVIEW_AGGREGATE = readReviewAggregate();
 
 interface PageMeta {
   path: string;
@@ -120,20 +118,8 @@ const STATIC_PAGES: PageMeta[] = [
     ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "0.9",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: "Base Layer Performance Face Moisturizer — Matte Moisturizer for Men",
-        description: "Matte-finish men's face moisturizer with niacinamide 5% and squalane. Controls shine all day without drying your skin. Fragrance-free. $38.",
-        brand: { "@type": "Brand", name: "Base Layer" },
-        offers: { "@type": "Offer", price: "38.00", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${BASE_URL}/matte-moisturizer-for-men`, priceValidUntil: "2026-12-31" },
-        image: PRODUCT_OG_IMAGE,
-        url: `${BASE_URL}/matte-moisturizer-for-men`,
-        sku: "BL-PDFC-50ML",
-        ...REVIEW_AGGREGATE,
-      },
-    ],
+    // jsonLd handled by React MatteMoisturizer.tsx during Puppeteer SSR — see
+    // the note above STATIC_PAGES on why it isn't declared twice.
   },
   {
     path: "/non-greasy-moisturizer-for-men",
@@ -143,20 +129,7 @@ const STATIC_PAGES: PageMeta[] = [
     ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "0.9",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: "Base Layer Performance Face Moisturizer — Non-Greasy Moisturizer for Men",
-        description: "Non-greasy men's face moisturizer that absorbs in 15 seconds. Squalane-based formula with niacinamide 5%, copper peptide, and hyaluronic acid. $38.",
-        brand: { "@type": "Brand", name: "Base Layer" },
-        offers: { "@type": "Offer", price: "38.00", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${BASE_URL}/non-greasy-moisturizer-for-men`, priceValidUntil: "2026-12-31" },
-        image: PRODUCT_OG_IMAGE,
-        url: `${BASE_URL}/non-greasy-moisturizer-for-men`,
-        sku: "BL-PDFC-50ML",
-        ...REVIEW_AGGREGATE,
-      },
-    ],
+    // jsonLd handled by React NonGreasyMoisturizer.tsx during Puppeteer SSR.
   },
   {
     path: "/all-in-one-skincare-for-men",
@@ -166,20 +139,7 @@ const STATIC_PAGES: PageMeta[] = [
     ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "0.9",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: "Base Layer Performance Face Moisturizer — All-in-One Skincare for Men",
-        description: "All-in-one men's skincare product with 6 active ingredients. Replaces moisturizer, serum, and eye cream. $38.",
-        brand: { "@type": "Brand", name: "Base Layer" },
-        offers: { "@type": "Offer", price: "38.00", priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${BASE_URL}/all-in-one-skincare-for-men`, priceValidUntil: "2026-12-31" },
-        image: PRODUCT_OG_IMAGE,
-        url: `${BASE_URL}/all-in-one-skincare-for-men`,
-        sku: "BL-PDFC-50ML",
-        ...REVIEW_AGGREGATE,
-      },
-    ],
+    // jsonLd handled by React AllInOneSkincare.tsx during Puppeteer SSR.
   },
   // Legal/policy pages. These must be prerendered, not left as client-only SPA routes:
   // ad-platform review crawlers (Meta in particular) fetch the privacy policy URL
