@@ -9,6 +9,7 @@ import compression from "vite-plugin-compression";
 import type { HTTPRequest } from "puppeteer";
 import * as fs from "fs";
 import * as http from "http";
+import { execFileSync } from "child_process";
 
 // ── Prerender plugin (closeBundle) ────────────────────────────────
 
@@ -51,6 +52,62 @@ interface PageMeta {
   jsonLd?: Record<string, unknown>[];
   changefreq?: string;
   priority?: string;
+  /** YYYY-MM-DD. Omitted when we can't establish one honestly — see gitLastModified. */
+  lastmod?: string;
+}
+
+/*
+ * Source file behind each prerendered static route, used to date its sitemap
+ * entry. Sanity-backed routes don't appear here; they carry _updatedAt.
+ *
+ * This dates a page by its own component, not by its whole import graph, so a
+ * change confined to a shared child (Footer, merchantSchema) won't move it.
+ * That under-reports rather than over-reports, which is the safe direction:
+ * Google punishes sitemaps that claim freshness they can't back up, and
+ * ignores lastmod wholesale once it decides a site inflates it.
+ */
+const STATIC_PAGE_SOURCES: Record<string, string> = {
+  "/": "src/pages/Index.tsx",
+  "/face-cream": "src/pages/FaceCream.tsx",
+  "/about": "src/pages/About.tsx",
+  "/articles": "src/pages/Articles.tsx",
+  "/ingredients": "src/pages/Ingredients.tsx",
+  "/skin-concerns": "src/pages/SkinConcerns.tsx",
+  "/comparisons": "src/pages/Comparisons.tsx",
+  "/matte-moisturizer-for-men": "src/pages/MatteMoisturizer.tsx",
+  "/non-greasy-moisturizer-for-men": "src/pages/NonGreasyMoisturizer.tsx",
+  "/all-in-one-skincare-for-men": "src/pages/AllInOneSkincare.tsx",
+  "/privacy-policy": "src/pages/PrivacyPolicy.tsx",
+  "/terms-of-service": "src/pages/TermsOfService.tsx",
+  "/refund-policy": "src/pages/RefundPolicy.tsx",
+  "/shipping-policy": "src/pages/ShippingPolicy.tsx",
+};
+
+/**
+ * Author date of the last commit to touch `file`, as YYYY-MM-DD, or undefined.
+ *
+ * Undefined is a real outcome, not just an error path: a shallow CI clone has
+ * no history to read. The caller must drop lastmod entirely in that case. An
+ * absent lastmod is a normal sitemap; a wrong one is a lie Google can catch by
+ * comparing it against what actually changed, and the penalty is that it stops
+ * trusting the field for the whole site.
+ */
+function gitLastModified(file: string): string | undefined {
+  try {
+    const out = execFileSync("git", ["log", "-1", "--format=%cs", "--", file], {
+      encoding: "utf-8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Sanity's _updatedAt ISO timestamp narrowed to the YYYY-MM-DD sitemap wants. */
+function sanityDate(updatedAt?: string): string | undefined {
+  const day = updatedAt?.split("T")[0];
+  return day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : undefined;
 }
 
 const STATIC_PAGES: PageMeta[] = [
@@ -232,14 +289,24 @@ function injectMeta(html: string, page: PageMeta): string {
   return html;
 }
 
+/*
+ * lastmod is per-page and omitted when unknown. It used to be `today` on every
+ * entry, which meant all 60 URLs claimed to change on every deploy. Google
+ * explicitly discounts lastmod when a sitemap's values don't track real content
+ * changes, and a whole file sharing one build timestamp is the clearest version
+ * of that signal, so the field was worth nothing while it looked complete. Two
+ * of the paid landing pages sat un-recrawled from May to August under it.
+ *
+ * Static routes date from their component's last commit, Sanity routes from
+ * _updatedAt. Anything we can't date gets no lastmod at all, which is valid and
+ * is what Google asks for when an accurate value isn't available.
+ */
 function generateSitemap(pages: PageMeta[]): string {
-  const today = new Date().toISOString().split("T")[0];
   const urls = pages
     .filter((p) => p.path !== "/checkout")
     .map(
       (p) => `  <url>
-    <loc>${BASE_URL}${p.path}</loc>
-    <lastmod>${today}</lastmod>
+    <loc>${BASE_URL}${p.path}</loc>${p.lastmod ? `\n    <lastmod>${p.lastmod}</lastmod>` : ""}
     <changefreq>${p.changefreq || "monthly"}</changefreq>
     <priority>${p.priority || "0.5"}</priority>
   </url>`
@@ -373,10 +440,10 @@ function prerenderPlugin(): Plugin {
         });
 
         const [articles, ingredients, concerns, comparisons] = await Promise.all([
-          sanity.fetch(`*[_type == "article" && defined(body)]{ title, "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), excerpt }`),
-          sanity.fetch(`*[_type == "ingredient" && (defined(body) || defined(description)) && !(slug.current in ["retinol", "vitamin-c"])]{ name, "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), "overview": coalesce(overview, extractableSummary) }`),
-          sanity.fetch(`*[_type == "skinConcern" && (defined(body) || defined(overview))]{ "name": coalesce(name, title), "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), "overview": coalesce(overview[0].children[0].text, extractableSummary) }`),
-          sanity.fetch(`*[_type == "comparison"]{ title, "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), intro }`),
+          sanity.fetch(`*[_type == "article" && defined(body)]{ _updatedAt, title, "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), excerpt }`),
+          sanity.fetch(`*[_type == "ingredient" && (defined(body) || defined(description)) && !(slug.current in ["retinol", "vitamin-c"])]{ _updatedAt, name, "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), "overview": coalesce(overview, extractableSummary) }`),
+          sanity.fetch(`*[_type == "skinConcern" && (defined(body) || defined(overview))]{ _updatedAt, "name": coalesce(name, title), "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), "overview": coalesce(overview[0].children[0].text, extractableSummary) }`),
+          sanity.fetch(`*[_type == "comparison"]{ _updatedAt, title, "slug": slug.current, "metaTitle": coalesce(metaTitle, seo.title), "metaDescription": coalesce(metaDescription, seo.description), intro }`),
         ]);
 
         for (const a of articles) {
@@ -384,6 +451,7 @@ function prerenderPlugin(): Plugin {
           const articleDesc = a.metaDescription || a.excerpt || "";
           dynamicPages.push({
             path: `/articles/${a.slug}`,
+            lastmod: sanityDate(a._updatedAt),
             title: articleTitle,
             description: articleDesc,
             ogType: "article",
@@ -415,6 +483,7 @@ function prerenderPlugin(): Plugin {
         for (const i of ingredients) {
           dynamicPages.push({
             path: `/ingredients/${i.slug}`,
+            lastmod: sanityDate(i._updatedAt),
             title: i.metaTitle || `${i.name} — Skincare Ingredient Guide | Base Layer`,
             description: i.metaDescription || i.overview || "",
             ogImage: `${BASE_URL}/og-ingredients.jpg`,
@@ -436,6 +505,7 @@ function prerenderPlugin(): Plugin {
         for (const c of concerns) {
           dynamicPages.push({
             path: `/skin-concerns/${c.slug}`,
+            lastmod: sanityDate(c._updatedAt),
             title: c.metaTitle || `${c.name} — Men's Skin Guide | Base Layer`,
             description: c.metaDescription || c.overview || "",
             ogImage: `${BASE_URL}/og-skin-concerns.jpg`,
@@ -457,6 +527,7 @@ function prerenderPlugin(): Plugin {
         for (const comp of comparisons) {
           dynamicPages.push({
             path: `/comparisons/${comp.slug}`,
+            lastmod: sanityDate(comp._updatedAt),
             title: comp.metaTitle || `${comp.title} | Base Layer`,
             description: comp.metaDescription || comp.intro || "",
             ogImage: `${BASE_URL}/og-comparisons.jpg`,
@@ -490,7 +561,18 @@ function prerenderPlugin(): Plugin {
         console.warn("⚠️  Sanity fetch failed, proceeding with static pages only:", err);
       }
 
-      const allPages = [...STATIC_PAGES, ...dynamicPages];
+      const staticPages = STATIC_PAGES.map((p) => ({
+        ...p,
+        lastmod: gitLastModified(STATIC_PAGE_SOURCES[p.path] ?? ""),
+      }));
+      const undatedStatic = staticPages.filter((p) => !p.lastmod).length;
+      if (undatedStatic > 0) {
+        console.warn(
+          `\u26a0\ufe0f  ${undatedStatic}/${staticPages.length} static routes have no git date (shallow clone?) \u2014 shipping those sitemap entries without lastmod.`
+        );
+      }
+
+      const allPages = [...staticPages, ...dynamicPages];
       console.log(`📄 Generating ${allPages.length} pre-rendered HTML files...`);
 
       // Track non-root paths for _redirects generation
