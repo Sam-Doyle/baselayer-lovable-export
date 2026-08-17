@@ -1,4 +1,13 @@
-project_id = "rxcoecpfznxkprnvqmem"
+project_id = "rymidvhuyxqvvyjpodqn"
 
 [functions.fb-capi]
+verify_jwt = false
+
+# Called by the browser with the project's publishable/anon JWT.
+[functions.email-subscribe]
+verify_jwt = true
+
+# Called only by the Netlify scheduled-function proxy carrying
+# EMAIL_SYNC_WORKER_SECRET.
+[functions.email-sync-worker]
 verify_jwt = false

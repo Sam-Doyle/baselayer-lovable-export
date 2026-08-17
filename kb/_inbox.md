@@ -26,6 +26,25 @@ discount floor and review-breakdown behavior), and `competitor-landscape`
 <!-- New entries below this line -->
 
 ---
+date: 2026-08-17
+category: technical
+source: Base Layer headless cart audit + Brevo official tracker/eCommerce documentation
+confidence: high
+target_article: wiki/site-architecture.md
+---
+The Brevo Shopify plugin cannot observe Storefront API cart mutations made on
+the Netlify React app, so lifecycle ownership must be hybrid: the storefront
+sends consent-gated `product_viewed`, `cart_updated`, and empty-cart-only
+`cart_deleted` events through the Brevo tracker, while the Shopify/Brevo
+server-side integration remains authoritative for `order_created` or
+`order_completed`. Sending purchase completion from the browser would be
+unreliable because hosted checkout does not reliably return to the storefront;
+running both Shopify and Brevo recovery automations would also duplicate sends.
+The storefront now queues pre-opt-in behaviour in memory only, identifies the
+visitor after explicit marketing opt-in plus analytics consent, and keeps these
+events separate from GA4/Meta measurement to prevent duplicate commerce events.
+
+---
 date: 2026-08-13
 category: technical
 source: GA4 sessionSource report for baselayerskin.co, property 526066920, cross-checked against src/lib/analytics.ts

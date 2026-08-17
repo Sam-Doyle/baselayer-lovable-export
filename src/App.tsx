@@ -13,6 +13,7 @@ import {
   initWebVitalsReporting,
 } from "@/lib/analytics";
 import { onConsentChange } from "@/lib/consent";
+import { clearLifecycleTracking, initLifecycleTracking } from "@/lib/lifecycle";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import PrerenderSnapshotRouteGuard from "@/components/PrerenderSnapshotRouteGuard";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -100,6 +101,11 @@ const App = () => {
       sessionStorage.setItem("_fbc", fbc);
     }
 
+    // Brevo lifecycle tracking is provider-isolated from GA4/Meta and only
+    // initializes for a previously identified marketing subscriber. A new
+    // visitor's product/cart events stay in memory until the opt-in succeeds.
+    initLifecycleTracking();
+
     // Disable pixel tracking for bots and iframes
     const isBot = /Lighthouse|Chrome-Lighthouse|PageSpeed|HeadlessChrome/i.test(navigator.userAgent);
     const isEmbedded = window.top !== window.self;
@@ -182,8 +188,13 @@ const App = () => {
         fireInitialCapiPageView();
         initAnalyticsScripts();
         initWebVitalsReporting();
+        initLifecycleTracking();
       } else {
         clearAnalyticsCookies();
+        // Removing a script tag cannot stop JavaScript that has already
+        // executed. Reload only when the lifecycle SDK was active so Reject
+        // takes full effect without burdening first-time rejections.
+        if (clearLifecycleTracking()) window.location.reload();
       }
     });
   }, []);

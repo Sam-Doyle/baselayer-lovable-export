@@ -53,7 +53,7 @@ const CookieConsentBanner = () => {
     >
       <div className="mx-auto flex max-w-[1200px] flex-col items-stretch gap-1.5 px-4 py-2 md:flex-row md:items-center md:gap-6 md:px-8 md:py-3">
         <p className="flex-1 font-body text-[12px] leading-[1.45] text-[#1A2F4C]/80 md:text-[13px]">
-          Optional cookies measure site performance. Required cookies stay on.{" "}
+          Optional cookies measure site performance and, after you sign up, personalize email follow-up. Required cookies stay on.{" "}
           <Link to="/privacy-policy" className="font-semibold text-[#1A2F4C] underline underline-offset-3 hover:no-underline">
             Privacy details
           </Link>

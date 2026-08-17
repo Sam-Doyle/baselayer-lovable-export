@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { storefrontApiRequest, ShopifyHttpError, ShopifyProduct } from '@/lib/shopify';
 import { trackEvent } from '@/lib/analytics';
+import { trackLifecycleCartDeleted, trackLifecycleCartUpdated } from '@/lib/lifecycle';
 import { metaContentId } from '@/config/product';
 import { activeCheckoutDiscountCodes } from '@/config/promotions';
 
@@ -64,6 +65,40 @@ interface CartStore {
   applyDiscountCode: (code: string) => Promise<{ success: boolean; applicable?: boolean }>;
   getCheckoutUrl: () => string | null;
   toggleCart: (open?: boolean) => void;
+}
+
+/**
+ * Sends the authoritative post-mutation Shopify cart to the lifecycle
+ * provider. This is intentionally not routed through trackEvent(): GA4/Meta
+ * already receive their own commerce events and Brevo needs a different event
+ * shape for dynamic abandoned-cart emails.
+ */
+function emitLifecycleCart(state: CartStore): void {
+  if (!state.cartId || state.items.length === 0) return;
+  const fallbackTotal = state.items.reduce(
+    (sum, item) => sum + Number(item.price.amount) * item.quantity,
+    0,
+  );
+  const currency = state.cost?.subtotalAmount.currencyCode
+    || state.items[0]?.price.currencyCode
+    || 'USD';
+  const checkoutUrl = state.getCheckoutUrl() || 'https://baselayerskin.co/face-cream';
+
+  trackLifecycleCartUpdated({
+    id: state.cartId,
+    total: Number(state.cost?.subtotalAmount.amount ?? fallbackTotal),
+    currency,
+    url: checkoutUrl,
+    items: state.items.map(item => ({
+      id: metaContentId(item.variantId),
+      name: item.product.node.title,
+      variant: item.variantTitle,
+      price: Number(item.price.amount),
+      quantity: item.quantity,
+      url: 'https://baselayerskin.co/face-cream',
+      image: item.product.node.images?.edges?.[0]?.node?.url,
+    })),
+  });
 }
 
 /*
@@ -552,6 +587,7 @@ export const useCartStore = create<CartStore>()(
           cost: cart?.cost ?? get().cost,
           items: reconcileItems(get().items, cart),
         });
+        emitLifecycleCart(get());
         const applied = cart?.discountCodes?.find((discount) => discount.code.toUpperCase() === normalizedCode);
         return { success: true, applicable: applied?.applicable };
       },
@@ -608,6 +644,7 @@ export const useCartStore = create<CartStore>()(
                 cost: result.cart?.cost ?? null,
                 isOpen: true,
               });
+              emitLifecycleCart(get());
               return { success: true };
             }
             notifyCartError(result.errorKind, result.errorMessage, 'add', retryAdd);
@@ -624,6 +661,7 @@ export const useCartStore = create<CartStore>()(
                 cost: result.cart?.cost ?? get().cost,
                 isOpen: true,
               });
+              emitLifecycleCart(get());
               return { success: true };
             }
             if (result.cartNotFound) {
@@ -641,6 +679,7 @@ export const useCartStore = create<CartStore>()(
                   cost: recreate.cart?.cost ?? null,
                   isOpen: true,
                 });
+                emitLifecycleCart(get());
                 return { success: true };
               }
               notifyCartError(recreate.errorKind, recreate.errorMessage, 'add', retryAdd);
@@ -657,6 +696,7 @@ export const useCartStore = create<CartStore>()(
               cost: result.cart?.cost ?? get().cost,
               isOpen: true,
             });
+            emitLifecycleCart(get());
             return { success: true };
           }
           if (result.cartNotFound) {
@@ -671,6 +711,7 @@ export const useCartStore = create<CartStore>()(
                 cost: recreate.cart?.cost ?? null,
                 isOpen: true,
               });
+              emitLifecycleCart(get());
               return { success: true };
             }
             notifyCartError(recreate.errorKind, recreate.errorMessage, 'add', retryAdd);
@@ -711,6 +752,7 @@ export const useCartStore = create<CartStore>()(
               items: reconcileItems(get().items.map(i => i.variantId === variantId ? { ...i, quantity } : i), result.cart),
               cost: result.cart?.cost ?? get().cost,
             });
+            emitLifecycleCart(get());
             return { success: true };
           }
           if (result.cartNotFound) {
@@ -726,6 +768,7 @@ export const useCartStore = create<CartStore>()(
                 cost: recreate.cart?.cost ?? null,
                 isOpen: true,
               });
+              emitLifecycleCart(get());
               return { success: true };
             }
             notifyCartError(recreate.errorKind, recreate.errorMessage, 'update', retryUpdate);
@@ -758,8 +801,10 @@ export const useCartStore = create<CartStore>()(
             const newItems = get().items.filter(i => i.variantId !== variantId);
             if (newItems.length === 0) {
               clearCart();
+              trackLifecycleCartDeleted(cartId);
             } else {
               set({ items: reconcileItems(newItems, result.cart), cost: result.cart?.cost ?? get().cost });
+              emitLifecycleCart(get());
             }
             return { success: true };
           }

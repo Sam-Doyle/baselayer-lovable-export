@@ -7,6 +7,15 @@
   # Puppeteer (used for build-time pre-rendering) caches Chrome here
   PUPPETEER_CACHE_DIR = "/opt/build/cache/.puppeteer"
 
+[functions]
+  directory = "netlify/functions"
+
+# Retry pending Brevo contact upserts. The function calls the service-only
+# Supabase worker with EMAIL_SYNC_WORKER_SECRET; it does not contain provider
+# credentials itself.
+[functions."email-sync-scheduler"]
+  schedule = "*/15 * * * *"
+
 # Cache static assets aggressively
 [[headers]]
   for = "/assets/*"
@@ -93,4 +102,4 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://*.google-analytics.com https://*.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://www.facebook.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sanity.io https://judgeme.imgix.net https://cdn.judge.me https://review-images.judgeme.com; connect-src 'self' https://base-layer-skin.myshopify.com https://*.facebook.com https://*.google-analytics.com https://*.googletagmanager.com https://*.supabase.co https://*.baselayerskin.co https://*.sanity.io; frame-src 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://*.google-analytics.com https://*.googletagmanager.com https://cdn.brevo.com https://sibautomation.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://www.facebook.com https://*.google-analytics.com https://*.googletagmanager.com https://*.sanity.io https://judgeme.imgix.net https://cdn.judge.me https://review-images.judgeme.com https://*.brevo.com https://sibautomation.com https://*.sibautomation.com; connect-src 'self' https://base-layer-skin.myshopify.com https://*.facebook.com https://*.google-analytics.com https://*.googletagmanager.com https://*.supabase.co https://*.baselayerskin.co https://*.sanity.io https://*.brevo.com https://sibautomation.com https://*.sibautomation.com; frame-src 'none'"

@@ -18,7 +18,7 @@
  * fresh, informed choice.
  */
 
-export const CONSENT_VERSION = 1;
+export const CONSENT_VERSION = 2;
 
 const STORAGE_KEY = "bl_consent";
 const CHANGE_EVENT = "bl-consent-change";

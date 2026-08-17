@@ -686,3 +686,23 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Verification**: Typecheck, focused ESLint, 106-test full suite, live Shopify pricing verification, production build (60 routes / 0 failures), and responsive browser QA at 390×844 and 1440×900 passed. The quiz ships as a separate 32 KB JavaScript chunk (under 10 KB Brotli), outside the initial LCP bundle.
 - **Deployment status**: Not committed or deployed yet. A real Storefront cart verifies `SKIN15` is applicable and reduces the one-bottle total from $38.00 to $32.30. In the same cart, `SHIP26` is inapplicable, so the two Shopify discounts still need combination enabled before shipping; the popup does not claim free shipping while that is untrue.
 - **KB updates**: Added one low-confidence conversion hypothesis for measurement after launch.
+
+## 2026-08-17 — Lifecycle-ready quiz capture UX
+
+- **Task**: Hardened the concern-first email quiz for durable lifecycle capture without increasing visible form friction.
+- **Changes**: Replaced the fixed popup delay with a 15-second dwell or 40%-scroll engagement trigger; deferred the modal during cart and form interactions; retained completed-opt-in, session and seven-day dismissal suppression; added a hidden honeypot, form timing, versioned consent proof and privacy-minimized attribution; switched submission to the idempotent v2 lead endpoint; and added honest locked-code retry copy plus consent-gated Brevo visitor identification.
+- **Files changed**: `src/components/SkinConcernQuiz.tsx`, `src/lib/skinQuiz.ts`, `src/test/SkinConcernQuiz.test.tsx`, `src/test/skinQuiz.test.ts`, `kb/_session-log.md`.
+- **Verification**: Focused ESLint, full TypeScript, 137-test full suite, Deno checks, development build, and mobile 390×844 / desktop 1440×900 browser QA pass. The modal remains accessible and non-overflowing, with both input and CTA visible on mobile.
+- **KB updates**: No inbox entry added; this implements the existing quiz conversion hypothesis rather than establishing a new measured result.
+## 2026-08-17 — Email lifecycle event plumbing and operator runbook
+- **Task**: Added a provider-isolated, consent-gated Brevo tracker integration for identified subscriber, PDP-view, cart-update, and empty-cart events; wired authoritative Shopify cart mutations; added required CSP hosts and lifecycle privacy disclosure; documented Brevo/Shopify automation setup and exclusions.
+- **Findings**: The headless Storefront API cart must emit browser lifecycle events manually, while paid order completion should come from the Shopify/Brevo server-side integration. Browser purchase inference and simultaneous Shopify/Brevo recovery automations are both unsafe.
+- **Files changed**: `src/lib/lifecycle.ts`, `src/stores/cartStore.ts`, `src/pages/FaceCream.tsx`, `src/App.tsx`, `src/lib/consent.ts`, `src/components/CookieConsentBanner.tsx`, `src/pages/PrivacyPolicy.tsx`, `src/vite-env.d.ts`, `src/test/lifecycle.test.ts`, `netlify.toml`, `public/_headers`, `docs/email-lifecycle-operations.md`, `kb/_inbox.md`, `kb/_session-log.md`.
+- **KB updates**: Added one technical inbox entry targeting `wiki/site-architecture.md`.
+
+## 2026-08-17 — Durable lead identity, consent ledger, and Brevo outbox
+- **Task**: Replaced best-effort parallel quiz writes with a service-only, idempotent lead-capture backend and deployable provider retry path.
+- **Findings**: Production contained 14 waitlist rows, 6 survey rows, and the expected three legacy tables. Their missing migration-history entries were repaired before the additive lead-capture migration was applied.
+- **Files changed**: `supabase/migrations/20260817170000_marketing_lead_capture.sql`, `supabase/functions/{email-subscribe,email-sync-worker,_shared}/`, `supabase/config.toml`, `netlify/functions/email-sync-scheduler.mjs`, `netlify.toml`, `src/test/{leadCaptureValidation,emailSyncScheduler}.test.ts`, `docs/lead-capture-backend.md`, `kb/_session-log.md`.
+- **Verification**: Deno checks pass for both Edge Functions; TypeScript, focused ESLint, diff check, scheduled-proxy tests, development build, and the final 137/137 test suite pass. Supabase now records all four migrations, the five service-only marketing tables exist, and `email-sync-worker` is deployed. Brevo/Shopify dashboard activation and the Netlify worker secret remain external gates.
+- **KB updates**: No inbox entry added; this is implementation/operational state documented in the backend runbook.

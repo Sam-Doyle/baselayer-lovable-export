@@ -8,8 +8,8 @@ import { LEGAL } from "@/config/legal";
  * PRIVACY POLICY
  *
  * The cookie table and sub-processor list below describe what the Site actually
- * loads — GA4 via gtag, the Meta Pixel via fbq, the first-party bl_session
- * cookie, and Shopify's hosted checkout. If a tag is added or removed, update
+ * loads — GA4 via gtag, the Meta Pixel via fbq, Brevo's subscriber lifecycle
+ * tracker, the first-party bl_session cookie, and Shopify's hosted checkout. If a tag is added or removed, update
  * this page AND src/lib/consent.ts's CONSENT_VERSION in the same change (bumping
  * the version re-shows the banner so returning visitors make a fresh, informed
  * choice), or the disclosure stops being accurate.
@@ -19,7 +19,8 @@ import { LEGAL } from "@/config/legal";
  * has to keep saying so.
  *
  * In opt-in regions — the EEA, the UK and Switzerland, detected by timezone
- * in requiresOptIn() — GA4, the Meta Pixel, Meta CAPI and the bl_session
+ * in requiresOptIn() — GA4, the Meta Pixel, Meta CAPI, the Brevo lifecycle
+ * tracker and the bl_session
  * cookie are off until the visitor clicks Accept on the banner. Everywhere
  * else, which is effectively all of this store's traffic, the model is
  * notice plus opt-out: those tags run by default and the footer's "Cookie
@@ -102,6 +103,12 @@ const PrivacyPolicy = () => {
                 purchase and add-to-cart events to Meta server-side through the Meta Conversions API. Turning tracking
                 off stops all of it, browser-side and server-side alike.
               </p>
+              <p className="mt-3">
+                <strong className="text-foreground">Email lifecycle information.</strong> After you submit a marketing
+                opt-in and allow optional cookies, Brevo can associate your product views and current shopping-cart
+                contents with your email contact so we can send relevant welcome, cart-recovery, and replenishment
+                messages. Cart events do not contain your email address; Brevo associates them using its visitor cookie.
+              </p>
             </section>
 
             <section>
@@ -114,7 +121,8 @@ const PrivacyPolicy = () => {
                 "Cookie Preferences" in the footer, which opens the same banner.
               </p>
               <p className="mt-3">
-                Reject works identically wherever you are: choose it and GA4, the Meta Pixel, Meta CAPI and the
+                Reject works identically wherever you are: choose it and GA4, the Meta Pixel, Meta CAPI, the Brevo
+                lifecycle tracker and the
                 bl_session cookie all stop, leaving only the cookies marked "Required" below. Accept and Reject are one
                 click each, and neither is preselected or visually favored over the other. Your choice is stored on your
                 device and you can change it as often as you like. Durations below are the values set by each provider
@@ -160,6 +168,13 @@ const PrivacyPolicy = () => {
                       <td className="py-2 pr-4">90 days</td>
                       <td className="py-2">Yes</td>
                     </tr>
+                    <tr className="border-b border-border/50">
+                      <td className="py-2 pr-4"><code className="text-foreground">visitor_id</code></td>
+                      <td className="py-2 pr-4">Brevo</td>
+                      <td className="py-2 pr-4">Associates an opted-in subscriber with product and cart activity used for email follow-up.</td>
+                      <td className="py-2 pr-4">Provider-controlled</td>
+                      <td className="py-2">Yes</td>
+                    </tr>
                     <tr>
                       <td className="py-2 pr-4">Checkout cookies</td>
                       <td className="py-2 pr-4">Shopify</td>
@@ -195,7 +210,7 @@ const PrivacyPolicy = () => {
               <ul className="mt-3 space-y-2 list-disc pl-5">
                 <li><strong className="text-foreground">Shopify</strong> — checkout, payment processing, and order fulfillment.</li>
                 <li><strong className="text-foreground">Supabase</strong> — backend storage for waitlist and contact submissions.</li>
-                <li><strong className="text-foreground">Brevo</strong> — email list management and marketing email delivery.</li>
+                <li><strong className="text-foreground">Brevo</strong> — email list management, marketing email delivery, and opted-in subscriber lifecycle automation.</li>
                 <li><strong className="text-foreground">Netlify</strong> — website hosting and delivery.</li>
                 <li><strong className="text-foreground">Google</strong> — analytics and measurement.</li>
                 <li><strong className="text-foreground">Meta</strong> — advertising delivery and conversion measurement, including server-side events.</li>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, Check, Copy, X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -8,7 +8,11 @@ import {
   activateSkinQuizDiscount,
   type SkinConcernId,
 } from "@/config/promotions";
-import { submitSkinQuizLead } from "@/lib/skinQuiz";
+import {
+  SKIN_QUIZ_CONSENT_VERSION,
+  createSkinQuizSubmissionId,
+  submitSkinQuizLead,
+} from "@/lib/skinQuiz";
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
 import { getStoredConsent, onConsentChange, requiresOptIn } from "@/lib/consent";
@@ -19,6 +23,8 @@ const COMPLETED_KEY = "bl_skin_quiz_completed";
 const DISMISSED_UNTIL_KEY = "bl_skin_quiz_dismissed_until";
 const SHOWN_THIS_SESSION_KEY = "bl_skin_quiz_shown";
 const DISMISS_FOR_MS = 7 * 24 * 60 * 60 * 1000;
+const ENGAGEMENT_DELAY_MS = 15_000;
+const ENGAGEMENT_SCROLL_RATIO = 0.4;
 const COMMERCIAL_ROUTES = new Set([
   "/",
   "/face-cream",
@@ -42,11 +48,34 @@ function canShowQuiz(pathname: string): boolean {
   return true;
 }
 
+function hasActiveFormInteraction(): boolean {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLElement)) return false;
+  return active.matches("input, textarea, select, [contenteditable='true']");
+}
+
+function hasMeaningfulScroll(): boolean {
+  const scrollableHeight = Math.max(
+    document.documentElement.scrollHeight - window.innerHeight,
+    document.body.scrollHeight - window.innerHeight,
+    0,
+  );
+  if (scrollableHeight === 0) return false;
+  return window.scrollY / scrollableHeight >= ENGAGEMENT_SCROLL_RATIO;
+}
+
 const SkinConcernQuiz = () => {
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const applyDiscountCode = useCartStore((state) => state.applyDiscountCode);
+  const cartOpen = useCartStore((state) => state.isOpen);
   const [open, setOpen] = useState(false);
+  const [engaged, setEngaged] = useState(false);
+  const [suppressedThisRender, setSuppressedThisRender] = useState(false);
+  const [interactionBlocked, setInteractionBlocked] = useState(false);
+  const [consentResolved, setConsentResolved] = useState(
+    () => !requiresOptIn() || getStoredConsent() !== null,
+  );
   const [step, setStep] = useState<QuizStep>("concern");
   const [concern, setConcern] = useState<SkinConcernId | null>(null);
   const [email, setEmail] = useState("");
@@ -54,6 +83,9 @@ const SkinConcernQuiz = () => {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [autoApplied, setAutoApplied] = useState(true);
+  const [website, setWebsite] = useState("");
+  const formStartedAt = useRef<number | null>(null);
+  const submissionAttempt = useRef<{ id: string; signature: string } | null>(null);
 
   const selectedConcern = useMemo(
     () => SKIN_CONCERNS.find((item) => item.id === concern) ?? null,
@@ -63,6 +95,8 @@ const SkinConcernQuiz = () => {
 
   useEffect(() => {
     if (forcePreview) {
+      setEngaged(true);
+      setConsentResolved(true);
       setOpen(true);
       return;
     }
@@ -70,32 +104,53 @@ const SkinConcernQuiz = () => {
     if (/Lighthouse|Chrome-Lighthouse|PageSpeed|HeadlessChrome/i.test(navigator.userAgent)) return;
     if (window.top !== window.self) return;
 
-    let timer: number | undefined;
-    let eligible = !requiresOptIn() || getStoredConsent() !== null;
-    const schedule = () => {
-      if (!eligible || timer !== undefined) return;
-      timer = window.setTimeout(() => {
-        if (!canShowQuiz(pathname)) return;
-        try {
-          sessionStorage.setItem(SHOWN_THIS_SESSION_KEY, "true");
-        } catch {
-          // Non-blocking; the open state remains the source of truth.
-        }
-        setOpen(true);
-        void trackEvent("skin_quiz_view", { source: SKIN_QUIZ_PROMOTION.source });
-      }, 7_000);
+    // The component itself is lazy-loaded after the initial render. Anchor the
+    // delay to navigation start so it remains a true 15-second dwell trigger
+    // rather than silently becoming 18+ seconds as loading strategy changes.
+    const elapsed = typeof performance !== "undefined" ? performance.now() : 0;
+    const timer = window.setTimeout(
+      () => setEngaged(true),
+      Math.max(0, ENGAGEMENT_DELAY_MS - elapsed),
+    );
+    const onScroll = () => {
+      if (hasMeaningfulScroll()) setEngaged(true);
     };
+    const onFocusIn = () => setInteractionBlocked(hasActiveFormInteraction());
+    const onFocusOut = () => setInteractionBlocked(false);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") setInteractionBlocked(hasActiveFormInteraction());
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    onScroll();
 
-    schedule();
-    const unsubscribe = onConsentChange(() => {
-      eligible = true;
-      schedule();
-    });
+    const unsubscribe = onConsentChange(() => setConsentResolved(true));
     return () => {
       unsubscribe();
-      if (timer !== undefined) window.clearTimeout(timer);
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [forcePreview, pathname]);
+
+  useEffect(() => {
+    if (forcePreview || open || suppressedThisRender || !engaged || !consentResolved || cartOpen || interactionBlocked) return;
+    if (document.visibilityState === "hidden" || !canShowQuiz(pathname)) return;
+    try {
+      sessionStorage.setItem(SHOWN_THIS_SESSION_KEY, "true");
+    } catch {
+      // Non-blocking; the open state remains the source of truth.
+    }
+    setOpen(true);
+    void trackEvent("skin_quiz_view", {
+      source: SKIN_QUIZ_PROMOTION.source,
+      trigger: hasMeaningfulScroll() ? "scroll_40" : "dwell_15s",
+    });
+  }, [cartOpen, consentResolved, engaged, forcePreview, interactionBlocked, open, pathname, suppressedThisRender]);
 
   const reset = () => {
     setStep("concern");
@@ -105,10 +160,14 @@ const SkinConcernQuiz = () => {
     setError("");
     setCopied(false);
     setAutoApplied(true);
+    setWebsite("");
+    formStartedAt.current = null;
+    submissionAttempt.current = null;
   };
 
   const close = () => {
     setOpen(false);
+    setSuppressedThisRender(true);
     if (step !== "success" && !forcePreview) {
       try {
         localStorage.setItem(DISMISSED_UNTIL_KEY, String(Date.now() + DISMISS_FOR_MS));
@@ -123,6 +182,7 @@ const SkinConcernQuiz = () => {
     setConcern(nextConcern);
     setStep("email");
     setError("");
+    formStartedAt.current = Date.now();
     void trackEvent("skin_quiz_answered", {
       source: SKIN_QUIZ_PROMOTION.source,
       skin_concern: nextConcern,
@@ -135,7 +195,23 @@ const SkinConcernQuiz = () => {
     setSubmitting(true);
     setError("");
     try {
-      await submitSkinQuizLead({ email, concern });
+      const signature = `${email.trim().toLowerCase()}:${concern}`;
+      if (!submissionAttempt.current || submissionAttempt.current.signature !== signature) {
+        submissionAttempt.current = { id: createSkinQuizSubmissionId(), signature };
+      }
+      await submitSkinQuizLead({
+        submissionId: submissionAttempt.current.id,
+        email,
+        concern,
+        consent: {
+          capturedAt: new Date().toISOString(),
+          disclosureVersion: SKIN_QUIZ_CONSENT_VERSION,
+        },
+        botSignals: {
+          website,
+          formStartedAt: formStartedAt.current,
+        },
+      });
       activateSkinQuizDiscount();
       const discountResult = await applyDiscountCode(SKIN_QUIZ_PROMOTION.code);
       setAutoApplied(discountResult.success && discountResult.applicable !== false);
@@ -146,7 +222,7 @@ const SkinConcernQuiz = () => {
       }
       setStep("success");
     } catch {
-      setError("That didn't go through. Check your email and try again.");
+      setError("We couldn't finish that. Your code is still locked—check your connection and try again.");
       void trackEvent("skin_quiz_error", { source: SKIN_QUIZ_PROMOTION.source });
     } finally {
       setSubmitting(false);
@@ -165,6 +241,7 @@ const SkinConcernQuiz = () => {
 
   const shopWithDiscount = () => {
     setOpen(false);
+    setSuppressedThisRender(true);
     if (pathname === "/face-cream") {
       document.getElementById("offer")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
@@ -248,6 +325,18 @@ const SkinConcernQuiz = () => {
               </p>
 
               <form onSubmit={submit} className="mt-6">
+                <div aria-hidden="true" className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden">
+                  <label htmlFor="skin-quiz-website">Website</label>
+                  <input
+                    id="skin-quiz-website"
+                    name="website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(event) => setWebsite(event.target.value)}
+                  />
+                </div>
                 <label htmlFor="skin-quiz-email" className="block font-body text-[10px] font-bold uppercase tracking-[0.18em] text-[#1A2F4C]">
                   Email address
                 </label>
@@ -270,7 +359,7 @@ const SkinConcernQuiz = () => {
                   disabled={submitting}
                   className="mt-3 flex min-h-12 w-full items-center justify-center bg-brand px-5 font-heading text-[12px] font-bold uppercase tracking-[0.13em] text-white transition-colors hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C] disabled:cursor-wait disabled:opacity-70"
                 >
-                  {submitting ? "Unlocking…" : "Unlock 15% off"}
+                  {submitting ? "Unlocking…" : error ? "Try again" : "Unlock 15% off"}
                 </button>
                 <p id="skin-quiz-email-terms" className="mt-3 font-body text-[10px] leading-[1.5] text-[#596270]">
                   By signing up, you agree to receive Base Layer emails. Unsubscribe anytime. See our{" "}

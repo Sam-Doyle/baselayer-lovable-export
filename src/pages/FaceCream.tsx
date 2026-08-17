@@ -5,6 +5,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { AVAILABLE_TIERS, buildCartItem, getInitialTier, metaContentId, tierCtaLabel, tierSummary } from "@/config/product";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
+import { trackLifecycleProductViewed } from "@/lib/lifecycle";
 import { useEffect, useState, useRef } from "react";
 import textureSmearStone from "@/assets/generated-creatives/asset_texture_smear_stone_1772750541116.png";
 import { Mountain, ShieldCheck, Droplets, Timer, Leaf, Check, Sun, Moon } from "lucide-react";
@@ -149,13 +150,21 @@ const FaceCream = () => {
       value: initialTier.price,
       currency: "USD",
     });
+    trackLifecycleProductViewed({
+      id: metaContentId(initialTier.variantGid as string),
+      name: "Base Layer Performance Daily Face Cream",
+      variant: initialTier.label,
+      price: initialTier.price,
+      url: "https://baselayerskin.co/face-cream",
+      image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
+    });
 
     const observer = new IntersectionObserver(([entry]) => {
       setShowStickyBottom(!entry.isIntersecting);
     }, { threshold: 0.15 });
     if (ctaRef.current) observer.observe(ctaRef.current);
     return () => observer.disconnect();
-  }, [initialTier.price, initialTier.variantGid]);
+  }, [initialTier.label, initialTier.price, initialTier.variantGid]);
 
   return (
     <div className="min-h-screen bg-white text-[#1A2F4C]">
