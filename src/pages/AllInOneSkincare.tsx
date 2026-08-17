@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { merchantOfferFields } from "@/config/merchantSchema";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
@@ -85,13 +86,7 @@ const faqs = [
 
 const AllInOneSkincare = () => {
   useCanonical();
-  useMetaTags({
-    title: "All-in-One Skincare for Men | One Daily Moisturizer That Covers More",
-    description:
-      "All-in-one men's skincare: 6 active ingredients replace your moisturizer, serum, and eye cream. 60-second routine. $38 — try Base Layer.",
-    type: "product",
-    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
-  });
+  useMetaTags(metaFor("/all-in-one-skincare-for-men"));
 
   useEffect(() => {
     trackEvent("view_item", {

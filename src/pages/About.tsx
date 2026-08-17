@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { getArticles } from "@/lib/queries";
 import { type Article } from "@/lib/sanity";
 import { trackEvent } from "@/lib/analytics";
@@ -28,10 +29,7 @@ const About = () => {
   });
 
   useCanonical();
-  useMetaTags({
-    title: "About Base Layer | Men's Skincare Built Around Performance",
-    description: "Base Layer: men's skincare engineered in Breckenridge, Colorado. One product, six active ingredients, zero complexity. Learn our story.",
-  });
+  useMetaTags(metaFor("/about"));
 
   useEffect(() => {
     trackEvent("view_item", { content_name: "About", content_type: "page" });

@@ -8,6 +8,7 @@ import { getSkinConcerns } from "@/lib/queries";
 import { type SkinConcern } from "@/lib/sanity";
 import { trackEvent } from "@/lib/analytics";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildItemListSchema, BASE_URL } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { toPlainText } from "@/lib/utils";
 
 const SkinConcerns = () => {
@@ -18,11 +19,7 @@ const SkinConcerns = () => {
   });
 
   useCanonical();
-  useMetaTags({
-    title: "Men's Skin Concerns | Oil, Redness, Breakouts, Dryness, Dark Circles",
-    description: "Targeted skincare advice for men dealing with oily skin, dryness, acne, aging, and post-shave irritation. Find your solution.",
-    image: "https://baselayerskin.co/og-skin-concerns.jpg",
-  });
+  useMetaTags(metaFor("/skin-concerns"));
 
   useEffect(() => {
     trackEvent("view_item", { content_name: "Skin Concerns", content_type: "listing" });

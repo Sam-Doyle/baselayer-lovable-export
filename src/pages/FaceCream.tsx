@@ -17,6 +17,7 @@ import StarRating from "@/components/StarRating";
 import { reviewAggregate, reviewSchema } from "@/lib/reviews";
 import { merchantOfferFields } from "@/config/merchantSchema";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { metaFor } from "@/config/pageSeo";
 import ProductGallery from "@/components/ProductGallery";
 import { PRODUCT_GALLERY_IMAGES } from "@/data/productGallery";
 import { HOW_TO_USE_MEDIA } from "@/data/howToUseMedia";
@@ -133,12 +134,7 @@ const FaceCream = () => {
   const msrp = 48 * selectedOption.bottles;
 
   useCanonical();
-  useMetaTags({
-    title: "Best Men's Face Moisturizer - Base Layer Performance Daily Face Cream | $38",
-    description: "The fast-absorbing, one-step daily face cream for men. Niacinamide 5% + Copper Peptides. $38 a bottle, 2-pack $68, 30-day guarantee.",
-    type: "product",
-    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
-  });
+  useMetaTags(metaFor("/face-cream"));
 
   useEffect(() => {
     // Value and ID come from the tier that's actually preselected, not a

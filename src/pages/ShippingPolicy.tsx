@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
 import { FREE_SHIPPING_CODE, LEGAL } from "@/config/legal";
+import { metaFor } from "@/config/pageSeo";
 
 /*
  * SHIPPING POLICY
@@ -25,10 +26,7 @@ import { FREE_SHIPPING_CODE, LEGAL } from "@/config/legal";
 
 const ShippingPolicy = () => {
   useCanonical();
-  useMetaTags({
-    title: "Shipping Policy | Base Layer",
-    description: `Free US standard shipping with code ${FREE_SHIPPING_CODE} or on orders $${LEGAL.freeShippingThresholdUsd}+, plus processing times and tracking.`,
-  });
+  useMetaTags(metaFor("/shipping-policy"));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

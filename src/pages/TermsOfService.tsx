@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
 import { LEGAL, GUARANTEE_WINDOW_PHRASE } from "@/config/legal";
+import { metaFor } from "@/config/pageSeo";
 
 /*
  * TERMS OF SERVICE
@@ -23,10 +24,7 @@ import { LEGAL, GUARANTEE_WINDOW_PHRASE } from "@/config/legal";
 
 const TermsOfService = () => {
   useCanonical();
-  useMetaTags({
-    title: "Terms of Service | Base Layer",
-    description: "The terms that govern your use of baselayerskin.co and your purchase of Base Layer products.",
-  });
+  useMetaTags(metaFor("/terms-of-service"));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

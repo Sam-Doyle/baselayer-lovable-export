@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { BASE_URL, PRODUCT_OG_IMAGE as DEFAULT_OG_IMAGE } from "@/config/pageSeo";
 
-const BASE_URL = "https://baselayerskin.co";
-const DEFAULT_OG_IMAGE = `${BASE_URL}/og-mountain-product-v2.jpg`;
 const DEFAULT_OG_IMAGE_ALT = "Base Layer Daily Face Cream bottle and carton in the Colorado mountains";
 
 // ── Canonical Tag ──────────────────────────────────────────────────
@@ -191,7 +190,7 @@ export const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Base Layer",
-  url: "https://baselayerskin.co",
+  url: BASE_URL,
   description: "Men's skincare engineered for active lifestyles.",
   publisher: { "@type": "Organization", name: "Base Layer" },
 };

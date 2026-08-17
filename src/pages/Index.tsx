@@ -7,6 +7,7 @@ import ScrollProgressBar from "@/components/ScrollProgressBar";
 import ScrollDepthTracker from "@/analytics/ScrollDepthTracker";
 import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { merchantOfferFields } from "@/config/merchantSchema";
 
 const HomeBelowFold = lazy(() => import("@/components/HomeBelowFold"));
@@ -36,10 +37,7 @@ const Index = () => {
   const [showBelowFold, setShowBelowFold] = useState(false);
 
   useCanonical();
-  useMetaTags({
-    title: "Base Layer Skin | Built in CO for Harsh Elements",
-    description: "One lightweight face moisturizer for men that hydrates, calms post-shave irritation, controls shine, and helps improve texture. Absorbs fast. No greasy finish.",
-  });
+  useMetaTags(metaFor("/"));
 
   useEffect(() => {
     let idleId: number | undefined;

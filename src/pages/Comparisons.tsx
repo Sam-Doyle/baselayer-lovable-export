@@ -8,6 +8,7 @@ import { getComparisons } from "@/lib/queries";
 import { type Comparison } from "@/lib/sanity";
 import { trackEvent } from "@/lib/analytics";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildItemListSchema, BASE_URL } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 
 const Comparisons = () => {
   const { data: comparisons, isLoading, error } = useQuery<Comparison[]>({
@@ -17,11 +18,7 @@ const Comparisons = () => {
   });
 
   useCanonical();
-  useMetaTags({
-    title: "Men's Moisturizer Comparisons | Base Layer vs CeraVe, Kiehl's, Cetaphil",
-    description: "See how Base Layer stacks up against Cetaphil, Neutrogena, CeraVe, and Kiehl's in side-by-side comparisons.",
-    image: "https://baselayerskin.co/og-comparisons.jpg",
-  });
+  useMetaTags(metaFor("/comparisons"));
 
   useEffect(() => {
     trackEvent("view_item", { content_name: "Comparisons", content_type: "listing" });

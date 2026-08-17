@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
 import { LEGAL, GUARANTEE_WINDOW_PHRASE } from "@/config/legal";
+import { metaFor } from "@/config/pageSeo";
 
 /*
  * REFUND POLICY
@@ -18,10 +19,7 @@ import { LEGAL, GUARANTEE_WINDOW_PHRASE } from "@/config/legal";
 
 const RefundPolicy = () => {
   useCanonical();
-  useMetaTags({
-    title: "Refund Policy | Base Layer",
-    description: "Our 30-day money-back guarantee. Keep the bottle, get a full refund.",
-  });
+  useMetaTags(metaFor("/refund-policy"));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

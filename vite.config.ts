@@ -10,11 +10,12 @@ import type { HTTPRequest } from "puppeteer";
 import * as fs from "fs";
 import * as http from "http";
 import { execFileSync } from "child_process";
+// Relative, not "@/config/pageSeo" — the alias is defined by this file and
+// isn't resolvable while it loads.
+import { PAGE_SEO, BASE_URL, PRODUCT_OG_IMAGE } from "./src/config/pageSeo";
 
 // ── Prerender plugin (closeBundle) ────────────────────────────────
 
-const BASE_URL = "https://baselayerskin.co";
-const PRODUCT_OG_IMAGE = `${BASE_URL}/og-mountain-product-v2.jpg`;
 const PRODUCT_OG_IMAGE_ALT = "Base Layer Daily Face Cream bottle and carton in the Colorado mountains";
 
 /*
@@ -110,127 +111,24 @@ function sanityDate(updatedAt?: string): string | undefined {
   return day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : undefined;
 }
 
-const STATIC_PAGES: PageMeta[] = [
-  {
-    path: "/",
-    title: "Base Layer — Men's Skincare | Face Moisturizer for Men | $38",
-    description: "Men's face moisturizer with niacinamide, copper peptide & hyaluronic acid. One step, zero shine. Absorbs in 15 seconds. $38, no subscription.",
-    changefreq: "weekly",
-    priority: "1.0",
-  },
-  {
-    path: "/face-cream",
-    title: "Best Men's Face Moisturizer 2026 | Base Layer Face Cream | $38",
-    description: "Lightweight face moisturizer for men. Niacinamide 5%, copper peptide, hyaluronic acid. Absorbs in 15 seconds, stays matte all day. $38.",
-    ogType: "product",
-    ogImage: PRODUCT_OG_IMAGE,
-    changefreq: "weekly",
-    priority: "1.0",
-    // jsonLd handled by React FaceCream.tsx component during Puppeteer SSR
-  },
-  {
-    path: "/about",
-    title: "About Base Layer | Men's Skincare, Simplified",
-    description: "We built one product that replaces your entire skincare routine. Science-backed formula, no subscriptions, formulated in Colorado.",
-    changefreq: "monthly",
-    priority: "0.6",
-  },
-  {
-    path: "/articles",
-    title: "Men's Skincare Articles & Guides | Base Layer",
-    description: "Evidence-based skincare articles for men. Learn about ingredients, routines, and how to build better skin.",
-    ogImage: `${BASE_URL}/og-articles.jpg`,
-    changefreq: "weekly",
-    priority: "0.8",
-  },
-  {
-    path: "/ingredients",
-    title: "Skincare Ingredients Guide for Men | Base Layer",
-    description: "Learn what's in your skincare. Detailed guides on niacinamide, copper peptide, hyaluronic acid, and more.",
-    ogImage: `${BASE_URL}/og-ingredients.jpg`,
-    changefreq: "weekly",
-    priority: "0.8",
-  },
-  {
-    path: "/skin-concerns",
-    title: "Men's Skin Concerns Guide | Base Layer",
-    description: "Solutions for oily skin, acne, post-shave irritation, dry skin, aging, and dark circles. Built for men's skin.",
-    ogImage: `${BASE_URL}/og-skin-concerns.jpg`,
-    changefreq: "weekly",
-    priority: "0.8",
-  },
-  {
-    path: "/comparisons",
-    title: "Best Men's Moisturizers Compared | Base Layer",
-    description: "Side-by-side comparison of the best men's face moisturizers. Ingredients, price, and performance reviewed.",
-    ogImage: `${BASE_URL}/og-comparisons.jpg`,
-    changefreq: "weekly",
-    priority: "0.8",
-  },
-  {
-    path: "/matte-moisturizer-for-men",
-    title: "Matte Moisturizer for Men — Zero Shine, All Day | Base Layer",
-    description: "The best matte moisturizer for men. Niacinamide 5% controls oil, squalane absorbs in 15 seconds. No shine, no grease, no fragrance. $38.",
-    ogType: "product",
-    ogImage: PRODUCT_OG_IMAGE,
-    changefreq: "weekly",
-    priority: "0.9",
-    // jsonLd handled by React MatteMoisturizer.tsx during Puppeteer SSR — see
-    // the note above STATIC_PAGES on why it isn't declared twice.
-  },
-  {
-    path: "/non-greasy-moisturizer-for-men",
-    title: "Non-Greasy Moisturizer for Men — Absorbs in 15 Seconds | Base Layer",
-    description: "The best non-greasy moisturizer for men. Squalane absorbs in 15 seconds. Niacinamide 5% controls oil. No residue, no fragrance, no subscriptions. $38.",
-    ogType: "product",
-    ogImage: PRODUCT_OG_IMAGE,
-    changefreq: "weekly",
-    priority: "0.9",
-    // jsonLd handled by React NonGreasyMoisturizer.tsx during Puppeteer SSR.
-  },
-  {
-    path: "/all-in-one-skincare-for-men",
-    title: "All-in-One Skincare for Men — One Product. Done. | Base Layer",
-    description: "Replace your serum, moisturizer, and eye cream with one product. 6 active ingredients, $38, absorbs in 15 seconds. The simplest men's skincare routine.",
-    ogType: "product",
-    ogImage: PRODUCT_OG_IMAGE,
-    changefreq: "weekly",
-    priority: "0.9",
-    // jsonLd handled by React AllInOneSkincare.tsx during Puppeteer SSR.
-  },
-  // Legal/policy pages. These must be prerendered, not left as client-only SPA routes:
-  // ad-platform review crawlers (Meta in particular) fetch the privacy policy URL
-  // directly and do not reliably execute JS — an un-prerendered route reads as an empty
-  // page and stalls ad account approval.
-  {
-    path: "/privacy-policy",
-    title: "Privacy Policy | Base Layer",
-    description: "How Base Layer collects, uses, and protects your personal information.",
-    changefreq: "yearly",
-    priority: "0.3",
-  },
-  {
-    path: "/terms-of-service",
-    title: "Terms of Service | Base Layer",
-    description: "The terms governing your use of the Base Layer website and purchases.",
-    changefreq: "yearly",
-    priority: "0.3",
-  },
-  {
-    path: "/refund-policy",
-    title: "Refund Policy | Base Layer",
-    description: "Base Layer's 30-day money-back guarantee, returns, and refund process.",
-    changefreq: "yearly",
-    priority: "0.3",
-  },
-  {
-    path: "/shipping-policy",
-    title: "Shipping Policy | Base Layer",
-    description: "Shipping options, processing times, and delivery information for Base Layer orders.",
-    changefreq: "yearly",
-    priority: "0.3",
-  },
-];
+/*
+ * Titles and descriptions live in src/config/pageSeo.ts, which the page
+ * components read too. They used to be declared here as well, and the two
+ * copies had drifted apart on ten of the fourteen routes — this file wrote one
+ * title into the prerendered HTML and useMetaTags replaced it with a different
+ * one the moment React hydrated.
+ *
+ * No jsonLd is declared for any static route: every one of these paths is a
+ * React page that emits its own Product/Article/FAQ blocks, and Puppeteer runs
+ * them during prerender, so declaring schema here would ship a second, rival
+ * entity for the same URL (see the aggregateRating note at the top of this
+ * file for what that cost us). jsonLd stays on PageMeta only for dynamic
+ * Sanity-backed routes, which have no component-level schema of their own.
+ */
+const STATIC_PAGES: PageMeta[] = Object.entries(PAGE_SEO).map(([path, seo]) => ({
+  path,
+  ...seo,
+}));
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

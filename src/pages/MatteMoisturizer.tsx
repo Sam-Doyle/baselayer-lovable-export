@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import { Droplets, Timer, Shield, Leaf, Sun, FlaskConical, CheckCircle2, ArrowRight } from "lucide-react";
@@ -83,13 +84,7 @@ const faqs = [
 
 const MatteMoisturizer = () => {
   useCanonical();
-  useMetaTags({
-    title: "Matte Moisturizer for Men | Lightweight Moisture Without Shine",
-    description:
-      "Matte moisturizer for men with niacinamide 5% and squalane. Controls shine 8-12 hours, absorbs in 15 seconds. $38 — try Base Layer.",
-    type: "product",
-    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
-  });
+  useMetaTags(metaFor("/matte-moisturizer-for-men"));
 
   useEffect(() => {
     trackEvent("view_item", {

@@ -11,6 +11,7 @@ import routineGraphic from "@/assets/generated-creatives/content_visual_routine_
 import absorptionDiagram from "@/assets/generated-creatives/content_visual_absorption_diagram_1772738792625.png";
 import { merchantOfferFields } from "@/config/merchantSchema";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { metaFor } from "@/config/pageSeo";
 
 /* ── Structured Data ────────────────────────────────────────────── */
 
@@ -84,13 +85,7 @@ const faqs = [
 
 const NonGreasyMoisturizer = () => {
   useCanonical();
-  useMetaTags({
-    title: "Non-Greasy Moisturizer for Men | Fast Absorption, Clean Finish",
-    description:
-      "Non-greasy moisturizer for men that absorbs in 15 seconds with zero residue. Squalane-based, fragrance-free. $38 — try Base Layer.",
-    type: "product",
-    image: "https://baselayerskin.co/og-mountain-product-v2.jpg",
-  });
+  useMetaTags(metaFor("/non-greasy-moisturizer-for-men"));
 
   useEffect(() => {
     trackEvent("view_item", {

@@ -9,6 +9,7 @@ import { getArticles } from "@/lib/queries";
 import { urlFor, type Article } from "@/lib/sanity";
 import { trackEvent } from "@/lib/analytics";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildItemListSchema, BASE_URL } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { toPlainText } from "@/lib/utils";
 import minimalistRoutine from "@/assets/generated-creatives/article_visual_minimalist_routine_1772741436619.png";
 import antiAging from "@/assets/generated-creatives/article_visual_anti_aging_1772741409831.png";
@@ -49,11 +50,7 @@ const Articles = () => {
   });
 
   useCanonical();
-  useMetaTags({
-    title: "Men's Skincare Articles | Simple Guides For Better Skin",
-    description: "Expert men's skincare guides covering ingredients, routines, and product comparisons. Science-backed advice from Base Layer.",
-    image: "https://baselayerskin.co/og-articles.jpg",
-  });
+  useMetaTags(metaFor("/articles"));
 
   useEffect(() => {
     trackEvent("view_item", { content_name: "Articles", content_type: "listing" });

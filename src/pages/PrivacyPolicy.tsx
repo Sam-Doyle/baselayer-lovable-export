@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
 import { LEGAL } from "@/config/legal";
+import { metaFor } from "@/config/pageSeo";
 
 /*
  * PRIVACY POLICY
@@ -38,10 +39,7 @@ import { LEGAL } from "@/config/legal";
 
 const PrivacyPolicy = () => {
   useCanonical();
-  useMetaTags({
-    title: "Privacy Policy | Base Layer",
-    description: "How Base Layer collects, uses, and protects your personal information.",
-  });
+  useMetaTags(metaFor("/privacy-policy"));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

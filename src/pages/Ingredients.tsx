@@ -8,6 +8,7 @@ import { getIngredients } from "@/lib/queries";
 import { type Ingredient } from "@/lib/sanity";
 import { trackEvent } from "@/lib/analytics";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildItemListSchema, BASE_URL } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { toPlainText } from "@/lib/utils";
 
 const Ingredients = () => {
@@ -18,11 +19,7 @@ const Ingredients = () => {
   });
 
   useCanonical();
-  useMetaTags({
-    title: "Skincare Ingredients For Men | What Each Ingredient Actually Does",
-    description: "Learn about the clinically-proven ingredients in Base Layer face cream: niacinamide, copper peptide, hyaluronic acid, and more.",
-    image: "https://baselayerskin.co/og-ingredients.jpg",
-  });
+  useMetaTags(metaFor("/ingredients"));
 
   useEffect(() => {
     trackEvent("view_item", { content_name: "Ingredients", content_type: "listing" });
