@@ -678,3 +678,11 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Task**: Replaced the legacy link-preview bottle with the current mountain product hero across the homepage, PDP, product landing pages, and advertorial product schemas.
 - **Changes**: Added a cache-busting 1200×630 progressive JPEG (`public/og-mountain-product-v2.jpg`) cropped deterministically from the current production hero so the exact capped bottle, carton, logos, and Colorado setting are preserved. Updated Open Graph, X/Twitter, prerender defaults, and product structured-data image URLs; also added descriptive image-alt metadata.
 - **Verification**: Asset is 1200×630 JPEG; typecheck passes; all 95 tests pass; focused ESLint has zero errors; production build renders 60 routes with zero failures. Generated homepage, PDP, and product landing HTML all point to the new image and contain no legacy preview references.
+
+## 2026-08-15 — Skin-concern email quiz and 15% offer
+
+- **Task**: Built a custom two-step popup asking “What's your main skin concern?” across four options, then collecting email before revealing a 15% first-order code.
+- **Changes**: Added a responsive Radix dialog, personalized concern result copy, Supabase + Brevo lead capture, analytics events, seven-day dismissal/session suppression, consent-aware display logic, delayed lazy loading, persistent discount state, and Shopify cart/checkout support for combining `SKIN15` with `SHIP26`. Privacy copy now discloses the quiz data flow.
+- **Verification**: Typecheck, focused ESLint, 106-test full suite, live Shopify pricing verification, production build (60 routes / 0 failures), and responsive browser QA at 390×844 and 1440×900 passed. The quiz ships as a separate 32 KB JavaScript chunk (under 10 KB Brotli), outside the initial LCP bundle.
+- **Deployment status**: Not committed or deployed yet. A real Storefront cart verifies `SKIN15` is applicable and reduces the one-bottle total from $38.00 to $32.30. In the same cart, `SHIP26` is inapplicable, so the two Shopify discounts still need combination enabled before shipping; the popup does not claim free shipping while that is untrue.
+- **KB updates**: Added one low-confidence conversion hypothesis for measurement after launch.

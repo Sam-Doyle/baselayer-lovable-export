@@ -89,8 +89,9 @@ const PrivacyPolicy = () => {
               </p>
               <p className="mt-3">
                 <strong className="text-foreground">Contact and waitlist information.</strong> If you join our early-access
-                waitlist, sign up for updates, or otherwise submit an email address on the Site, we store that information
-                using Supabase, our backend data platform.
+                waitlist, sign up for updates, complete a skin-concern quiz, or otherwise submit an email address on the
+                Site, we store that information using Supabase, our backend data platform, and send it to Brevo to deliver
+                the emails you requested.
               </p>
               <p className="mt-3">
                 <strong className="text-foreground">Automatically collected information.</strong> Unless you turn it off
@@ -194,6 +195,7 @@ const PrivacyPolicy = () => {
               <ul className="mt-3 space-y-2 list-disc pl-5">
                 <li><strong className="text-foreground">Shopify</strong> — checkout, payment processing, and order fulfillment.</li>
                 <li><strong className="text-foreground">Supabase</strong> — backend storage for waitlist and contact submissions.</li>
+                <li><strong className="text-foreground">Brevo</strong> — email list management and marketing email delivery.</li>
                 <li><strong className="text-foreground">Netlify</strong> — website hosting and delivery.</li>
                 <li><strong className="text-foreground">Google</strong> — analytics and measurement.</li>
                 <li><strong className="text-foreground">Meta</strong> — advertising delivery and conversion measurement, including server-side events.</li>

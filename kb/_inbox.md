@@ -134,6 +134,22 @@ hypothesis, not a measured lift; evaluate against homepage-to-PDP click-through
 and purchase conversion before treating it as a proven CRO result.
 
 ---
+date: 2026-08-15
+category: conversion
+source: user-requested onsite quiz implementation and first-order offer economics
+confidence: low
+target_article: wiki/conversion-learnings.md
+---
+A two-step skin-concern quiz now offers 15% off a shopper's first one-time
+order after collecting one of four concerns and an email address. The design
+delays itself off the LCP path, suppresses repeat exposure, and carries the
+merchandise code alongside the existing shipping code. This is an unmeasured
+CRO hypothesis, not proof of lift. Evaluate quiz view-to-answer rate,
+answer-to-email completion, new-subscriber purchase conversion, incremental
+email revenue, and contribution margin net of the 15% discount before widening
+the offer or increasing popup frequency.
+
+---
 date: 2026-08-17
 category: technical
 source: Google Search Console warning on "Base Layer Performance Daily Face Cream" + reading served HTML on baselayerskin.co

@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { storefrontApiRequest, ShopifyHttpError, ShopifyProduct } from '@/lib/shopify';
 import { trackEvent } from '@/lib/analytics';
 import { metaContentId } from '@/config/product';
-import { FREE_SHIPPING_CODE } from '@/config/legal';
+import { activeCheckoutDiscountCodes } from '@/config/promotions';
 
 export interface Money { amount: string; currencyCode: string }
 
@@ -61,6 +61,7 @@ interface CartStore {
   removeItem: (variantId: string) => Promise<MutationResult>;
   clearCart: () => void;
   syncCart: () => Promise<void>;
+  applyDiscountCode: (code: string) => Promise<{ success: boolean; applicable?: boolean }>;
   getCheckoutUrl: () => string | null;
   toggleCart: (open?: boolean) => void;
 }
@@ -92,6 +93,7 @@ const CART_FIELDS = `
     subtotalAmount { amount currencyCode }
     totalAmount { amount currencyCode }
   }
+  discountCodes { code applicable }
   lines(first: 100) {
     edges {
       node {
@@ -148,6 +150,15 @@ const CART_LINES_REMOVE_MUTATION = `
   }
 `;
 
+const CART_DISCOUNT_CODES_UPDATE_MUTATION = `
+  mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]!) {
+    cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
+      cart { ${CART_FIELDS} }
+      userErrors { code field message }
+    }
+  }
+`;
+
 /** A cart line as CART_FIELDS returns it. */
 interface ShopifyCartLine {
   id: string;
@@ -163,6 +174,7 @@ interface ShopifyCart {
   checkoutUrl?: string;
   totalQuantity?: number;
   cost?: CartCost;
+  discountCodes?: Array<{ code: string; applicable: boolean }>;
   lines?: { edges?: Array<{ node: ShopifyCartLine }> };
 }
 
@@ -205,7 +217,7 @@ function formatCheckoutUrl(checkoutUrl: string): string {
     // Keep Shopify's required `key` parameter intact while carrying the
     // evergreen shipping offer into checkout. This also repairs checkout URLs
     // restored from localStorage before SHIP26 went live.
-    url.searchParams.set('discount', FREE_SHIPPING_CODE);
+    url.searchParams.set('discount', activeCheckoutDiscountCodes().join(','));
     url.searchParams.set('channel', 'online_store');
     return url.toString();
   } catch {
@@ -402,7 +414,7 @@ interface CreateCartResult {
 async function createShopifyCart(item: CartItem): Promise<CreateCartResult> {
   try {
     const data = await requestWithRetry(CART_CREATE_MUTATION, {
-      input: { lines: [toLineInput(item)], discountCodes: [FREE_SHIPPING_CODE] },
+      input: { lines: [toLineInput(item)], discountCodes: activeCheckoutDiscountCodes() },
     });
     if (data === undefined) return { success: false, errorKind: 'silent', errorMessage: 'Storefront request blocked (402 — see prior toast).' };
     const userErrors: ShopifyUserError[] = data?.data?.cartCreate?.userErrors || [];
@@ -490,6 +502,21 @@ async function removeLineFromShopifyCart(cartId: string, lineId: string): Promis
   }
 }
 
+async function updateShopifyCartDiscountCodes(cartId: string, discountCodes: string[]): Promise<LineMutationResult> {
+  try {
+    const data = await requestWithRetry(CART_DISCOUNT_CODES_UPDATE_MUTATION, { cartId, discountCodes });
+    if (data === undefined) return { success: false, errorKind: 'silent', errorMessage: 'Storefront request blocked (402 — see prior toast).' };
+    const userErrors: ShopifyUserError[] = data?.data?.cartDiscountCodesUpdate?.userErrors || [];
+    if (isCartNotFoundError(userErrors)) return { success: false, cartNotFound: true };
+    if (userErrors.length > 0) {
+      return { success: false, errorKind: classifyUserErrors(userErrors), errorMessage: userErrors.map(e => e.message).join('; ') };
+    }
+    return { success: true, cart: data?.data?.cartDiscountCodesUpdate?.cart };
+  } catch (error) {
+    return { success: false, errorKind: 'network', errorMessage: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -502,6 +529,32 @@ export const useCartStore = create<CartStore>()(
       isSyncing: false,
 
       toggleCart: (open?: boolean) => set({ isOpen: open !== undefined ? open : !get().isOpen }),
+
+      applyDiscountCode: async (code) => {
+        const normalizedCode = code.trim().toUpperCase();
+        const { cartId } = get();
+        // No cart yet: the promotion module has already persisted the code,
+        // and createShopifyCart() will include it on the shopper's first add.
+        if (!cartId) return { success: true };
+
+        const discountCodes = Array.from(new Set([...activeCheckoutDiscountCodes(), normalizedCode]));
+        const result = await updateShopifyCartDiscountCodes(cartId, discountCodes);
+        if (!result.success) {
+          // Do not block the promised quiz reward on a stale or temporarily
+          // unreachable cart. The checkout URL fallback still carries both
+          // codes, and the next fresh cart includes them at creation.
+          return { success: false };
+        }
+
+        const cart = result.cart;
+        set({
+          checkoutUrl: cart?.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : get().checkoutUrl,
+          cost: cart?.cost ?? get().cost,
+          items: reconcileItems(get().items, cart),
+        });
+        const applied = cart?.discountCodes?.find((discount) => discount.code.toUpperCase() === normalizedCode);
+        return { success: true, applicable: applied?.applicable };
+      },
 
       addItem: async (item) => {
         // Double-submit guard. Every CTA on the site funnels through here (most via

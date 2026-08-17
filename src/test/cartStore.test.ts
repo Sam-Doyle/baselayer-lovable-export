@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useCartStore, type CartItem } from "@/stores/cartStore";
 import { ShopifyHttpError } from "@/lib/shopify";
 import { FREE_SHIPPING_CODE } from "@/config/legal";
+import { SKIN_QUIZ_PROMOTION, activateSkinQuizDiscount } from "@/config/promotions";
 
 // The cart mutation guards are the revenue path: every CTA on the site
 // funnels through addItem/updateQuantity/removeItem, all wrapping the
@@ -134,6 +135,57 @@ describe("cartStore — SHIP26 checkout handoff", () => {
     expect(checkoutUrl.searchParams.get("key")).toBe("secret-key");
     expect(checkoutUrl.searchParams.get("discount")).toBe(FREE_SHIPPING_CODE);
     expect(checkoutUrl.searchParams.get("channel")).toBe("online_store");
+  });
+
+  it("carries the earned quiz code and free shipping into a new cart and checkout", async () => {
+    activateSkinQuizDiscount();
+    mockStorefrontApiRequest.mockResolvedValueOnce(cartCreateResponse());
+
+    await useCartStore.getState().addItem(testItem);
+
+    expect(mockStorefrontApiRequest).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        input: expect.objectContaining({ discountCodes: [SKIN_QUIZ_PROMOTION.code, FREE_SHIPPING_CODE] }),
+      }),
+    );
+    const checkoutUrl = new URL(useCartStore.getState().getCheckoutUrl());
+    expect(checkoutUrl.searchParams.get("discount")).toBe(`${SKIN_QUIZ_PROMOTION.code},${FREE_SHIPPING_CODE}`);
+  });
+
+  it("updates an existing Shopify cart as soon as the quiz code is earned", async () => {
+    activateSkinQuizDiscount();
+    useCartStore.setState({
+      cartId: "gid://shopify/Cart/1",
+      checkoutUrl: "https://example.myshopify.com/cart/c/abc123?key=secret-key",
+    });
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: {
+        cartDiscountCodesUpdate: {
+          cart: {
+            id: "gid://shopify/Cart/1",
+            checkoutUrl: "https://example.myshopify.com/cart/c/abc123?key=secret-key",
+            discountCodes: [
+              { code: SKIN_QUIZ_PROMOTION.code, applicable: true },
+              { code: FREE_SHIPPING_CODE, applicable: true },
+            ],
+            lines: { edges: [] },
+          },
+          userErrors: [],
+        },
+      },
+    });
+
+    const result = await useCartStore.getState().applyDiscountCode(SKIN_QUIZ_PROMOTION.code);
+
+    expect(result).toEqual({ success: true, applicable: true });
+    expect(mockStorefrontApiRequest).toHaveBeenCalledWith(
+      expect.stringContaining("cartDiscountCodesUpdate"),
+      {
+        cartId: "gid://shopify/Cart/1",
+        discountCodes: [SKIN_QUIZ_PROMOTION.code, FREE_SHIPPING_CODE],
+      },
+    );
   });
 });
 

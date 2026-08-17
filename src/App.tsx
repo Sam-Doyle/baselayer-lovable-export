@@ -1,7 +1,7 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { EarlyAccessProvider } from "@/context/EarlyAccessContext";
-import React, { lazy, Suspense, useEffect } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import MetaRouterTracker from "@/analytics/MetaRouterTracker";
 import { JsonLd, organizationSchema, websiteSchema } from "@/components/SEO";
@@ -48,6 +48,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/ShippingPolicy"));
+const SkinConcernQuiz = lazy(() => import("@/components/SkinConcernQuiz"));
 
 const PageFallback = () => <div style={{ minHeight: "100vh", background: "#0a0a0a" }} />;
 
@@ -70,6 +71,19 @@ const QueryWrap = ({ children }: { children: React.ReactNode }) => (
 
 const App = () => {
   useCartSync();
+  const [quizRuntimeReady, setQuizRuntimeReady] = useState(
+    () => new URLSearchParams(window.location.search).get("quiz") === "preview",
+  );
+
+  // The quiz is intentionally absent from the initial/LCP path. Load its
+  // dialog code only after the hero and purchase UI have had time to settle;
+  // SkinConcernQuiz owns the remaining delay before it opens.
+  useEffect(() => {
+    if (quizRuntimeReady) return;
+    const timer = window.setTimeout(() => setQuizRuntimeReady(true), 3_000);
+    return () => window.clearTimeout(timer);
+  }, [quizRuntimeReady]);
+
   useEffect(() => {
     // ── UTM + fbclid Capture ──
     // Persist UTMs to sessionStorage so downstream events (CAPI, analytics.ts)
@@ -215,6 +229,11 @@ const App = () => {
               <Route path="/shipping-policy" element={<Wrap><ShippingPolicy /></Wrap>} />
               <Route path="*" element={<Wrap><NotFound /></Wrap>} />
             </Routes>
+            {quizRuntimeReady && (
+              <Suspense fallback={null}>
+                <SkinConcernQuiz />
+              </Suspense>
+            )}
             <CookieConsentBanner />
           </BrowserRouter>
           <ShopifyCartDrawer />
