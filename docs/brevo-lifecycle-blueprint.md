@@ -55,7 +55,7 @@ No re-entry for the same contact. Purchase exits the flow.
 ## Current Brevo implementation
 
 - Automation 1: `Welcome message` — active; one SKIN15 delivery email; re-entry disabled.
-- Automation 2: `BL | Cart Recovery | Draft` — inactive; `cart_updated`, 1-hour wait, branded first-email copy, `{{ params.url }}` cart CTA, verified legal footer.
+- Automation 2: `BL | Cart Recovery` — active; `cart_updated`, 1-hour wait, branded first-email copy, exact `{{ params.url }}` cart CTA, verified legal footer, order/cart-deletion exits, and newer-cart restart.
 - Automation 3: `BL | Post-Purchase | Draft` — inactive; `order_created`, 12-hour wait, founder-led first email, verified legal footer.
 - Automation 4: `BL | Browse Recovery | Awaiting Event QA` — inactive and intentionally incomplete until `product_viewed` is present and selectable in Brevo event logs.
 - Shopify `Recover abandoned checkout` — inactive. Brevo is the sole configured cart/checkout email sender.
@@ -77,8 +77,10 @@ Do not activate Automations 2-4 until all gates pass.
 ### Live QA status on 2026-08-17
 
 - `samuel.r.doyle@gmail.com` produced identified `cart_deleted` and `cart_updated` events in Brevo.
-- The cart email rendered the product name, price, quantity, recipient, and exact Shopify cart URL from the live event; no template variables remained raw.
+- The cart email rendered absolute product images, names, prices, quantities, variants, recipient, and the exact Shopify cart URL from the live event; no template variables remained raw.
 - Welcome, cart, and post-purchase templates now use `BASE LAYER.` and `955 Harrison St, Denver, CO 80206`.
 - The storefront lifecycle payload now normalizes product images to absolute URLs and emits Brevo's `variant_id_name` field.
+- One event-aware test email to `samuel.r.doyle@gmail.com` was processed, sent, and delivered. Brevo's two log rows were the `Sent` and `Delivered` statuses for the same message, not duplicate messages.
+- Shopify `Recover abandoned checkout` remains inactive, so Brevo is the sole cart/checkout email sender.
 
-Remaining activation gates: deploy the corrected payload, verify a fresh event renders its image and variant, send one inbox test, and complete a test order that proves purchase suppression. Automations 2-4 remain inactive until those checks pass.
+Automation 2 is live. Automations 3-4 remain inactive until their own event-specific preview, inbox, and suppression checks pass. A completed test order is still required to prove the purchase exit end to end before expanding recovery into additional pre-purchase branches.
