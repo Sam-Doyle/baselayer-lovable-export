@@ -138,6 +138,34 @@ describe("Brevo lifecycle tracking", () => {
     expect(commands[commands.length - 1]?.[1]).toBe("cart_deleted");
   });
 
+  it("emits email-safe product assets and Brevo's expected variant field", () => {
+    identifyLifecycleContact("sam@example.com");
+    trackLifecycleCartUpdated({
+      id: "cart-1",
+      total: 38,
+      currency: "USD",
+      url: "https://shop.baselayerskin.co/cart/c/1",
+      items: [{
+        id: "variant-1",
+        name: "Base Layer Face Cream",
+        variant: "50mL",
+        price: 38,
+        quantity: 1,
+        url: "https://baselayerskin.co/face-cream",
+        image: "/assets/base-layer-face-cream.webp",
+      }],
+    });
+
+    const commands = window.Brevo as unknown as unknown[][];
+    const eventData = commands[commands.length - 1]?.[3] as {
+      data: { items: Array<Record<string, unknown>> };
+    };
+    expect(eventData.data.items).toEqual([expect.objectContaining({
+      image: "https://baselayerskin.co/assets/base-layer-face-cream.webp",
+      variant_id_name: "50mL",
+    })]);
+  });
+
   it("reports an active SDK on revocation and removes its queue, script, and visitor cookie", () => {
     document.cookie = "visitor_id=test-visitor; path=/";
     identifyLifecycleContact("sam@example.com");

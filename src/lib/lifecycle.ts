@@ -46,6 +46,23 @@ interface LifecycleEvent {
   };
 }
 
+const STOREFRONT_ORIGIN = "https://baselayerskin.co";
+
+/**
+ * Brevo renders product images from the event payload inside an email client,
+ * where storefront-relative asset paths have no base URL. Keep the public
+ * payload compatible with Brevo's abandoned-cart template field names while
+ * preserving the cleaner internal LifecycleProduct shape.
+ */
+function brevoProduct(product: LifecycleProduct): Record<string, unknown> {
+  const image = product.image?.trim();
+  return {
+    ...product,
+    ...(image ? { image: new URL(image, STOREFRONT_ORIGIN).href } : {}),
+    variant_id_name: product.variant || "",
+  };
+}
+
 type BrevoQueueItem = unknown[] | ((...args: unknown[]) => unknown);
 type BrevoQueue = { push: (item: BrevoQueueItem) => unknown };
 
@@ -181,7 +198,7 @@ export function trackLifecycleProductViewed(product: Omit<LifecycleProduct, "qua
       data: {
         currency: "USD",
         url: product.url,
-        items: [{ ...product, quantity: 1 }],
+        items: [brevoProduct({ ...product, quantity: 1 })],
       },
     },
   });
@@ -200,7 +217,7 @@ export function trackLifecycleCartUpdated(cart: LifecycleCart): void {
         total: cart.total,
         currency: cart.currency,
         url: cart.url,
-        items: cart.items,
+        items: cart.items.map(brevoProduct),
       },
     },
   });
