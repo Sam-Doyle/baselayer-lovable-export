@@ -17,6 +17,10 @@ const context = {
 };
 
 describe("commerce lifecycle Shopify normalization", () => {
+  it("allows only Shopify's canonical installed-shop domain", () => {
+    expect(BASE_LAYER_SHOP_DOMAIN).toBe("kpfzdg-kw.myshopify.com");
+  });
+
   it("classifies single, two-pack, and subscription orders only from enriched Shopify lines", () => {
     const single = normalizeShopifyWebhook("orders/paid", { id: 10 }, {
       ...context,

@@ -1,6 +1,6 @@
 export const COMMERCE_SCHEMA_VERSION = 1 as const;
 
-export const BASE_LAYER_SHOP_DOMAIN = "base-layer-skin.myshopify.com";
+export const BASE_LAYER_SHOP_DOMAIN = "kpfzdg-kw.myshopify.com";
 export const SINGLE_BOTTLE_VARIANT_ID = "42940461023303";
 export const TWO_BOTTLE_VARIANT_ID = "42940461056071";
 

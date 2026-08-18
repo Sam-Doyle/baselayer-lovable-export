@@ -52,6 +52,11 @@ Callback:
 https://rymidvhuyxqvvyjpodqn.supabase.co/functions/v1/shopify-lifecycle-webhook
 ```
 
+The canonical installed-shop domain is `kpfzdg-kw.myshopify.com`. Shopify sends
+that original handle in `X-Shopify-Shop-Domain`; the branded
+`base-layer-skin.myshopify.com` alias must not be used for the webhook allowlist
+or Admin OAuth token exchange.
+
 Shopify signs the raw request body with the app client secret in
 `X-Shopify-Hmac-SHA256`. The handler also requires the exact shop domain and
 deduplicates `(source, shop, topic, X-Shopify-Webhook-Id)`. The raw payload is
@@ -136,12 +141,28 @@ prices, payment data, and raw Shopify objects.
 Supabase Edge Functions:
 
 ```text
-SHOPIFY_WEBHOOK_SECRET=<dedicated app client secret>
-SHOPIFY_ADMIN_ACCESS_TOKEN=<dedicated app Admin API access token>
+SHOPIFY_CLIENT_ID=<dedicated app client ID>
+SHOPIFY_CLIENT_SECRET=<dedicated app client secret>
+SHOPIFY_WEBHOOK_SECRET=<optional explicit HMAC secret; defaults to SHOPIFY_CLIENT_SECRET>
 COMMERCE_SYNC_WORKER_SECRET=<random service-only bearer token>
 COMMERCE_LIFECYCLE_MODE=audit
 BREVO_API_KEY=<existing key>
 ```
+
+The bridge exchanges the client credentials at
+`https://kpfzdg-kw.myshopify.com/admin/oauth/access_token` using
+`grant_type=client_credentials`. Shopify tokens expire after 86,399 seconds;
+the Edge Function caches each token only inside its isolate, refreshes five
+minutes early, and retries once with a newly minted token after an Admin API
+401. Never store or configure a static `SHOPIFY_ADMIN_ACCESS_TOKEN`.
+
+Shopify uses the app client secret for webhook HMACs. Setting
+`SHOPIFY_WEBHOOK_SECRET` explicitly makes rotation intent visible; when it is
+unset, the handler securely falls back to `SHOPIFY_CLIENT_SECRET`. During a
+secret rotation, update both values together or keep the old explicit webhook
+secret only until Shopify begins signing with the new client secret. Secrets,
+minted tokens, token-endpoint response bodies, and upstream exception messages
+are never logged.
 
 Netlify:
 
@@ -152,6 +173,41 @@ COMMERCE_SYNC_WORKER_SECRET=<same random value>
 Keep `COMMERCE_LIFECYCLE_MODE=audit` in both deployed Supabase functions until
 every acceptance test passes twice. Never expose these values in Vite/browser
 environment variables.
+
+### Audit-mode credential smoke test
+
+1. Run `supabase secrets list --project-ref rymidvhuyxqvvyjpodqn` and confirm
+   the names `SHOPIFY_CLIENT_ID`, `SHOPIFY_CLIENT_SECRET`,
+   `SHOPIFY_WEBHOOK_SECRET`, and `COMMERCE_LIFECYCLE_MODE` exist. The command
+   prints digests, not values. Remove any obsolete `SHOPIFY_ADMIN_ACCESS_TOKEN`.
+2. Confirm `COMMERCE_LIFECYCLE_MODE` was last set to the literal `audit`, then
+   deploy `shopify-lifecycle-webhook` with `--no-verify-jwt`.
+3. An unsigned `POST` to the callback must return HTTP 401 with
+   `invalid_signature`. Never weaken this check for testing.
+4. In Shopify, create a consented internal test order for the single-bottle
+   variant and mark it paid. Do not use Shopify's synthetic test-webhook body:
+   the bridge intentionally enriches the real order through Admin GraphQL.
+5. Within one minute, verify one `orders/paid` receipt with shop domain
+   `kpfzdg-kw.myshopify.com`, the expected one-bottle order projection, and
+   only `held` outbox records with `hold_reason = 'audit_mode'`:
+
+   ```sql
+   select topic, event_type, shop_domain, resource_id, received_at
+   from public.commerce_lifecycle_receipts
+   order by received_at desc limit 10;
+
+   select order_id, purchased_bottles, is_subscription_order, paid_at
+   from public.commerce_orders
+   order by updated_at desc limit 10;
+
+   select event_name, status, hold_reason, available_at
+   from public.commerce_lifecycle_outbox
+   order by created_at desc limit 10;
+   ```
+
+6. Redeliver the same Shopify webhook. The receipt count for its
+   `X-Shopify-Webhook-Id` must remain one. Confirm Brevo has no `bl_*_v1`
+   event and the worker still reports `claimed: 0`.
 
 ## Brevo attributes required before publish mode
 
@@ -237,4 +293,3 @@ where subscription_tag_count > 1
    or subscription_projection in ('unknown', 'unknown_conflict')
 order by updated_at desc;
 ```
-

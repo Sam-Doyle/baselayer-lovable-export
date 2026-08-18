@@ -9,6 +9,10 @@ import {
   type ShopifyOrderEnrichment,
   type ShopifyTopic,
 } from "../_shared/commerce-lifecycle.ts";
+import {
+  shopifyAdminTokenProvider,
+  type ShopifyClientCredentials,
+} from "../_shared/shopify-admin-auth.ts";
 
 const MAX_BODY_BYTES = 256 * 1024;
 const SHOPIFY_GRAPHQL_VERSION = "2026-07";
@@ -120,6 +124,22 @@ async function fetchOrderEnrichment(
   };
 }
 
+async function fetchOrderEnrichmentWithClientCredentials(
+  shopDomain: string,
+  orderId: string,
+  credentials: ShopifyClientCredentials,
+): Promise<ShopifyOrderEnrichment> {
+  let adminToken = await shopifyAdminTokenProvider.getAccessToken(credentials);
+  try {
+    return await fetchOrderEnrichment(shopDomain, orderId, adminToken);
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== "shopify_order_enrichment_http_401") throw error;
+    shopifyAdminTokenProvider.invalidate(shopDomain, credentials.clientId);
+    adminToken = await shopifyAdminTokenProvider.getAccessToken(credentials);
+    return await fetchOrderEnrichment(shopDomain, orderId, adminToken);
+  }
+}
+
 function orderIdForEnrichment(topic: ShopifyTopic, payload: Record<string, unknown>): string | null {
   if (topic === "orders/paid") return orderGid(payload.admin_graphql_api_id ?? payload.id);
   if (topic === "refunds/create") return orderGid(payload.order_id);
@@ -139,7 +159,8 @@ Deno.serve(async (req) => {
     return jsonResponse(413, { success: false, error: "payload_too_large" });
   }
 
-  const webhookSecret = Deno.env.get("SHOPIFY_WEBHOOK_SECRET") ?? "";
+  const clientSecret = Deno.env.get("SHOPIFY_CLIENT_SECRET") ?? "";
+  const webhookSecret = Deno.env.get("SHOPIFY_WEBHOOK_SECRET") || clientSecret;
   const suppliedHmac = header(req, "x-shopify-hmac-sha256");
   if (!webhookSecret || !await verifyShopifyHmac(rawBody, suppliedHmac, webhookSecret)) {
     return jsonResponse(401, { success: false, error: "invalid_signature" });
@@ -170,10 +191,16 @@ Deno.serve(async (req) => {
   let orderEnrichment: ShopifyOrderEnrichment | null = null;
   const enrichmentOrderId = orderIdForEnrichment(topicHeader, payload);
   if (enrichmentOrderId) {
-    const adminToken = Deno.env.get("SHOPIFY_ADMIN_ACCESS_TOKEN") ?? "";
-    if (!adminToken) return jsonResponse(503, { success: false, error: "shopify_admin_not_configured" });
+    const clientId = Deno.env.get("SHOPIFY_CLIENT_ID") ?? "";
+    if (!clientId || !clientSecret) {
+      return jsonResponse(503, { success: false, error: "shopify_admin_not_configured" });
+    }
     try {
-      orderEnrichment = await fetchOrderEnrichment(shopDomain, enrichmentOrderId, adminToken);
+      orderEnrichment = await fetchOrderEnrichmentWithClientCredentials(shopDomain, enrichmentOrderId, {
+        shopDomain,
+        clientId,
+        clientSecret,
+      });
     } catch (error) {
       const code = error instanceof Error ? error.message : "shopify_order_enrichment_failed";
       console.error("shopify-lifecycle-webhook: order enrichment failed", code);
@@ -217,4 +244,3 @@ Deno.serve(async (req) => {
     mode: publishEnabled ? "publish" : "audit",
   });
 });
-
