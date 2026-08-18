@@ -2,9 +2,9 @@
 title: Site Architecture
 domain: technical
 created: 2026-04-03
-last_compiled: 2026-08-13
-revision: 4
-sources: [package.json, vite.config.ts, App.tsx, netlify.toml, tailwind.config.ts, tsconfig.json, analytics.ts, sanity.ts, netlify _redirects, live Storefront API testing, production debugging, /last30days research, Sanity assets API]
+last_compiled: 2026-08-18
+revision: 5
+sources: [package.json, vite.config.ts, App.tsx, netlify.toml, tailwind.config.ts, tsconfig.json, analytics.ts, sanity.ts, netlify _redirects, live Storefront API testing, production debugging, /last30days research, Sanity assets API, GA4 sessionSource report, Meta Commerce Manager, Brevo tracker documentation]
 codePaths:
   - src/App.tsx
   - vite.config.ts
@@ -490,3 +490,96 @@ Cold PDP landings previously dropped browser `ViewContent` and GA4 `view_item` b
 The Shopify checkout remains a separate measurement surface. External inspection found no Facebook & Instagram or Google & YouTube app pixel (`facebookCapiEnabled` was false); a hidden custom-pixel implementation cannot be excluded without Shopify admin. When Shopify-side tags are connected, only one surface should own checkout-start events or they will double-count. GA4 cross-domain settings alone are insufficient while the handoff uses `window.location.href`, because the linker decorates real anchor/form interactions.
 
 Deployment state must be verified independently from the working tree: a correct local bundle can remain unpushed while production continues serving stale event IDs and consent behavior.
+
+---
+
+## GA4 Reserved Parameter Collision — `source` Destroyed Attribution (2026-08-13, GA4 sessionSource report on property 526066920 cross-checked against `src/lib/analytics.ts`, confidence: high)
+
+`source`, `medium`, and `campaign` are **reserved GA4 event parameters**. Sent
+on any event, they are read as a manual traffic source and written to the
+session, replacing the real acquisition source.
+
+Base Layer had roughly 20 call sites passing `source` to mean *which CTA was
+clicked* — `"hero"`, `"buy_box"`, `"navbar"`, `"cart_upsell"`, `"content_cta"` —
+and `fireBrowserEvent` spread the whole payload straight into `gtag("event", …)`.
+
+A session-source report on 2026-08-13 listed `buy_box` and `hero` alongside
+`facebook.com / referral` as if they were traffic sources, confirming live
+damage. The sessions affected are precisely the ones that clicked a CTA — the
+ones most likely to convert — so ad attribution was being destroyed exactly
+where it mattered most.
+
+Fixed in `49ce3a5` by renaming to `cta_location` **once on the way into gtag**
+rather than at each call site, so the Meta pixel and CAPI keep receiving
+`source` unchanged, and a new call site written in the house style cannot
+reintroduce the bug. `cta_location` is registered as an event-scoped custom
+dimension in GA4.
+
+**Historic GA4 attribution before 2026-08-13 is unreliable for any session
+containing a CTA click, and does not backfill.**
+
+---
+
+## `_gl` Is the Wrong Cross-Domain Test on a Subdomain (2026-08-13, direct measurement across baselayerskin.co and shop.baselayerskin.co, confidence: high)
+
+A `_gl` linker parameter is not evidence of GA4 cross-domain continuity on a
+subdomain hop. `_ga` is written on `.baselayerskin.co` and is therefore already
+readable by `shop.baselayerskin.co` natively, so gtag has no reason to decorate
+the URL and `_gl` will never appear.
+
+Verified by reading the same client id `GA1.1.34396408.1786630663` on both
+hosts. **The correct test is comparing the `_ga` value across the two hosts.**
+
+Corollary: the anchor-click checkout handoff in
+`ShopifyCartDrawer.goToCheckout` is not required for cross-domain measurement
+on this subdomain — its comment overstates the rationale. It remains harmless
+and is still preferable to a location assignment for the general case.
+
+The genuine remaining attribution gap is **Shop Pay**, which redirects to
+`shop.app`: a different registrable domain, no cookie continuity, no linker fix
+available.
+
+---
+
+## Meta Catalog Content IDs Are Bare Variant IDs (2026-08-13, Meta Commerce Manager catalog 2505734419891235 Items view, confidence: high)
+
+The Shopify Facebook & Instagram channel publishes **bare Shopify variant IDs**
+as Meta catalog Content IDs for this store — `42940461023303` and
+`42940461056071` — with product id `7469557612615` as the item group id. No
+`shopify_US_<product>_<variant>` prefix, contrary to the standing worry recorded
+in `metaContentId`. The site's existing `metaContentId` (last path segment of
+the GID) already matches the catalog and needs no change.
+
+Two things learned alongside:
+
+- **The Events Manager catalog match rate reports on a trailing 28-day window.**
+  It read 0% for days after the content-ID fix landed in `386ec7b` because the
+  window still covered the old invented `base-layer-face-cream` string. A stale
+  window, not a live mismatch.
+- **The business holds two catalogs for the same store**:
+  `2038277147036399` ("Products from base-layer-skin.myshopify.com", access
+  lost) and `2505734419891235` (created 2026-08-13 by the channel connection).
+
+`base-layer-skin.myshopify.com` and `kpfzdg-kw.myshopify.com` are one store:
+both 301 to `shop.baselayerskin.co` and both authenticate the same read-only
+Storefront token against product GID `7469557612615`.
+
+---
+
+## Brevo Lifecycle Ownership Is Necessarily Hybrid (2026-08-17, headless cart audit against Brevo tracker/eCommerce documentation, confidence: high)
+
+The Brevo Shopify plugin **cannot observe Storefront API cart mutations** made
+on the Netlify React app, so lifecycle ownership splits by surface:
+
+| Event | Owner | Why |
+|---|---|---|
+| `product_viewed`, `cart_updated`, empty-cart-only `cart_deleted` | Storefront (Brevo tracker, consent-gated) | The plugin is blind to Storefront API mutations |
+| `order_created` / `order_completed` | Shopify ↔ Brevo server-side integration | Hosted checkout does not reliably return to the storefront |
+
+Sending purchase completion from the browser would be unreliable for that
+second reason. Running both Shopify and Brevo recovery automations would also
+duplicate sends — pick one owner per event.
+
+The storefront queues pre-opt-in behaviour **in memory only**, identifies the
+visitor after explicit marketing opt-in plus analytics consent, and keeps these
+events separate from GA4/Meta measurement to prevent duplicate commerce events.

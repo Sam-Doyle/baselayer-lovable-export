@@ -2,8 +2,8 @@
 title: Performance Metrics & Optimization
 domain: technical
 created: 2026-04-03
-last_compiled: 2026-08-13
-revision: 4
+last_compiled: 2026-08-18
+revision: 5
 sources: [vite.config.ts, netlify.toml, index.html, src/App.tsx, src/pages/Index.tsx, src/components/HeroSection.tsx, package.json, Lighthouse 13 lab audits of live baselayerskin.co (3 mobile + 3 desktop), Lighthouse 13 local production audit post-remediation]
 codePaths:
   - vite.config.ts
@@ -405,3 +405,18 @@ with **no `error` handler on the stream**. `existsSync` is checked before the st
 Judge.me returns review images with an existing `?width=1024` parameter, roughly 200 KB per image. `scripts/fetch-reviews.mjs` now rewrites that parameter to `width=320`, appropriate for a 160px rendered image at 2x DPR, reducing observed files to 16–30 KB (about 7x smaller) with no visible quality loss. The rewrite only changes an existing width parameter so a future CDN URL-shape change degrades to the original asset rather than a 404.
 
 Production CSP must allow `https://review-images.judgeme.com` in both `netlify.toml` and `public/_headers`; the hosts named in Judge.me documentation were not sufficient for the live customer-photo URLs.
+
+## LCP Deferral Collides With Prerendering (2026-08-17, puppeteer polling probe, confidence: high)
+
+The homepage's below-fold deferral — `HomeBelowFold` held back ~3s behind
+`setTimeout` plus `requestIdleCallback` to keep it out of the LCP window — made
+the `<footer>` invisible to the prerender's `waitForFunction`, which polls on
+requestAnimationFrame and stops re-evaluating once a headless page settles. `/`
+timed out at 20s and shipped the skeleton shell: 2,959 bytes of root content
+against 75,080 rendered. Fixed with `polling: 500`.
+
+**Standing rule: any future work that defers a component for Core Web Vitals
+must check the prerender wait in the same pass.** The two optimisations pull in
+opposite directions and the failure is silent — the build still exits 0.
+
+Full detail and the measured polling comparison: `kb/wiki/technical-seo.md`.

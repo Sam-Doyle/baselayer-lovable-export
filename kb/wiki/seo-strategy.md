@@ -2,8 +2,8 @@
 title: SEO Strategy
 domain: marketing
 created: 2026-04-03
-last_compiled: 2026-08-12
-revision: 3
+last_compiled: 2026-08-18
+revision: 4
 sources: [SEO.tsx, generate-sitemap.mjs, robots.txt, netlify.toml, SEO_AUDIT_REPORT.md, SEO_OPTIMIZATION_PLAN.md, KEYWORD_OPTIMIZATION_REPORT.md, INTERNAL_LINKING_VISUAL_MAP.md, content/CLAUDE.md, Search Console API, GA4 API, /seo-os:tech-debt crawl, /seo-os:backlinks SERP sweep, 3-agent content improvement pass, live verification of /article/peptide-stack after deploy 3aca582]
 codePaths:
   - ~/baselayer-lovable-export/src/components/SEO.tsx
@@ -360,6 +360,9 @@ reliably prevent indexing of a URL that has inbound links.
 
 ## See Also
 
+- `kb/wiki/technical-seo.md` -- crawl/index/schema/prerender delivery mechanics:
+  duplicate schema and title drift, GSC warning triage, sitemap `lastmod`, and the
+  prerender failure that shipped the homepage empty
 - `kb/wiki/ad-strategy.md` -- ad landing page SEO considerations
 - `~/BaseLayer/marketing/seo/` -- full SEO reports and keyword research
 - `~/BaseLayer/content/CLAUDE.md` -- content writing SEO rules

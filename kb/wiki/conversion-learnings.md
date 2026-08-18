@@ -2,9 +2,9 @@
 title: Conversion Learnings
 domain: conversion
 created: 2026-08-12
-last_compiled: 2026-08-13
-revision: 6
-sources: [experiments, code, research, verified USPS + SupplyHut landed shipping cost rebuild, measured packed-unit weight 2026-08-12]
+last_compiled: 2026-08-18
+revision: 7
+sources: [experiments, code, research, verified USPS + SupplyHut landed shipping cost rebuild, measured packed-unit weight 2026-08-12, homepage hero proof QA 2026-08-14, quiz implementation 2026-08-15]
 ---
 
 # Conversion Learnings
@@ -168,6 +168,40 @@ Two operational constraints follow. Restrict friends-and-family percentage codes
 The histogram is calculated from the complete build-time review set, not the display cap, so its bars always reconcile to the published aggregate. Rating rows filter only after user action; they never reorder or suppress the default review list. Empty rating rows stay visible but disabled, and customer-photo thumbnails link back to their associated review. `PHOTO_STRIP_MIN = 3` is intentionally separate from the review gate.
 
 `HISTOGRAM_GATE = 1` remains an experiment. At four reviews, the breakdown exposes the one critical review but also makes the small sample obvious. Raise the gate around ten only if measured behavior shows the thin distribution harms trust; do not hide it merely because the distribution is unflattering.
+
+---
+
+## Above-Fold Aggregate Made the Sample Size Salient (2026-08-14, user first-impression review plus responsive QA at 390x844 and 1440x900, confidence: medium)
+
+At five customer reviews, an above-fold aggregate (`4.8/5 from 5 customer
+reviews`) made the **small sample size more salient than the positive score**
+and read as negative social proof.
+
+The homepage hero now features one unedited sentence from a real 5-star
+Judge.me review that Judge.me marks verified: *"So smooth going on, no grease
+or shine."* The whole proof card links to the complete PDP reviews section,
+where the 4.8 average, count, histogram, critical review, photos, and per-review
+verification all remain visible. Responsive QA kept the $38 price and primary
+CTA inside the first 390x844 viewport.
+
+**This is a design hypothesis, not a measured lift.** Evaluate against
+homepage-to-PDP click-through and purchase conversion before treating it as a
+proven CRO result.
+
+---
+
+## Two-Step Skin-Concern Quiz, 15% First-Order Offer (2026-08-15, implementation, confidence: low)
+
+A two-step quiz offers **15% off a first one-time order** after collecting one
+of four skin concerns and an email address. The design delays itself off the
+LCP path, suppresses repeat exposure, and carries the merchandise code
+alongside the existing shipping code.
+
+**Unmeasured.** Before widening the offer or increasing popup frequency,
+evaluate: quiz view-to-answer rate, answer-to-email completion, new-subscriber
+purchase conversion, incremental email revenue, and **contribution margin net
+of the 15% discount** — which stacks on top of free shipping already given away
+via SHIP26.
 
 ---
 

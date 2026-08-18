@@ -2,9 +2,9 @@
 title: Shipping Economics & Packaging
 domain: technical
 created: 2026-08-12
-last_compiled: 2026-08-13
-revision: 4
-sources: [Shopify admin shipping rate calculator (4 quoted lanes, 2026-08-12), /last30days research (Pirate Ship support docs, DimMath 2026 GA + Cubic rate tables, SellerEssentials, Ship.com, TransImpact, Shopify Community), SupplyHut product pages, PackagingSupplies.com, USPS DIM rules, packaging weight math, Sam's corrected scale measurement 2026-08-13, Shopify Admin GraphQL mutation reference]
+last_compiled: 2026-08-18
+revision: 5
+sources: [Shopify admin shipping rate calculator (4 quoted lanes, 2026-08-12), /last30days research (Pirate Ship support docs, DimMath 2026 GA + Cubic rate tables, SellerEssentials, Ship.com, TransImpact, Shopify Community), SupplyHut product pages, PackagingSupplies.com, USPS DIM rules, packaging weight math, Sam's corrected scale measurement 2026-08-13, Shopify Admin GraphQL mutation reference, Storefront API sellingPlanAllocations query 2026-08-13]
 codePaths:
   - ~/baselayer-lovable-export/src/config/legal.ts
   - ~/baselayer-lovable-export/src/config/product.ts
@@ -394,6 +394,34 @@ create, the whole remaining job is one package preset plus two weight fields:
 automate that is a bad trade and puts a token in a repo that currently has none.
 *(2026-08-12, shopify.dev Admin GraphQL mutation reference + repo `.env` audit,
 confidence: high)*
+
+---
+
+## Selling Plans Attach to Products, Not Variants (2026-08-13, Storefront API `sellingPlanAllocations` query, surfaced by odd pricing on Instagram Shop, confidence: high)
+
+The "Subscribe & Save" selling plan
+(`gid://shopify/SellingPlan/2934145095`) was attached to **the whole product**
+rather than the 1-bottle variant, so its fixed **$35-per-delivery** policy also
+applied to the **$68 2-pack**. Instagram Shop rendered it as a $33 discount.
+
+Two bottles for $35 every delivery forever (`orderCount: null`) leaves roughly
+**$7.94 contribution against $39.98** for the one-time 2-pack, moving breakeven
+ROAS from **1.70x to 4.41x**. At $17.50 per bottle it was by a distance the
+cheapest way to buy the product.
+
+It never appeared on the PDP because the subscription tile hardcodes
+`TIER_1_BOTTLE_GID`. It was only visible on surfaces that render **whatever the
+Storefront API offers** rather than what the repo declares.
+
+`npm run verify:pricing` could not catch it: the script only walked the tiers
+`product.ts` declares and asked whether Shopify agreed — structurally blind to
+an offer Shopify makes that the repo never declared. Guard added in `59eed1a`
+— the script now walks variants and flags any selling plan allocation no tier
+pairs with.
+
+**Fixed-price policies are the dangerous shape** because they ignore variant
+price entirely. Percentage and fixed-amount policies scale with it and degrade
+gracefully.
 
 ---
 
