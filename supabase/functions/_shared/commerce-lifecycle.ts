@@ -74,11 +74,6 @@ export interface ShopifyOrderEnrichment {
   customerId?: string | null;
   email?: string | null;
   marketingConsentState?: unknown;
-  lineItems?: Array<{
-    variantId?: string | null;
-    quantity?: number | null;
-    sellingPlanId?: string | null;
-  }>;
   isFullyRefunded?: boolean | null;
 }
 
@@ -162,18 +157,7 @@ function payloadLines(payload: UnknownRecord): Array<{ variantId: string | null;
   });
 }
 
-function orderLines(payload: UnknownRecord, enrichment: ShopifyOrderEnrichment | null | undefined) {
-  if (enrichment?.lineItems) {
-    return enrichment.lineItems.map((line) => ({
-      variantId: canonicalId(line.variantId),
-      quantity: integerValue(line.quantity),
-      sellingPlanId: canonicalId(line.sellingPlanId),
-    }));
-  }
-  return payloadLines(payload);
-}
-
-function bottleCount(lines: ReturnType<typeof orderLines>): number {
+function bottleCount(lines: ReturnType<typeof payloadLines>): number {
   return lines.reduce((total, line) => total + lineBottleFactor(line.variantId) * line.quantity, 0);
 }
 
@@ -266,7 +250,10 @@ export function normalizeShopifyWebhook(
   const payload = record(rawPayload);
 
   if (topic === "orders/paid") {
-    const lines = orderLines(payload, context.orderEnrichment);
+    // Signed order webhooks contain the purchased variant, quantity, and
+    // selling-plan allocation. Keep product classification on that authority;
+    // querying LineItem.variant would unnecessarily require read_products.
+    const lines = payloadLines(payload);
     const subscriptionLine = lines.find((line) => line.sellingPlanId !== null);
     const signal = baseSignal(topic, payload, context, "order_paid");
     signal.order_id = canonicalId(payload.id ?? payload.order_id);

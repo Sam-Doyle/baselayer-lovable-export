@@ -13,6 +13,10 @@ import {
   shopifyAdminTokenProvider,
   type ShopifyClientCredentials,
 } from "../_shared/shopify-admin-auth.ts";
+import {
+  parseShopifyOrderEnrichmentResponse,
+  SHOPIFY_ORDER_ENRICHMENT_QUERY,
+} from "../_shared/shopify-order-enrichment.ts";
 
 const MAX_BODY_BYTES = 256 * 1024;
 const SHOPIFY_GRAPHQL_VERSION = "2026-07";
@@ -40,28 +44,6 @@ function orderGid(value: unknown): string | null {
   return null;
 }
 
-interface GraphqlResponse {
-  data?: {
-    order?: {
-      email?: string | null;
-      displayFinancialStatus?: string | null;
-      customer?: {
-        id?: string | null;
-        email?: string | null;
-        emailMarketingConsent?: { marketingState?: string | null } | null;
-      } | null;
-      lineItems?: {
-        nodes?: Array<{
-          quantity?: number | null;
-          variant?: { id?: string | null } | null;
-          sellingPlanAllocation?: { sellingPlan?: { id?: string | null } | null } | null;
-        }>;
-      } | null;
-    } | null;
-  };
-  errors?: unknown;
-}
-
 async function fetchOrderEnrichment(
   shopDomain: string,
   orderId: string,
@@ -79,24 +61,7 @@ async function fetchOrderEnrichment(
         "X-Shopify-Access-Token": adminToken,
       },
       body: JSON.stringify({
-        query: `query BaseLayerLifecycleOrder($id: ID!) {
-          order(id: $id) {
-            email
-            displayFinancialStatus
-            customer {
-              id
-              email
-              emailMarketingConsent { marketingState }
-            }
-            lineItems(first: 100) {
-              nodes {
-                quantity
-                variant { id }
-                sellingPlanAllocation { sellingPlan { id } }
-              }
-            }
-          }
-        }`,
+        query: SHOPIFY_ORDER_ENRICHMENT_QUERY,
         variables: { id: orderId },
       }),
       signal: controller.signal,
@@ -108,20 +73,7 @@ async function fetchOrderEnrichment(
   }
 
   if (!response.ok) throw new Error(`shopify_order_enrichment_http_${response.status}`);
-  const body = await response.json() as GraphqlResponse;
-  const order = body.data?.order;
-  if (body.errors || !order) throw new Error("shopify_order_enrichment_invalid");
-  return {
-    customerId: order.customer?.id ?? null,
-    email: order.email ?? order.customer?.email ?? null,
-    marketingConsentState: order.customer?.emailMarketingConsent?.marketingState ?? null,
-    lineItems: order.lineItems?.nodes?.map((line) => ({
-      variantId: line.variant?.id ?? null,
-      quantity: line.quantity ?? 0,
-      sellingPlanId: line.sellingPlanAllocation?.sellingPlan?.id ?? null,
-    })) ?? [],
-    isFullyRefunded: order.displayFinancialStatus?.toUpperCase() === "REFUNDED",
-  };
+  return parseShopifyOrderEnrichmentResponse(await response.json());
 }
 
 async function fetchOrderEnrichmentWithClientCredentials(

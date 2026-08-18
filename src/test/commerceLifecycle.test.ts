@@ -21,13 +21,15 @@ describe("commerce lifecycle Shopify normalization", () => {
     expect(BASE_LAYER_SHOP_DOMAIN).toBe("kpfzdg-kw.myshopify.com");
   });
 
-  it("classifies single, two-pack, and subscription orders only from enriched Shopify lines", () => {
-    const single = normalizeShopifyWebhook("orders/paid", { id: 10 }, {
+  it("classifies single, two-pack, and subscription orders from signed webhook lines", () => {
+    const single = normalizeShopifyWebhook("orders/paid", {
+      id: 10,
+      line_items: [{ variant_id: 42940461023303, quantity: 1 }],
+    }, {
       ...context,
       orderEnrichment: {
         email: "BUYER@EXAMPLE.COM",
         marketingConsentState: "SUBSCRIBED",
-        lineItems: [{ variantId: "gid://shopify/ProductVariant/42940461023303", quantity: 1 }],
       },
     });
     expect(single).toMatchObject({
@@ -39,27 +41,29 @@ describe("commerce lifecycle Shopify normalization", () => {
     });
     expect(single && validateCanonicalSignal(single)).toBeNull();
 
-    const twoPack = normalizeShopifyWebhook("orders/paid", { id: 11 }, {
+    const twoPack = normalizeShopifyWebhook("orders/paid", {
+      id: 11,
+      line_items: [{ variant_id: 42940461056071, quantity: 1 }],
+    }, {
       ...context,
       sourceEventId: "two-pack",
-      orderEnrichment: {
-        email: "buyer@example.com",
-        lineItems: [{ variantId: "42940461056071", quantity: 1 }],
-      },
+      orderEnrichment: { email: "buyer@example.com" },
     });
     expect(twoPack?.purchased_bottles).toBe(2);
 
-    const subscription = normalizeShopifyWebhook("orders/paid", { id: 12 }, {
+    const subscription = normalizeShopifyWebhook("orders/paid", {
+      id: 12,
+      line_items: [{
+        variant_id: 42940461023303,
+        quantity: 1,
+        selling_plan_allocation: {
+          selling_plan: { id: 2934145095 },
+        },
+      }],
+    }, {
       ...context,
       sourceEventId: "subscription",
-      orderEnrichment: {
-        email: "buyer@example.com",
-        lineItems: [{
-          variantId: "42940461023303",
-          quantity: 1,
-          sellingPlanId: "gid://shopify/SellingPlan/2934145095",
-        }],
-      },
+      orderEnrichment: { email: "buyer@example.com" },
     });
     expect(subscription).toMatchObject({
       is_subscription_order: true,

@@ -28,7 +28,7 @@ permissions of the storefront/Astro app. It requires only these read scopes:
 
 | Scope | Why |
 |---|---|
-| `read_orders` | paid/cancel/refund webhooks and GraphQL selling-plan/full-refund enrichment |
+| `read_orders` | paid/cancel/refund webhooks plus GraphQL consent/full-refund enrichment |
 | `read_customers` | customer update webhook, email consent, exclusive subscription projection tags |
 | `read_fulfillments` | fulfillment create/update and true carrier delivery events |
 
@@ -119,9 +119,10 @@ prices, payment data, and raw Shopify objects.
 
 - Single variant `42940461023303` counts as one bottle.
 - Two-pack variant `42940461056071` counts as two bottles.
-- Selling plan `2934145095` is detected from an Admin GraphQL order query,
-  because Shopify order webhooks do not reliably contain
-  `sellingPlanAllocation`.
+- Selling plan `2934145095`, variants, and quantities are detected from the
+  raw signed order webhook's `line_items`. Admin GraphQL enriches only
+  customer/email consent and full-refund status, so the app does not need
+  `read_products`.
 - A subscription order is durable history and is never placed into one-time
   replenishment.
 - Active, paused, unknown, and conflicting subscription projections suppress
