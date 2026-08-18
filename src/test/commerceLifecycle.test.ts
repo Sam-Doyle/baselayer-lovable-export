@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   BASE_LAYER_SHOP_DOMAIN,
+  commercePublishShopDomainsFromEnv,
+  commerceStoreConfigFromEnv,
+  commerceStoreConfigsFromEnv,
   normalizeShopifyWebhook,
   sha256Hex,
   shopifyHmac,
@@ -19,6 +22,80 @@ const context = {
 describe("commerce lifecycle Shopify normalization", () => {
   it("allows only Shopify's canonical installed-shop domain", () => {
     expect(BASE_LAYER_SHOP_DOMAIN).toBe("kpfzdg-kw.myshopify.com");
+  });
+
+  it("resolves an isolated development-store catalog from server-only environment values", () => {
+    const values: Record<string, string> = {
+      SHOPIFY_SHOP_DOMAIN: "base-layer-lifecycle-qa.myshopify.com",
+      SHOPIFY_SINGLE_BOTTLE_VARIANT_ID: "9001",
+      SHOPIFY_TWO_BOTTLE_VARIANT_ID: "9002",
+      SHOPIFY_SUBSCRIPTION_SELLING_PLAN_IDS: " 7001, gid://shopify/SellingPlan/7002 ",
+    };
+    expect(commerceStoreConfigFromEnv((name) => values[name])).toEqual({
+      shopDomain: "base-layer-lifecycle-qa.myshopify.com",
+      singleBottleVariantId: "9001",
+      twoBottleVariantId: "9002",
+      subscriptionSellingPlanIds: ["7001", "7002"],
+    });
+  });
+
+  it("adds a strict QA catalog without making the QA shop publishable", () => {
+    const values: Record<string, string> = {
+      SHOPIFY_QA_SHOP_DOMAIN: "base-layer-lifecycle-qa.myshopify.com",
+      SHOPIFY_QA_SINGLE_BOTTLE_VARIANT_ID: "67548639199536",
+      SHOPIFY_QA_TWO_BOTTLE_VARIANT_ID: "67548639232304",
+      SHOPIFY_QA_SUBSCRIPTION_SELLING_PLAN_IDS: "",
+    };
+    const stores = commerceStoreConfigsFromEnv((name) => values[name]);
+    expect(stores).toHaveLength(2);
+    expect(stores[1]).toEqual({
+      shopDomain: "base-layer-lifecycle-qa.myshopify.com",
+      singleBottleVariantId: "67548639199536",
+      twoBottleVariantId: "67548639232304",
+      subscriptionSellingPlanIds: [],
+    });
+    expect([...commercePublishShopDomainsFromEnv((name) => values[name])])
+      .toEqual([BASE_LAYER_SHOP_DOMAIN]);
+  });
+
+  it("fails closed when a QA domain is configured without its complete catalog", () => {
+    expect(() => commerceStoreConfigsFromEnv((name) => (
+      name === "SHOPIFY_QA_SHOP_DOMAIN" ? "base-layer-lifecycle-qa.myshopify.com" : undefined
+    ))).toThrow("invalid_shopify_qa_single_bottle_variant_id");
+  });
+
+  it("classifies only the configured development-store variants and selling plans", () => {
+    const storeConfig = {
+      shopDomain: "base-layer-lifecycle-qa.myshopify.com",
+      singleBottleVariantId: "9001",
+      twoBottleVariantId: "9002",
+      subscriptionSellingPlanIds: ["7001"],
+    };
+    const devContext = { ...context, shopDomain: storeConfig.shopDomain };
+    const twoPack = normalizeShopifyWebhook("orders/paid", {
+      id: 21,
+      line_items: [{ variant_id: 9002, quantity: 1 }],
+    }, devContext, storeConfig);
+    expect(twoPack?.purchased_bottles).toBe(2);
+    expect(twoPack && validateCanonicalSignal(twoPack, storeConfig)).toBeNull();
+
+    const unexpectedPlan = normalizeShopifyWebhook("orders/paid", {
+      id: 22,
+      line_items: [{
+        variant_id: 9001,
+        quantity: 1,
+        selling_plan_allocation: { selling_plan: { id: 9999 } },
+      }],
+    }, devContext, storeConfig);
+    expect(unexpectedPlan && validateCanonicalSignal(unexpectedPlan, storeConfig))
+      .toBe("unexpected_subscription_plan");
+
+    const productionVariant = normalizeShopifyWebhook("orders/paid", {
+      id: 23,
+      line_items: [{ variant_id: 42940461023303, quantity: 1 }],
+    }, devContext, storeConfig);
+    expect(productionVariant && validateCanonicalSignal(productionVariant, storeConfig))
+      .toBe("order_has_no_base_layer_product");
   });
 
   it("classifies single, two-pack, and subscription orders from signed webhook lines", () => {

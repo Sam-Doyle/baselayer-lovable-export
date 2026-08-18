@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.97.0";
 import {
-  BASE_LAYER_SHOP_DOMAIN,
+  commercePublishShopDomainsFromEnv,
+  commerceStoreConfigsFromEnv,
   isShopifyTopic,
   normalizeShopifyWebhook,
   sha256Hex,
@@ -111,6 +112,13 @@ Deno.serve(async (req) => {
     return jsonResponse(413, { success: false, error: "payload_too_large" });
   }
 
+  let storeConfigs;
+  try {
+    storeConfigs = commerceStoreConfigsFromEnv((name) => Deno.env.get(name));
+  } catch {
+    return jsonResponse(503, { success: false, error: "shopify_store_not_configured" });
+  }
+
   const clientSecret = Deno.env.get("SHOPIFY_CLIENT_SECRET") ?? "";
   const webhookSecret = Deno.env.get("SHOPIFY_WEBHOOK_SECRET") || clientSecret;
   const suppliedHmac = header(req, "x-shopify-hmac-sha256");
@@ -119,7 +127,8 @@ Deno.serve(async (req) => {
   }
 
   const shopDomain = header(req, "x-shopify-shop-domain").toLowerCase();
-  if (shopDomain !== BASE_LAYER_SHOP_DOMAIN) {
+  const storeConfig = storeConfigs.find((config) => config.shopDomain === shopDomain);
+  if (!storeConfig) {
     return jsonResponse(403, { success: false, error: "unexpected_shop" });
   }
   const topicHeader = header(req, "x-shopify-topic").toLowerCase();
@@ -167,11 +176,11 @@ Deno.serve(async (req) => {
     triggeredAt: header(req, "x-shopify-triggered-at") || null,
     payloadSha256: await sha256Hex(rawBody),
     orderEnrichment,
-  });
+  }, storeConfig);
   // Non-delivered carrier events and failed/cancelled fulfillment updates are
   // acknowledged but intentionally do not enter the lifecycle projection.
   if (!signal) return jsonResponse(200, { success: true, ignored: true });
-  const validationError = validateCanonicalSignal(signal);
+  const validationError = validateCanonicalSignal(signal, storeConfig);
   if (validationError) return jsonResponse(422, { success: false, error: validationError });
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -180,7 +189,9 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const publishEnabled = Deno.env.get("COMMERCE_LIFECYCLE_MODE") === "publish";
+  const publishShopDomains = commercePublishShopDomainsFromEnv((name) => Deno.env.get(name));
+  const publishEnabled = Deno.env.get("COMMERCE_LIFECYCLE_MODE") === "publish" &&
+    publishShopDomains.has(shopDomain);
   const { data, error } = await supabase.rpc("record_commerce_lifecycle_signal", {
     p_signal: signal,
     p_publish_enabled: publishEnabled,

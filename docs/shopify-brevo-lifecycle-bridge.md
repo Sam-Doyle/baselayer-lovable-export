@@ -1,8 +1,9 @@
 # Shopify → Brevo lifecycle bridge
 
 This is the production contract for Base Layer's authoritative commerce
-signals. It is intentionally sized for one skincare SKU and one Shopify store:
-no generic event bus, no order polling, and no billing/shipping-address payloads.
+signals. It is intentionally sized for one skincare SKU, with one production
+store and one explicitly configured development store: no generic event bus,
+no order polling, and no billing/shipping-address payloads.
 
 ## Ownership and rollout state
 
@@ -20,6 +21,53 @@ The integration defaults to `COMMERCE_LIFECYCLE_MODE=audit`. Audit mode stores
 receipts/state and creates only held outbox records. Switching the webhook or
 worker independently is insufficient: both require the exact value `publish`,
 and historical held jobs are never bulk-released automatically.
+
+`COMMERCE_PUBLISH_SHOP_DOMAINS` is a second, independent send gate. It defaults
+to only the production domain. The development store must never be added to
+that allowlist; its orders are for audit/state-machine QA, not Brevo delivery.
+
+## Development-store test harness
+
+The isolated Shopify Basic development store is:
+
+```text
+Base Layer Lifecycle QA
+base-layer-lifecycle-qa.myshopify.com
+```
+
+It uses Shopify's generated test data/Bogus Gateway and contains one Base
+Layer test product with the same offer structure as production:
+
+| Offer | Development variant ID | Price | Weight |
+|---|---:|---:|---:|
+| 1 bottle | `67548639199536` | $38 | 88 g |
+| 2 bottles | `67548639232304` | $68 | 176 g |
+
+Shopify Subscriptions is installed with one plan on only the one-bottle
+variant: $35 every six weeks. During bootstrap, leave the development
+selling-plan allowlist empty so the first real subscription test order can
+capture Shopify's authoritative `selling_plan_id`; pin that ID immediately
+after the test. An empty QA allowlist means “accept any selling plan on the
+configured Base Layer variant,” not “treat a one-time line as subscription.”
+
+The existing read-only lifecycle app is installed on the dev store. Shopify
+Flow is installed separately there so contract-state workflows can be tested
+without changing the production drafts. Production and QA records are safely
+partitioned by `shop_domain` in every receipt, order, customer, and outbox key.
+
+Server-only QA configuration:
+
+```text
+SHOPIFY_QA_SHOP_DOMAIN=base-layer-lifecycle-qa.myshopify.com
+SHOPIFY_QA_SINGLE_BOTTLE_VARIANT_ID=67548639199536
+SHOPIFY_QA_TWO_BOTTLE_VARIANT_ID=67548639232304
+SHOPIFY_QA_SUBSCRIPTION_SELLING_PLAN_IDS=
+COMMERCE_PUBLISH_SHOP_DOMAINS=kpfzdg-kw.myshopify.com
+```
+
+Setting `SHOPIFY_QA_SHOP_DOMAIN` without both QA variant IDs fails the webhook
+closed. The production catalog remains the checked-in default and is covered
+by regression tests.
 
 ## Dedicated Shopify custom app
 
@@ -153,6 +201,7 @@ SHOPIFY_CLIENT_SECRET=<dedicated app client secret>
 SHOPIFY_WEBHOOK_SECRET=<optional explicit HMAC secret; defaults to SHOPIFY_CLIENT_SECRET>
 COMMERCE_SYNC_WORKER_SECRET=<random service-only bearer token>
 COMMERCE_LIFECYCLE_MODE=audit
+COMMERCE_PUBLISH_SHOP_DOMAINS=kpfzdg-kw.myshopify.com
 BREVO_API_KEY=<existing key>
 ```
 
