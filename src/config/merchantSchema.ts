@@ -1,6 +1,16 @@
 import { LEGAL } from "@/config/legal";
 
 /**
+ * The date the current offer terms took effect. Google documents `validFrom` in
+ * two places — directly on the Offer node and on a nested PriceSpecification —
+ * and Search Console asks for both independently: the 2026-08-18 Merchant
+ * listings report wanted `validFrom` "(in \"offers\")" while the nested copy was
+ * already present. So both are emitted, from one constant, because two dates
+ * for one offer is the drift bug this codebase keeps re-learning.
+ */
+const OFFER_VALID_FROM = "2026-08-10";
+
+/**
  * Offer-level fields required for Google Merchant Listing rich results.
  * GSC flags offers missing shippingDetails, hasMerchantReturnPolicy, and
  * priceSpecification.validFrom (Search Console URL inspection, 2026-08-10).
@@ -20,6 +30,7 @@ import { LEGAL } from "@/config/legal";
  */
 export function merchantOfferFields(price: string, priceCurrency = "USD") {
   return {
+    validFrom: OFFER_VALID_FROM,
     shippingDetails: {
       "@type": "OfferShippingDetails",
       shippingRate: {
@@ -53,6 +64,16 @@ export function merchantOfferFields(price: string, priceCurrency = "USD") {
        * describe the policy accurately: a finite 30-day window at no cost to
        * the customer. The keep-the-product part belongs in Merchant Center's
        * own return settings, which do model it, not in schema.org.
+       *
+       * Search Console re-raised this on 2026-08-18 as a NON-CRITICAL Merchant
+       * listings issue, `Missing field "returnMethod" (in
+       * "offers.hasMerchantReturnPolicy")`. Google's own merchant listing
+       * documentation was re-read the same day and confirms the enumeration is
+       * still the same three values with no no-return option. So this warning
+       * is permanent and correct to ignore. Do not "fix" it by picking
+       * ReturnByMail: that is a false statement about the policy, and the
+       * previous attempt at KeepProduct was rejected outright as an invalid
+       * enum value, which is a worse outcome than the warning.
        */
       returnFees: "https://schema.org/FreeReturn",
     },
@@ -60,7 +81,7 @@ export function merchantOfferFields(price: string, priceCurrency = "USD") {
       "@type": "UnitPriceSpecification",
       price,
       priceCurrency,
-      validFrom: "2026-08-10",
+      validFrom: OFFER_VALID_FROM,
     },
   };
 }
