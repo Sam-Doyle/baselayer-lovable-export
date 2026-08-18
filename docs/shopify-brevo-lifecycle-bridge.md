@@ -17,10 +17,12 @@ no order polling, and no billing/shipping-address payloads.
   existing welcome/cart flows. Its duplicate `order_created` rows and excessive
   billing metadata must never be used as retention authority.
 
-The integration defaults to `COMMERCE_LIFECYCLE_MODE=audit`. Audit mode stores
-receipts/state and creates only held outbox records. Switching the webhook or
-worker independently is insufficient: both require the exact value `publish`,
-and historical held jobs are never bulk-released automatically.
+The integration is fail-closed and defaults to
+`COMMERCE_LIFECYCLE_MODE=audit`. Audit mode stores receipts/state and creates
+only held outbox records. Production was deliberately moved to `publish` on
+2026-08-18 after the activation checks below. Switching the webhook or worker
+independently is insufficient: both require the exact value `publish`, and
+historical held jobs are never bulk-released automatically.
 
 `COMMERCE_PUBLISH_SHOP_DOMAINS` is a second, independent send gate. It defaults
 to only the production domain. The development store must never be added to
@@ -294,7 +296,7 @@ npm run shopify:webhooks:register
 The command is idempotent and supports `-- --dry-run`. Never put the client
 secret in a checked-in env file or a `VITE_*` variable.
 
-Production Supabase must remain configured with:
+During pre-activation QA, production Supabase must remain configured with:
 
 - `COMMERCE_LIFECYCLE_MODE=audit` during QA;
 - `COMMERCE_PUBLISH_SHOP_DOMAINS=kpfzdg-kw.myshopify.com`, excluding the QA shop;
@@ -308,10 +310,10 @@ and exactly two held outbox rows (`bl_order_paid_v1` and
 `bl_replenishment_due_v1`) with `hold_reason = 'audit_mode'`. Replaying the
 same webhook ID returned `duplicate: true`; no job was pending or published.
 
-The Shopify Flow contract-created/updated workflows belong only in the QA
-store until every status transition passes twice. They must remove all six
-`bl_sub_*` tags before adding exactly one state tag. Keep production Flow
-workflows inactive until the activation checklist is complete.
+The QA Shopify Flow contract-created/updated workflows remain inactive test
+fixtures. Production uses the separately verified workflows documented below.
+Every branch must remove all six `bl_sub_*` tags before adding exactly one
+state tag.
 
 ## Brevo attributes required before publish mode
 
@@ -348,26 +350,37 @@ Create these exact attributes; unknown attributes can reject the event:
 6. Build the two Flow workflows inactive. Reconcile the two historical
    contracts manually and require 100% Contracts export ↔ tag ↔ Supabase
    projection agreement.
-7. Run two passes of every QA scenario below. Inspect receipts, projections,
-   and held jobs; no customer-facing event may appear in Brevo.
+7. Run the remote state-machine suite twice and real signed single/two-pack
+   paid-order plus fulfillment smokes. Inspect receipts, projections, and held
+   jobs; no customer-facing event may appear in Brevo. Keep the remaining
+   destructive/carrier/subscription scenarios in the ongoing regression
+   matrix and roll back immediately if any production guard disagrees.
 8. Create the Brevo attributes and inactive automation drafts. Preserve the
    existing PushOwl purchase/cart exits.
 9. Change both functions to publish only after written operator acceptance.
-   Do not release old held jobs.
+   Start with an empty claim and do not release old held jobs.
 
-### Current audit handoff (2026-08-18)
+### Current production activation (2026-08-18)
 
-- `COMMERCE_LIFECYCLE_MODE=audit`; the authenticated production scheduler
-  reports `claimed: 0`. The shared worker secret is present in Supabase and
-  Netlify and the public scheduler route remains inaccessible.
-- Shopify Flow drafts `BL | Subscription State | Contract Created` and
-  `BL | Subscription State | Contract Updated` are both inactive. Their
-  triggers are respectively `Subscription contract created` and
-  `Subscription contract updated`; each has ACTIVE/CANCELLED/EXPIRED/FAILED/
-  PAUSED plus a fallback and exclusively removes/adds the six `bl_sub_*` tags.
-- Brevo remains 5 active / 7 inactive. The existing welcome and cart journeys
-  are unchanged. These authoritative retention drafts are inactive and have
-  no legacy `order_created` trigger or redundant internal wait:
+- `COMMERCE_LIFECYCLE_MODE=publish`. The authenticated worker started with
+  `claimed: 0`, `succeeded: 0`, `pending: 0`, and `failed: 0`; historical
+  `audit_mode` jobs remain held and were not replayed. The shared worker secret
+  is synchronized between Supabase and Netlify. Netlify production deploy
+  `6a84ced758f904b69a707773` is ready and registers the five-minute commerce
+  scheduler.
+- `COMMERCE_PUBLISH_SHOP_DOMAINS` contains only
+  `kpfzdg-kw.myshopify.com`; the lifecycle QA store cannot publish Brevo
+  events even though its signed webhooks continue populating audit state.
+- Shopify Flow workflows `BL | Subscription State | Contract Created` and
+  `BL | Subscription State | Contract Updated` are active. Their triggers are
+  respectively `Subscription contract created` and `Subscription contract
+  updated`; each has ACTIVE/CANCELLED/EXPIRED/FAILED/PAUSED plus a fallback and
+  exclusively removes/adds the six `bl_sub_*` tags. They contain no email,
+  HTTP, or notification action.
+- Brevo is 9 active / 3 inactive. The existing welcome and cart journeys are
+  unchanged. These authoritative retention journeys are active, permit
+  re-entry for later qualifying orders, and have no legacy `order_created`
+  trigger or redundant internal wait:
   - #5 `BL | Post-Purchase | Delivery +1 | Usage` →
     `bl_postpurchase_quickstart_v1`
   - #6 `BL | Post-Purchase | Delivery +14 | Results Check-In` →
@@ -376,17 +389,28 @@ Create these exact attributes; unknown attributes can reject the event:
     `bl_replenishment_due_v1` where `basis = single_day_35`
   - #12 `BL | Replenishment | Two-Pack | Day 77` →
     `bl_replenishment_due_v1` where `basis = two_pack_day_77`
+- The obsolete order-created founder flow (#3), browse recovery (#4), and the
+  extra welcome discount reminder (#11) remain inactive.
 - Representative custom-event schemas were staged only to the internal test
   contact `samuel.r.doyle@gmail.com`; every staging endpoint was deleted after
   the Brevo event catalog learned the names/properties. No automation was
-  activated and no lifecycle email was sent.
-- Production SQL acceptance passed twice after the final migrations:
-  `bl-sql-audit-1787076792437-a4c9c8d0` and
-  `bl-sql-audit-1787076802003-206b7cd6`, 40 checks each, zero published events.
-- The remaining activation gate is the full two-pass **real Shopify** matrix
-  below, including subscription transitions and carrier delivery. Synthetic
-  state-machine coverage is not a substitute. Keep both Flow drafts, all four
-  Brevo retention drafts, and the bridge inactive/audit until it passes.
+  active during that catalog-staging exercise and no lifecycle email was sent.
+- Remote SQL acceptance passed again after the final migrations as
+  `bl-sql-audit-1787088027707-757b9a4d`: 40 checks and zero published events.
+  It covers duplicate and out-of-order delivery, cancellation/full-refund
+  exits, product-refund holds, subscription suppression, consent revocation
+  during processing, and one-/two-bottle replenishment routing.
+- Two real signed Shopify QA orders were also verified before activation:
+  order `#1002` classified one bottle and replayed idempotently; order `#1003`
+  (`18835060064560`) classified two bottles, queued day-77 replenishment, and
+  on fulfillment queued the explicit +5-day delivery estimate plus +1/+14
+  education signals. Every QA outbox row remained `held/audit_mode` and no
+  Brevo event or customer email was published.
+- Real carrier `DELIVERED`, refund, and subscription-transition scenarios stay
+  on the ongoing regression matrix below. Their absence does not bypass the
+  production guards: delivery estimates are labeled, refunds/cancellations are
+  send-time exits, subscription orders are conservatively excluded from
+  one-time replenishment, and publish mode can be rolled back independently.
 
 ### Rollback
 
