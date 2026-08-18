@@ -62,3 +62,48 @@ verdict is still PASS on all of them; these are warnings, not errors.
 Caveat on reading any of this: every crawl above predates the 2026-08-18
 deploys (`3eddebd` at 00:48Z, `ff8ba06`/`64a64a7` at 01:10Z), so the reported
 schema and title state is what Google saw before the fixes, not after.
+
+---
+date: 2026-08-18
+category: technical
+source: GSC Merchant listings + Product snippets emails, Google merchant listing structured data docs re-read same day, served JSON-LD
+confidence: high
+target_article: wiki/technical-seo.md
+---
+Four non-critical structured data warnings on baselayerskin.co, and only one of
+them was a bug.
+
+`Missing field "validFrom" (in "offers")` looked already-fixed because
+`priceSpecification.validFrom` was present and had been since 2026-08-10.
+Google documents `validFrom` in **two** places, directly on the Offer node and
+on a nested PriceSpecification, and Search Console asks for them
+independently. The tell is in GSC's own path notation: it printed the full
+dotted path for the returnMethod issue (`offers.hasMerchantReturnPolicy`) and
+plain `offers` for this one. Read the path literally. Fixed 2026-08-18 in
+`d19b80e`, both emitted from one `OFFER_VALID_FROM` constant. All six Product
+offers spread `merchantOfferFields`, so it was a single edit site.
+
+`Missing field "returnMethod"` is permanent and correct to ignore. Google's
+enumeration is still ReturnByMail / ReturnInStore / ReturnAtKiosk with no
+no-return option, confirmed by re-reading the docs on 2026-08-18. A 30-day
+keep-the-bottle guarantee has no honest value in that vocabulary. Picking
+ReturnByMail would be a false statement about the policy, and the earlier
+KeepProduct attempt was rejected outright as an invalid enum, which is a worse
+outcome than a warning. Now documented in the code so nobody re-attempts it.
+
+`Missing field "aggregateRating"` and `Missing field "review"` on Product
+snippets are a product decision, not a code gap. They fire on the homepage
+Product block. Google requires a rating in `aggregateRating` markup to be
+visible to the user on the same page, and the homepage deliberately does not
+show one: the 2026-08-14 finding was that an above-fold `4.8/5 from 5 customer
+reviews` made the small sample size more salient than the score and read as
+negative social proof, which is why it was replaced with a single verified
+review quote. Clearing these two warnings means reintroducing a pattern
+already judged to hurt conversion. Recommendation is to leave them until the
+review count is high enough that the aggregate helps rather than hurts, then
+add the visible rating and the markup together.
+
+Standing rule: a non-critical structured data warning is not automatically
+worth clearing. Check what clearing it costs on the page first. Google's own
+wording is that non-critical issues do not prevent the page or feature from
+appearing, and the Product snippets verdict stayed PASS throughout.
