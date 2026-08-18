@@ -164,6 +164,28 @@ describe("SkinConcernQuiz", () => {
     expect(screen.queryByText("What's your main skin concern?")).not.toBeInTheDocument();
   });
 
+  it("suppresses the quiz for email campaign sessions without suppressing preview mode", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(performance, "now").mockReturnValue(0);
+    const emailCampaign = render(
+      <MemoryRouter initialEntries={["/?utm_source=brevo&utm_medium=email&utm_campaign=welcome_day_1"]}>
+        <SkinConcernQuiz />
+      </MemoryRouter>,
+    );
+
+    await act(async () => vi.advanceTimersByTime(20_000));
+    expect(screen.queryByText("What's your main skin concern?")).not.toBeInTheDocument();
+    emailCampaign.unmount();
+
+    render(
+      <MemoryRouter initialEntries={["/?utm_medium=email&quiz=preview"]}>
+        <SkinConcernQuiz />
+      </MemoryRouter>,
+    );
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.getByText("What's your main skin concern?")).toBeInTheDocument();
+  });
+
   it("defers the engaged popup while the cart is open", async () => {
     vi.useFakeTimers();
     vi.spyOn(performance, "now").mockReturnValue(0);

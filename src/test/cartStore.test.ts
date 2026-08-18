@@ -98,6 +98,7 @@ beforeEach(() => {
   mockToastError.mockClear();
   mockTrackEvent.mockClear();
   localStorage.clear();
+  sessionStorage.clear();
   // Reset the mutable fields only (merge, not replace) so the action
   // functions defined at store-creation time stay attached.
   useCartStore.setState({
@@ -135,6 +136,25 @@ describe("cartStore — SHIP26 checkout handoff", () => {
     expect(checkoutUrl.searchParams.get("key")).toBe("secret-key");
     expect(checkoutUrl.searchParams.get("discount")).toBe(FREE_SHIPPING_CODE);
     expect(checkoutUrl.searchParams.get("channel")).toBe("online_store");
+  });
+
+  it("preserves email attribution on the Shopify checkout handoff", () => {
+    sessionStorage.setItem("bl_email_campaign_session", "true");
+    sessionStorage.setItem("utm_source", "brevo");
+    sessionStorage.setItem("utm_medium", "email");
+    sessionStorage.setItem("utm_campaign", "cart_recovery");
+    sessionStorage.setItem("utm_content", "hour_20_proof");
+    useCartStore.setState({
+      checkoutUrl: "https://example.myshopify.com/cart/c/abc123?key=secret-key",
+    });
+
+    const checkoutUrl = new URL(useCartStore.getState().getCheckoutUrl());
+
+    expect(checkoutUrl.searchParams.get("key")).toBe("secret-key");
+    expect(checkoutUrl.searchParams.get("utm_source")).toBe("brevo");
+    expect(checkoutUrl.searchParams.get("utm_medium")).toBe("email");
+    expect(checkoutUrl.searchParams.get("utm_campaign")).toBe("cart_recovery");
+    expect(checkoutUrl.searchParams.get("utm_content")).toBe("hour_20_proof");
   });
 
   it("carries the earned quiz code and free shipping into a new cart and checkout", async () => {

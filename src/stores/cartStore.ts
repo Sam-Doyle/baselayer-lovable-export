@@ -6,6 +6,7 @@ import { trackEvent } from '@/lib/analytics';
 import { trackLifecycleCartDeleted, trackLifecycleCartUpdated } from '@/lib/lifecycle';
 import { metaContentId } from '@/config/product';
 import { activeCheckoutDiscountCodes } from '@/config/promotions';
+import { appendStoredEmailCampaignParams } from '@/lib/emailCampaign';
 
 export interface Money { amount: string; currencyCode: string }
 
@@ -254,7 +255,7 @@ function formatCheckoutUrl(checkoutUrl: string): string {
     // restored from localStorage before SHIP26 went live.
     url.searchParams.set('discount', activeCheckoutDiscountCodes().join(','));
     url.searchParams.set('channel', 'online_store');
-    return url.toString();
+    return appendStoredEmailCampaignParams(url).toString();
   } catch {
     return checkoutUrl;
   }

@@ -18,6 +18,8 @@ import CookieConsentBanner from "@/components/CookieConsentBanner";
 import PrerenderSnapshotRouteGuard from "@/components/PrerenderSnapshotRouteGuard";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ShopifyCartDrawer from "@/components/ShopifyCartDrawer";
+import EmailCampaignLanding from "@/components/EmailCampaignLanding";
+import { captureEmailCampaignSession, shouldSuppressQuizForEmailCampaign } from "@/lib/emailCampaign";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 const QueryRoute = lazy(() => import("@/components/QueryRoute"));
@@ -80,7 +82,7 @@ const App = () => {
   // dialog code only after the hero and purchase UI have had time to settle;
   // SkinConcernQuiz owns the remaining delay before it opens.
   useEffect(() => {
-    if (quizRuntimeReady) return;
+    if (quizRuntimeReady || shouldSuppressQuizForEmailCampaign(window.location.search)) return;
     const timer = window.setTimeout(() => setQuizRuntimeReady(true), 3_000);
     return () => window.clearTimeout(timer);
   }, [quizRuntimeReady]);
@@ -90,6 +92,7 @@ const App = () => {
     // Persist UTMs to sessionStorage so downstream events (CAPI, analytics.ts)
     // can attach campaign data even after React Router consumes the URL.
     const params = new URLSearchParams(window.location.search);
+    captureEmailCampaignSession(window.location.search);
     const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
     utmKeys.forEach((key) => {
       const value = params.get(key);
@@ -208,6 +211,7 @@ const App = () => {
           <BrowserRouter>
             <PrerenderSnapshotRouteGuard />
             <MetaRouterTracker />
+            <EmailCampaignLanding />
             <Routes>
               <Route path="/" element={<ErrorBoundary><Index /></ErrorBoundary>} />
               <Route path="/face-cream" element={<Wrap><FaceCream /></Wrap>} />

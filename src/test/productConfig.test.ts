@@ -16,6 +16,12 @@ describe("homepage offer selection", () => {
     expect(getInitialTier(null)).toEqual(DEFAULT_TIER);
     expect(AVAILABLE_TIERS).toContain(DEFAULT_TIER);
   });
+
+  it("supports deterministic replenishment and subscription email offers", () => {
+    expect(getInitialTier("two")).toMatchObject({ id: 2, bottles: 2, price: 68 });
+    expect(getInitialTier("subscription")).toMatchObject({ id: 3, kind: "subscription", price: 35 });
+    expect(getInitialTier("unknown")).toEqual(DEFAULT_TIER);
+  });
 });
 
 describe("PDP tier labels", () => {

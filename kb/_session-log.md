@@ -719,3 +719,8 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **KB updates**: Compiled 12 inbox entries to zero. Created `wiki/technical-seo.md` (article 12) from five SEO/prerender findings; routed four measurement findings to `site-architecture`, two CRO hypotheses to `conversion-learnings`, and the product-scoped selling plan to `shipping-economics`.
 - **Verified**: 60 rendered / 0 failed, live homepage root content byte-identical to local build, one `<title>` per route across all 14, sitemap 60 URLs / 60 lastmod / 6 distinct dates, 138/138 tests, typecheck and lint clean, Netlify `64a64a7` ready.
 - **Open**: Homepage `aggregateRating` warnings stay until a visible star rating exists (natural home `ProofStrip`). `scripts/generate-sitemap.mjs` still dead code. Cannibalization between `/articles/best-moisturizer-for-men` and `/comparisons/best-mens-face-moisturizers-compared` unaddressed. Indexing requests need the GSC web UI — the API scope returns 403.
+## 2026-08-18 — Email campaign storefront continuity
+- **Task**: Added email-session quiz suppression, deterministic lifecycle-email PDP anchors and offer selection, allow-listed SKIN15 handoff, and UTM continuity into Shopify checkout.
+- **Findings**: Shopify cart recovery must continue to use the event's authoritative checkout URL; a generic PDP URL is only a fallback because it cannot restore server-side cart state.
+- **Files changed**: `src/lib/emailCampaign.ts`, `src/components/EmailCampaignLanding.tsx`, `src/App.tsx`, `src/components/SkinConcernQuiz.tsx`, `src/stores/cartStore.ts`, `src/config/product.ts`, related tests, and `docs/email-campaign-links.md`.
+- **KB updates**: No inbox entry; the durable operational conventions live in the email link contract.

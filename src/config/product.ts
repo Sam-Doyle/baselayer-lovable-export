@@ -193,10 +193,12 @@ export function tierCtaLabel(tier: BuyTier): string {
  * Direct PDP visits keep the higher-value default tier selected.
  */
 export function getInitialTier(offer: string | null): BuyTier {
-  if (offer === "single") {
-    return AVAILABLE_TIERS.find(t => t.id === 1) ?? DEFAULT_TIER;
-  }
-  return DEFAULT_TIER;
+  const requestedTier = {
+    single: 1,
+    two: 2,
+    subscription: 3,
+  }[offer ?? ""];
+  return AVAILABLE_TIERS.find(t => t.id === requestedTier) ?? DEFAULT_TIER;
 }
 
 /**

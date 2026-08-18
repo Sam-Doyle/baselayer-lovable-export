@@ -16,6 +16,7 @@ import {
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
 import { getStoredConsent, onConsentChange, requiresOptIn } from "@/lib/consent";
+import { shouldSuppressQuizForEmailCampaign } from "@/lib/emailCampaign";
 
 type QuizStep = "concern" | "email" | "success";
 
@@ -100,7 +101,7 @@ const SkinConcernQuiz = () => {
       setOpen(true);
       return;
     }
-    if (!canShowQuiz(pathname)) return;
+    if (shouldSuppressQuizForEmailCampaign(search) || !canShowQuiz(pathname)) return;
     if (/Lighthouse|Chrome-Lighthouse|PageSpeed|HeadlessChrome/i.test(navigator.userAgent)) return;
     if (window.top !== window.self) return;
 
@@ -135,11 +136,11 @@ const SkinConcernQuiz = () => {
       document.removeEventListener("focusout", onFocusOut);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [forcePreview, pathname]);
+  }, [forcePreview, pathname, search]);
 
   useEffect(() => {
     if (forcePreview || open || suppressedThisRender || !engaged || !consentResolved || cartOpen || interactionBlocked) return;
-    if (document.visibilityState === "hidden" || !canShowQuiz(pathname)) return;
+    if (document.visibilityState === "hidden" || shouldSuppressQuizForEmailCampaign(search) || !canShowQuiz(pathname)) return;
     try {
       sessionStorage.setItem(SHOWN_THIS_SESSION_KEY, "true");
     } catch {
@@ -150,7 +151,7 @@ const SkinConcernQuiz = () => {
       source: SKIN_QUIZ_PROMOTION.source,
       trigger: hasMeaningfulScroll() ? "scroll_40" : "dwell_15s",
     });
-  }, [cartOpen, consentResolved, engaged, forcePreview, interactionBlocked, open, pathname, suppressedThisRender]);
+  }, [cartOpen, consentResolved, engaged, forcePreview, interactionBlocked, open, pathname, search, suppressedThisRender]);
 
   const reset = () => {
     setStep("concern");
