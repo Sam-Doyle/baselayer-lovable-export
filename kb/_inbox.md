@@ -252,3 +252,35 @@ prerendered value.
 The generalisable rule now has two instances: in this codebase, anything the
 prerender plugin injects into <head> has a component that also writes it. Check
 both before trusting either, and read the built HTML rather than the source.
+
+---
+date: 2026-08-17
+category: technical
+source: three consecutive local builds failing to prerender / , then a puppeteer probe comparing polling strategies
+confidence: high
+target_article: technical-seo
+---
+Puppeteer's `waitForFunction` polls on requestAnimationFrame by default, and a
+headless page stops painting once it settles. Any predicate that only becomes
+true after that first paint is therefore never re-evaluated and burns its full
+timeout while the condition is already satisfied in the DOM.
+
+The prerender plugin's structure wait requires nav AND footer. The homepage
+defers HomeBelowFold, which carries the footer, roughly 3s behind a timer plus
+requestIdleCallback to keep it off the LCP path. So `/` timed out at 20s and
+fell back to the skeleton shell: 2,959 bytes of root content against 75,080
+when it renders. Measured directly — the same predicate resolves in 3,514ms
+with `polling: 500` and 3,078ms with `polling: "mutation"`, and a probe
+confirmed the footer was present the whole time the raf poller was blind to it.
+
+It is a race, not a deterministic failure, which is why it survived. Production
+happened to win it, so the live homepage was fine. A build that lost it would
+have shipped a contentless homepage on the only route currently indexed and
+ranking (position 2), and the build still exits 0 — the failure is one warning
+line in a 60-line log.
+
+Two rules out of this. Deferring content for LCP and prerendering it are in
+direct tension: anything moved off the initial paint becomes invisible to a
+raf-polled wait, so LCP deferral work needs the prerender wait checked in the
+same pass. And "N rendered, 1 failed" is not a warning, it is a page shipping
+empty; the render count deserves to be a build failure rather than a log line.
