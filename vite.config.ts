@@ -87,13 +87,36 @@ const STATIC_PAGE_SOURCES: Record<string, string> = {
 /**
  * Author date of the last commit to touch `file`, as YYYY-MM-DD, or undefined.
  *
- * Undefined is a real outcome, not just an error path: a shallow CI clone has
- * no history to read. The caller must drop lastmod entirely in that case. An
- * absent lastmod is a normal sitemap; a wrong one is a lie Google can catch by
- * comparing it against what actually changed, and the penalty is that it stops
- * trusting the field for the whole site.
+ * Undefined is a real outcome, not just an error path. An absent lastmod is a
+ * normal sitemap; a wrong one is a lie Google can catch by comparing it against
+ * what actually changed, and the penalty is that it stops trusting the field
+ * for the whole site.
+ *
+ * The shallow check is not paranoia. In a --depth=1 clone `git log -1 -- <path>`
+ * does not fail and does not return empty: it returns the one commit it has,
+ * which is the deploy commit, so every static route would claim it changed
+ * today on every deploy — the exact inflation this function exists to prevent,
+ * and silent, because a valid-looking date comes back. Netlify's checkout has
+ * full history today (verified against the live sitemap on 2026-08-17, which
+ * carried eleven distinct dates back to March), so this is a guard against that
+ * changing, not a live workaround. If the warning ever fires, the sitemap stays
+ * honest and the fix is to restore history in the build, not to loosen this.
  */
-function gitLastModified(file: string): string | undefined {
+function gitHistoryIsShallow(): boolean {
+  try {
+    return (
+      execFileSync("git", ["rev-parse", "--is-shallow-repository"], {
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim() === "true"
+    );
+  } catch {
+    return true; // no git at all — same conclusion, no dates to be had
+  }
+}
+
+function gitLastModified(file: string, shallow: boolean): string | undefined {
+  if (shallow) return undefined;
   try {
     const out = execFileSync("git", ["log", "-1", "--format=%cs", "--", file], {
       encoding: "utf-8",
@@ -459,14 +482,17 @@ function prerenderPlugin(): Plugin {
         console.warn("⚠️  Sanity fetch failed, proceeding with static pages only:", err);
       }
 
+      const shallow = gitHistoryIsShallow();
       const staticPages = STATIC_PAGES.map((p) => ({
         ...p,
-        lastmod: gitLastModified(STATIC_PAGE_SOURCES[p.path] ?? ""),
+        lastmod: gitLastModified(STATIC_PAGE_SOURCES[p.path] ?? "", shallow),
       }));
       const undatedStatic = staticPages.filter((p) => !p.lastmod).length;
       if (undatedStatic > 0) {
         console.warn(
-          `\u26a0\ufe0f  ${undatedStatic}/${staticPages.length} static routes have no git date (shallow clone?) \u2014 shipping those sitemap entries without lastmod.`
+          `\u26a0\ufe0f  ${undatedStatic}/${staticPages.length} static routes have no git date` +
+            `${shallow ? " (shallow clone \u2014 the build needs full history)" : ""}` +
+            ` \u2014 shipping those sitemap entries without lastmod.`
         );
       }
 
@@ -615,6 +641,15 @@ function prerenderPlugin(): Plugin {
                 // Wait for React to mount and render meaningful content.
                 // Two-phase wait: first for basic structure, then for
                 // dynamic content from Sanity API calls to load.
+                //
+                // `polling` is load-bearing on both waits. Puppeteer's default
+                // is requestAnimationFrame, and a headless page stops painting
+                // once it settles, so the predicate stops being re-evaluated
+                // and anything that mounts after that first paint is invisible
+                // to it. The homepage is exactly that case: HomeBelowFold (and
+                // with it the <footer>) is deliberately deferred ~3s to keep it
+                // off the LCP path, so `/` timed out at 20s while the footer
+                // sat in the DOM the whole time, and shipped as a skeleton.
                 await pageInstance.waitForFunction(
                   () => {
                     const root = document.getElementById("root");
@@ -624,7 +659,7 @@ function prerenderPlugin(): Plugin {
                     // Basic structure is ready when nav + footer exist
                     return hasNav && hasFooter;
                   },
-                  { timeout: PAGE_TIMEOUT }
+                  { timeout: PAGE_TIMEOUT, polling: 500 }
                 );
 
                 // Wait for dynamic content (Sanity API) to render.
@@ -651,7 +686,7 @@ function prerenderPlugin(): Plugin {
                     const bodyText = (root.textContent || "").trim().length;
                     return bodyText > 500;
                   },
-                  { timeout: 10_000 }
+                  { timeout: 10_000, polling: 500 }
                 ).catch(() => {
                   // Dynamic content timeout is non-fatal — page still has
                   // nav, footer, headings, etc. from static rendering
