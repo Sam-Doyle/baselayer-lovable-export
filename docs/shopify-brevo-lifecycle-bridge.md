@@ -1,0 +1,240 @@
+# Shopify → Brevo lifecycle bridge
+
+This is the production contract for Base Layer's authoritative commerce
+signals. It is intentionally sized for one skincare SKU and one Shopify store:
+no generic event bus, no order polling, and no billing/shipping-address payloads.
+
+## Ownership and rollout state
+
+- **Shopify** owns orders, refunds, fulfillment, delivery scans, email-marketing
+  consent, subscription contracts, renewals, and dunning.
+- **Supabase** stores a minimized delivery receipt, current order/customer
+  projection, scheduled lifecycle eligibility, and retryable Brevo outbox.
+- **Brevo** owns marketing email suppression and sends. The worker checks the
+  current Brevo `emailBlacklisted` value immediately before every event publish.
+- **PushOwl/Brevo's Shopify connector** remains a fail-safe exit source for the
+  existing welcome/cart flows. Its duplicate `order_created` rows and excessive
+  billing metadata must never be used as retention authority.
+
+The integration defaults to `COMMERCE_LIFECYCLE_MODE=audit`. Audit mode stores
+receipts/state and creates only held outbox records. Switching the webhook or
+worker independently is insufficient: both require the exact value `publish`,
+and historical held jobs are never bulk-released automatically.
+
+## Dedicated Shopify custom app
+
+Create a new custom app named **Base Layer Lifecycle Bridge**. Do not widen the
+permissions of the storefront/Astro app. It requires only these read scopes:
+
+| Scope | Why |
+|---|---|
+| `read_orders` | paid/cancel/refund webhooks and GraphQL selling-plan/full-refund enrichment |
+| `read_customers` | customer update webhook, email consent, exclusive subscription projection tags |
+| `read_fulfillments` | fulfillment create/update and true carrier delivery events |
+
+Do not grant write scopes or `read_all_orders`. Installation will present new
+Orders, Customers, and Fulfillment access. Stop at that permission screen for
+the merchant's explicit approval.
+
+Register these HTTPS topics using API version `2026-07`:
+
+- `orders/paid`
+- `orders/cancelled`
+- `refunds/create`
+- `customers/update`
+- `fulfillments/create`
+- `fulfillments/update`
+- `fulfillment_events/create`
+
+Callback:
+
+```text
+https://rymidvhuyxqvvyjpodqn.supabase.co/functions/v1/shopify-lifecycle-webhook
+```
+
+Shopify signs the raw request body with the app client secret in
+`X-Shopify-Hmac-SHA256`. The handler also requires the exact shop domain and
+deduplicates `(source, shop, topic, X-Shopify-Webhook-Id)`. The raw payload is
+fingerprinted but never stored.
+
+## Shopify Flow subscription projection
+
+Shopify Basic cannot use Flow's HTTP action, and a separate custom app cannot
+read contracts owned by the first-party Shopify Subscriptions app. Flow is used
+only to project contract status into exclusive customer tags; `customers/update`
+then carries those tags through the signed custom-app webhook.
+
+Create two inactive workflows with identical branches:
+
+1. Trigger: **Subscription contract created**
+2. Trigger: **Subscription contract updated**
+
+For each exact contract status, remove all six tags and then add exactly one:
+
+| Contract status | Customer tag |
+|---|---|
+| `ACTIVE` | `bl_sub_active` |
+| `PAUSED` | `bl_sub_paused` |
+| `CANCELLED` | `bl_sub_cancelled` |
+| `EXPIRED` | `bl_sub_expired` |
+| `FAILED` | `bl_sub_failed` |
+| unexpected/null | `bl_sub_unknown` |
+
+Never set `bl_sub_failed` from a billing-attempt failure. Shopify owns renewal
+and dunning. The bridge preserves the prior projection during Flow's temporary
+zero-tag update. More than one BL status tag becomes `unknown_conflict` and
+suppresses replenishment. Out-of-order customer updates cannot overwrite a
+newer observation.
+
+Because Base Layer is single-SKU, the projection assumes at most one relevant
+contract per customer. Revisit the design before supporting simultaneous
+contracts.
+
+## Canonical event contract
+
+All Brevo names are isolated from PushOwl by the `bl_*_v1` namespace:
+
+| Event | Role |
+|---|---|
+| `bl_order_paid_v1` | Canonical purchase/exit state; never starts education and does not replace current cart exits |
+| `bl_order_cancelled_v1` | Hard exit until a later positively consented purchase |
+| `bl_refund_created_v1` | Refund exit/hold signal |
+| `bl_order_fulfilled_v1` | Shipment authority; does not claim delivery |
+| `bl_order_delivered_v1` | Actual carrier `DELIVERED` event |
+| `bl_delivery_window_elapsed_v1` | Explicit estimate at fulfillment +5 days; `estimated=true` |
+| `bl_subscription_projection_v1` | Suppression state only; never starts subscriber messages |
+| `bl_replenishment_due_v1` | One-time-order replenishment eligibility after all send-time checks |
+
+The Brevo payload contains only the email identifier, Shopify order/customer
+IDs, bottle/pack classification, subscription-order flag/plan ID, lifecycle
+status, and timestamps. It excludes names, phone numbers, addresses, line-item
+prices, payment data, and raw Shopify objects.
+
+### Single-SKU rules
+
+- Single variant `42940461023303` counts as one bottle.
+- Two-pack variant `42940461056071` counts as two bottles.
+- Selling plan `2934145095` is detected from an Admin GraphQL order query,
+  because Shopify order webhooks do not reliably contain
+  `sellingPlanAllocation`.
+- A subscription order is durable history and is never placed into one-time
+  replenishment.
+- Active, paused, unknown, and conflicting subscription projections suppress
+  replenishment. Cancelled/expired/failed may re-allow it only after a later
+  positively consented one-time purchase.
+- Single replenishment eligibility: paid +35 days. Two-pack: paid +77 days.
+- A true carrier delivery cancels the estimate. Without one,
+  `bl_delivery_window_elapsed_v1` is eligible at fulfilled +5 days; Brevo may
+  send education one day later.
+- Any product-line refund exits that order's education and replenishment and
+  applies a 60-day lifecycle hold. A shipping-only adjustment keeps education
+  but cancels urgency/replenishment. Full refund/cancel hard-exits all journeys
+  until a later positively consented purchase.
+
+## Required secrets
+
+Supabase Edge Functions:
+
+```text
+SHOPIFY_WEBHOOK_SECRET=<dedicated app client secret>
+SHOPIFY_ADMIN_ACCESS_TOKEN=<dedicated app Admin API access token>
+COMMERCE_SYNC_WORKER_SECRET=<random service-only bearer token>
+COMMERCE_LIFECYCLE_MODE=audit
+BREVO_API_KEY=<existing key>
+```
+
+Netlify:
+
+```text
+COMMERCE_SYNC_WORKER_SECRET=<same random value>
+```
+
+Keep `COMMERCE_LIFECYCLE_MODE=audit` in both deployed Supabase functions until
+every acceptance test passes twice. Never expose these values in Vite/browser
+environment variables.
+
+## Brevo attributes required before publish mode
+
+Create these exact attributes; unknown attributes can reject the event:
+
+| Name | Type |
+|---|---|
+| `CUSTOMER_STATUS` | Text/category |
+| `ORDER_COUNT` | Number |
+| `LAST_ORDER_ID` | Text |
+| `LAST_ORDER_AT` | Date |
+| `LAST_ORDER_STATUS` | Text/category |
+| `LAST_ORDER_BOTTLE_COUNT` | Number |
+| `LAST_ORDER_IS_SUBSCRIPTION` | Boolean |
+| `LAST_FULFILLED_AT` | Date |
+| `LAST_DELIVERED_AT` | Date |
+| `LAST_REFUNDED_AT` | Date |
+| `HAS_SUBSCRIPTION_ORDER` | Boolean |
+| `LAST_SUBSCRIPTION_ORDER_AT` | Date |
+| `SUBSCRIPTION_PLAN_ID` | Text |
+| `SUBSCRIPTION_PROJECTION` | Text/category |
+| `MARKETING_CONSENT_STATE` | Text/category |
+| `LIFECYCLE_HOLD_UNTIL` | Date |
+
+## Safe deployment
+
+1. Run the full test/typecheck/lint/build suite.
+2. Confirm migration history; run `supabase db push --linked --dry-run` and
+   verify only this migration is pending.
+3. Apply the migration and deploy both functions with audit mode still set.
+4. Deploy the Netlify scheduler. In audit mode it must report `claimed: 0`.
+5. Create/install the dedicated app after merchant approval, set secrets, and
+   register webhooks.
+6. Build the two Flow workflows inactive. Reconcile the two historical
+   contracts manually and require 100% Contracts export ↔ tag ↔ Supabase
+   projection agreement.
+7. Run two passes of every QA scenario below. Inspect receipts, projections,
+   and held jobs; no customer-facing event may appear in Brevo.
+8. Create the Brevo attributes and inactive automation drafts. Preserve the
+   existing PushOwl purchase/cart exits.
+9. Change both functions to publish only after written operator acceptance.
+   Do not release old held jobs.
+
+## Acceptance matrix
+
+Run each scenario twice with tagged internal test customers:
+
+- single one-time order
+- two-pack order
+- subscription-order selling plan detection
+- order cancellation
+- partial product-line refund
+- full product/order refund
+- shipping-only adjustment
+- fulfillment fallback at +5 days
+- actual `DELIVERED` replacing the estimate
+- duplicate webhook delivery
+- out-of-order refund/cancel/fulfillment
+- unsubscribe during a scheduled wait
+- subscription active → paused → active → cancelled
+- interim zero tag preserves prior status
+- multiple subscription tags quarantine as `unknown_conflict`
+
+Subscription tag/state propagation must complete in under five minutes. Audit
+the two historical contracts manually before activation, then reconcile the
+contract export against tags and projection weekly.
+
+## Operational queries
+
+```sql
+select event_type, count(*)
+from public.commerce_lifecycle_receipts
+group by event_type order by event_type;
+
+select status, hold_reason, count(*)
+from public.commerce_lifecycle_outbox
+group by status, hold_reason order by status, hold_reason;
+
+select email, subscription_projection, subscription_tag_count,
+       replenishment_blocked, lifecycle_hold_until, lifecycle_hard_exit
+from public.commerce_customer_state
+where subscription_tag_count > 1
+   or subscription_projection in ('unknown', 'unknown_conflict')
+order by updated_at desc;
+```
+

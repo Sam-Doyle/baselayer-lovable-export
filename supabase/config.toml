@@ -11,3 +11,11 @@ verify_jwt = true
 # EMAIL_SYNC_WORKER_SECRET.
 [functions.email-sync-worker]
 verify_jwt = false
+
+# Shopify authenticates this endpoint using the raw-body HMAC header.
+[functions.shopify-lifecycle-webhook]
+verify_jwt = false
+
+# Called only by the Netlify scheduled proxy with a service-only bearer token.
+[functions.commerce-signal-worker]
+verify_jwt = false

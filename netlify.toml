@@ -16,6 +16,13 @@
 [functions."email-sync-scheduler"]
   schedule = "*/15 * * * *"
 
+# Claims only explicitly released, consented lifecycle events. The Supabase
+# worker returns a zero-job audit response until COMMERCE_LIFECYCLE_MODE is
+# deliberately changed to publish after the full Shopify/Brevo QA matrix.
+[functions."commerce-sync-scheduler"]
+  schedule = "*/5 * * * *"
+
+
 # Cache static assets aggressively
 [[headers]]
   for = "/assets/*"

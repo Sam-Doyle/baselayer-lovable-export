@@ -107,6 +107,12 @@ const PrivacyPolicy = () => {
                 contents with your email contact so we can send relevant welcome, cart-recovery, and replenishment
                 messages. Cart events do not contain your email address; Brevo associates them using its visitor cookie.
               </p>
+              <p className="mt-3">
+                After a purchase, Shopify may also send us limited order-status, fulfillment, delivery, refund,
+                subscription-order, and email-consent information. We store a minimized lifecycle record in Supabase and,
+                only when marketing consent is current, share relevant status signals with Brevo. These lifecycle records
+                exclude payment-card details, shipping and billing addresses, and phone numbers.
+              </p>
             </section>
 
             <section>
