@@ -3,10 +3,12 @@ title: Technical SEO — Crawl, Index, Schema, Prerender
 domain: technical
 created: 2026-08-18
 last_compiled: 2026-08-18
-revision: 1
-sources: [Google Search Console warnings, served HTML on baselayerskin.co, curl host/protocol probes, puppeteer polling probe, vite.config.ts prerender plugin]
+revision: 2
+sources: [Google Search Console warnings, served HTML on baselayerskin.co, curl host/protocol probes, puppeteer polling probe, vite.config.ts prerender plugin, /seo-os:tech-debt full-sitemap crawl 2026-08-18, GA4 property 526066920]
 codePaths:
   - vite.config.ts
+  - public/_redirects
+  - src/pages/advertorials/
   - src/config/pageSeo.ts
   - src/components/SEO.tsx
   - src/pages/Index.tsx
@@ -211,6 +213,95 @@ committed output would ship stale if the plugin ever bailed early.
 
 ---
 
+## Instance 4 — Ad Landing Pages Ship the Homepage's `<title>` (2026-08-18, `/seo-os:tech-debt` crawl + curl of served HTML, confidence: high)
+
+Same governing rule, fourth instance, and the one with the widest blast radius
+because it hits paid traffic rather than organic.
+
+`vite.config.ts` (~line 967) deliberately excludes three route families from
+prerendering and rewrites them to a generic shell with a 200 status:
+
+```
+/lp          /__shell.html  200
+/article/*   /__shell.html  200
+/product/*   /__shell.html  200
+```
+
+`__shell.html` is 8,171 bytes and carries the **homepage's** title with no
+canonical at all:
+
+```
+$ curl -sSL https://baselayerskin.co/article/5-reasons | grep -o '<title>.*</title>'
+<title>Base Layer | Men's Face Cream That Actually Works | $38</title>
+```
+
+All five advertorials do set their own title, description and self-canonical on
+hydration via `useCanonical()` / `useMetaTags()` in `src/pages/advertorials/*.tsx`.
+Googlebot renders JS, so Googlebot is fine. Everything that does not render JS is
+not:
+
+- **Social unfurlers.** Facebook, Instagram, X and LinkedIn read raw HTML. Every
+  shared or paid placement of an advertorial previews as "Base Layer | Men's Face
+  Cream That Actually Works | $38" instead of "5 Reasons Men Are Switching From
+  Drugstore Face Creams". The hook the ad was written around is discarded at the
+  preview card.
+- **AI crawlers.** `robots.txt` explicitly welcomes GPTBot, ClaudeBot,
+  PerplexityBot, CCBot and the rest. All five advertorials currently present to
+  them as the homepage.
+
+The five affected routes are `/article/5-reasons`, `/article/2-minute-routine`,
+`/article/one-bottle-experiment`, `/article/peptide-stack`,
+`/article/concentration-test`, plus `/lp` and the `/product/*` wildcard.
+
+**Fix:** the prerender pipeline works as of `ff8ba06` (2026-08-17). Add these
+routes to the prerender list and drop the shell rewrites, so they ship a real
+head like every other route. Keep them out of `sitemap.xml` — prerendering and
+sitemap inclusion are separate decisions.
+
+**Do not confuse this with the indexability question.** Whether advertorials
+*should* be indexable is a separate open decision tracked in
+`kb/wiki/seo-strategy.md`. Adding `noindex` would resolve that one and leave this
+one broken, because a social unfurler does not read robots directives either.
+Prerendering fixes both surfaces; `noindex` fixes one.
+
+---
+
+## Crawl Health Baseline (2026-08-18, `/seo-os:tech-debt`, all 60 sitemap URLs, confidence: high)
+
+Full sequential crawl of every sitemap URL with a normal Chrome UA. **60/60
+returned 200.** Zero redirects, zero chains, zero loops, zero canonical
+mismatches, zero `noindex`, exactly one title, one canonical and one h1 per page,
+no duplicate titles, no duplicate canonicals, and nothing 4xx that is internally
+linked.
+
+Record this as the baseline: **technical delivery is not what is capping this
+site.** Future audits should compare against 60/60 clean rather than re-deriving
+it. The two pages carrying 78% of all sessions (`/` at 138 and `/face-cream` at
+71 over 90 days) have nothing wrong with them.
+
+The residual hygiene items, all on pages with zero sessions and zero impressions:
+
+- **Five 2-hop redirect chains through `/blog/*`.** `/blog/3-step-skincare-routine-men`,
+  `/blog/skincare-ingredients-that-work`, `/blog/post-shave-recovery`,
+  `/blog/razor-burn-guide` and `/blog/skin-barrier-guide` each match the
+  `/blog/* → /articles/:splat` wildcard first, then the article-slug rule.
+  Netlify takes the first matching rule, so five explicit
+  `/blog/<old-slug> → <final> 301` lines placed *above* the wildcard in
+  `public/_redirects` collapse every one to a single hop.
+- **One internal link to a 301.** `/articles/the-ultimate-3-step-skincare-routine-for-urban-commuters`
+  links to `/skin-concerns/barrier-damage`, which 301s to
+  `/skin-concerns/dry-dehydrated-skin-men`.
+- **`/product/*` is an open 200 wildcard**, so unknown handles are soft-404s
+  rather than real 404s. Nothing links there and the plural `/products/*`
+  correctly 301s to `/face-cream`, so live exposure is zero.
+
+**Core Web Vitals were not measured** in this run and no claim about them appears
+anywhere in it. There is no PageSpeed Insights key at `~/.seo-os/psi-key.txt`.
+The key is free; without it the tech-debt skill skips CWV entirely rather than
+substituting a heuristic.
+
+---
+
 ## Live Verification Snippets
 
 Reading served HTML beats reading source. These are the checks that caught the
@@ -225,6 +316,13 @@ curl -s https://baselayerskin.co/face-cream | grep -c '<title>'
 
 # Sitemap shape
 curl -s https://baselayerskin.co/sitemap.xml | grep -c '<loc>'
+
+# Ad landing pages must NOT carry the homepage title (Instance 4)
+curl -sSL https://baselayerskin.co/article/5-reasons | grep -o '<title>.*</title>'
+
+# Redirect hop count — anything above 1 is a chain
+curl -sS -o /dev/null -L -w 'hops=%{num_redirects} -> %{url_effective}\n' \
+  https://baselayerskin.co/blog/3-step-skincare-routine-men
 ```
 
 ---

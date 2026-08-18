@@ -3,8 +3,8 @@ title: SEO Strategy
 domain: marketing
 created: 2026-04-03
 last_compiled: 2026-08-18
-revision: 4
-sources: [SEO.tsx, generate-sitemap.mjs, robots.txt, netlify.toml, SEO_AUDIT_REPORT.md, SEO_OPTIMIZATION_PLAN.md, KEYWORD_OPTIMIZATION_REPORT.md, INTERNAL_LINKING_VISUAL_MAP.md, content/CLAUDE.md, Search Console API, GA4 API, /seo-os:tech-debt crawl, /seo-os:backlinks SERP sweep, 3-agent content improvement pass, live verification of /article/peptide-stack after deploy 3aca582]
+revision: 5
+sources: [SEO.tsx, generate-sitemap.mjs, robots.txt, netlify.toml, SEO_AUDIT_REPORT.md, SEO_OPTIMIZATION_PLAN.md, KEYWORD_OPTIMIZATION_REPORT.md, INTERNAL_LINKING_VISUAL_MAP.md, content/CLAUDE.md, Search Console API, GA4 API, /seo-os:tech-debt crawl, /seo-os:backlinks SERP sweep, 3-agent content improvement pass, live verification of /article/peptide-stack after deploy 3aca582, /seo-os:quick-wins 90d query+page pull 2026-08-18]
 codePaths:
   - ~/baselayer-lovable-export/src/components/SEO.tsx
   - ~/baselayer-lovable-export/scripts/generate-sitemap.mjs
@@ -355,6 +355,76 @@ either:
 
 Option 2 is the stronger signal — `robots.txt` blocks crawling but does not
 reliably prevent indexing of a URL that has inbound links.
+
+**Update 2026-08-18 (`/seo-os:tech-debt` crawl):** still open, and there are now
+**five** advertorials, not four — `/article/concentration-test` was added. Re-verified
+live: all five return 200, self-canonicalize on hydration, and emit no robots
+directive.
+
+The same crawl surfaced a second, independent problem with these URLs that changes
+which fix is correct. Because they are served the generic `/__shell.html`, their
+**raw HTML carries the homepage's `<title>` and no canonical at all.** Social
+unfurlers and AI crawlers do not run JS, so every paid placement of an advertorial
+previews as "Base Layer | Men's Face Cream That Actually Works | $38" rather than
+its own hook. Full mechanics in `kb/wiki/technical-seo.md`, Instance 4.
+
+That reframes the decision. `noindex` resolves the indexability question and leaves
+the preview broken, because an unfurler does not read robots directives. Prerendering
+the routes fixes both surfaces and is compatible with either answer on indexability,
+since prerendering and sitemap inclusion are separate decisions. **Prerender first,
+then decide on `noindex` separately.**
+
+---
+
+## The Two "Best Moisturizer" Pages Are Cannibalizing Each Other (2026-08-18, `/seo-os:quick-wins` on 90d GSC, confidence: high)
+
+**There are no page-2 quick wins because there is no page 2.** The position 4–20
+band returns zero rows at every impression threshold, including 1. Best position
+anywhere in the 90 days to 2026-08-18 is **26** ("moisturizer for men", 1
+impression). Only 7 rows sit at position ≤30, carrying 14 impressions between them.
+
+Window totals: 141 query+page rows, **366 impressions, 0 clicks.** The single
+recorded click on `/` was query-anonymized by GSC, which is the signature of a
+branded search.
+
+The real finding is that both ranking pages chase the same query set:
+
+| Page | Impressions | Queries | Best pos | Avg pos |
+|---|---|---|---|---|
+| `/articles/best-moisturizer-for-men` | 185 | 73 | 26 | 65.2 |
+| `/comparisons/best-mens-face-moisturizers-compared` | 181 | 67 | 28 | 64.3 |
+
+**21 distinct queries have both URLs ranking simultaneously, carrying 125 of the
+366 impressions.** A third of everything this site surfaces for is two of its own
+pages splitting the result. The biggest collisions: "best moisturizer for men"
+(31 impr, 56.8 vs 69.3), "best men's moisturiser" (14, 60.0 vs 30.0), "best skin
+moisturizer for men" (13, 61.1 vs 72.0), "best men's moisturizer" (10, 50.0 vs 72.7).
+
+There is a latent split neither page enforces. The **article** wins the "best
+moisturizer for men" phrasings (25 impressions at position 56.8). The **comparison
+page** wins the "best *face* moisturizer for men" phrasings — that query alone is
+28 impressions and comparison-only — and holds all seven sub-position-30 results.
+
+**Recommendation: the comparison page takes the head terms, the article retargets
+to the decision question.** Reasoning from the data, not preference: the comparison
+page holds every sub-30 result, owns the second-biggest single query outright, is
+already indexed with two internal referring URLs to the article's one, and is what
+Google reaches for on conversational AI-Overview-style prompts (four such rows,
+longest 243 characters, 12 impressions, all landing on the comparison page). Full
+paste-ready titles, H1s and a ~100-word insert are in `runs/quick-wins-2026-08-18.md`.
+
+**Honest expected value:** collisions collapse and each page consolidates somewhere
+in the 40s–50s. That is still page 4 and still zero clicks. Worth doing so the
+signal stops splitting and the authority work has something to compound onto — not
+because it produces traffic. Search is not yet a channel for this site.
+
+**Noise floor for any future GSC pull on this property:** 96 of 141 rows have a
+single impression, and only 8 queries in the whole window broke 5 impressions.
+A position on a single-impression row is one observation, not a ranking. Do not
+build a strategy on it.
+
+**Metric to re-check in 30 days:** not position. Whether the 21 cannibalized
+queries drop to zero.
 
 ---
 

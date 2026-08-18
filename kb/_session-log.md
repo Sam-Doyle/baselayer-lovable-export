@@ -724,3 +724,16 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Findings**: Shopify cart recovery must continue to use the event's authoritative checkout URL; a generic PDP URL is only a fallback because it cannot restore server-side cart state.
 - **Files changed**: `src/lib/emailCampaign.ts`, `src/components/EmailCampaignLanding.tsx`, `src/App.tsx`, `src/components/SkinConcernQuiz.tsx`, `src/stores/cartStore.ts`, `src/config/product.ts`, related tests, and `docs/email-campaign-links.md`.
 - **KB updates**: No inbox entry; the durable operational conventions live in the email link contract.
+
+## 2026-08-18 — Tech-debt crawl + quick-wins audit, KB compile
+- **Task**: Ran `/seo-os:tech-debt` (full 60-URL sitemap crawl joined to 90d GA4 + GSC) and `/seo-os:quick-wins` (90d GSC query+page), then compiled the inbox.
+- **Findings**:
+  - Crawl is clean. 60/60 sitemap URLs return 200, zero redirects, zero canonical mismatches, zero `noindex`, one title/canonical/h1 each. Technical delivery is not the constraint.
+  - One structural finding: the five advertorials, `/lp` and `/product/*` are rewritten to `/__shell.html`, whose raw HTML carries the homepage `<title>` and no canonical. Googlebot renders JS so it is fine; social unfurlers and the AI crawlers `robots.txt` invites are not. Fourth instance of the dual-writer `<head>` rule.
+  - This also reframes the open 2026-08-12 advertorial indexability decision: prerender first, decide `noindex` separately, because an unfurler ignores robots directives.
+  - No page-2 quick wins exist. Position 4–20 is empty at every impression threshold; best position anywhere is 26. 366 impressions, 0 clicks over 90 days.
+  - Cannibalization is the real finding: `/articles/best-moisturizer-for-men` (185 impr) and `/comparisons/best-mens-face-moisturizers-compared` (181 impr) collide on 21 queries carrying 125 of 366 impressions. Recommended split: comparison page takes the head terms, article retargets to the decision question.
+  - Zero-traffic hygiene: five 2-hop `/blog/*` redirect chains, one internal link to a 301, `/product/*` open 200 wildcard.
+  - CWV not measured — no PSI key at `~/.seo-os/psi-key.txt`.
+- **Files changed**: `runs/tech-debt-2026-08-18.md` (new), `runs/quick-wins-2026-08-18.md` (new), `kb/wiki/technical-seo.md` (rev 1→2), `kb/wiki/seo-strategy.md` (rev 4→5), `kb/_index.md`, `kb/_inbox.md`, `kb/_session-log.md`
+- **KB updates**: 4 inbox entries compiled and cleared. `technical-seo.md` gained Instance 4 and a crawl-health baseline; `seo-strategy.md` gained the cannibalization section and an update to the open advertorial decision.
