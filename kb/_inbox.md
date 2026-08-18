@@ -223,3 +223,32 @@ and no robots meta. All 60 sitemap URLs return 200 with zero redirects or
 being reported, which is the expected and correct state, not an indexing
 blocker. Check which property variant the report is scoped to before treating
 it as a bug.
+
+---
+date: 2026-08-17
+category: technical
+source: grep of the 14 useMetaTags call sites vs STATIC_PAGES in vite.config.ts, then diffing built output
+confidence: high
+target_article: technical-seo
+---
+Same drift class as the double-Product-schema finding above, different field.
+Page titles and descriptions were declared twice: STATIC_PAGES in
+vite.config.ts baked one set into the prerendered HTML, and each page component
+set another through useMetaTags on hydration. Ten of the fourteen static routes
+disagreed with themselves, including / and /face-cream. Only the four policy
+pages matched.
+
+Consequence: Google renders JS, so the component title is what ranks, while
+Facebook/Twitter/Slack scrapers and non-rendering crawlers read the prerendered
+one. The build-config titles were the keyword-loaded ones (carrying "$38",
+"2026", "Best Men's Face Moisturizer") and were the half being thrown away.
+
+Fixed 2026-08-17 by moving both into src/config/pageSeo.ts, imported relatively
+by vite.config.ts (the "@/" alias isn't resolvable while that config loads) and
+via the alias by the components. Verified in dist/: all 14 routes ship exactly
+one title and one description, and document.title after hydration equals the
+prerendered value.
+
+The generalisable rule now has two instances: in this codebase, anything the
+prerender plugin injects into <head> has a component that also writes it. Check
+both before trusting either, and read the built HTML rather than the source.
