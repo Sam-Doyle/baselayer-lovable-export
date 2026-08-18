@@ -1,11 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.97.0";
-
-interface CommerceJob {
-  id: string;
-  email: string;
-  payload: Record<string, unknown>;
-  attempts: number;
-}
+import {
+  processCommerceSignalJob,
+  type CommerceSignalJob,
+} from "../_shared/commerce-signal-job.ts";
 
 class ProviderError extends Error {
   constructor(message: string, readonly retryable: boolean) {
@@ -97,7 +94,7 @@ Deno.serve(async (req) => {
     return jsonResponse(503, { success: false, error: "claim_failed" });
   }
 
-  const jobs = (data ?? []) as CommerceJob[];
+  const jobs = (data ?? []) as CommerceSignalJob[];
   const counts = { succeeded: 0, suppressed: 0, pending: 0, failed: 0 };
   for (let offset = 0; offset < jobs.length; offset += 5) {
     const outcomes = await Promise.all(jobs.slice(offset, offset + 5).map(async (job) => {
@@ -105,13 +102,23 @@ Deno.serve(async (req) => {
       let retryable = false;
       let errorMessage: string | null = null;
       try {
-        const sendable = await brevoContactIsSendable(job.email, brevoApiKey);
-        if (!sendable) {
-          outcome = "suppressed";
-          errorMessage = "Brevo contact missing or email-blocklisted at send time";
-        } else {
-          await publishBrevoEvent(job.payload, brevoApiKey);
-        }
+        const result = await processCommerceSignalJob(job, {
+          contactIsSendable: (email) => brevoContactIsSendable(email, brevoApiKey),
+          jobIsStillEligible: async (id) => {
+            const { data: eligible, error: eligibilityError } = await supabase.rpc(
+              "commerce_lifecycle_job_is_still_eligible",
+              { p_outbox_id: id },
+            );
+            if (eligibilityError) {
+              throw new ProviderError("Commerce send-time eligibility check failed", true);
+            }
+            return eligible === true;
+          },
+          publish: (payload) => publishBrevoEvent(payload, brevoApiKey),
+        });
+        outcome = result.outcome;
+        retryable = result.retryable;
+        errorMessage = result.errorMessage;
       } catch (error) {
         const providerError = error instanceof ProviderError ? error : new ProviderError("Unexpected provider failure", true);
         outcome = "failed";
@@ -139,4 +146,3 @@ Deno.serve(async (req) => {
 
   return jsonResponse(200, { success: true, mode: "publish", claimed: jobs.length, ...counts });
 });
-

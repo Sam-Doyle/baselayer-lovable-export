@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "test:commerce-sql": "node scripts/verify-commerce-lifecycle.mjs",
     "dev": "vite",
     "build": "node scripts/generate-sitemap.mjs && node scripts/fetch-reviews.mjs && vite build",
     "build:sitemap": "node scripts/generate-sitemap.mjs",

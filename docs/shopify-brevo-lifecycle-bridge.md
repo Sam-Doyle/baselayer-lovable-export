@@ -109,6 +109,8 @@ All Brevo names are isolated from PushOwl by the `bl_*_v1` namespace:
 | `bl_delivery_window_elapsed_v1` | Explicit estimate at fulfillment +5 days; `estimated=true` |
 | `bl_subscription_projection_v1` | Suppression state only; never starts subscriber messages |
 | `bl_replenishment_due_v1` | One-time-order replenishment eligibility after all send-time checks |
+| `bl_postpurchase_quickstart_v1` | Due-time usage guide signal at actual/estimated delivery +1 day |
+| `bl_postpurchase_results_v1` | Due-time results check-in signal at actual/estimated delivery +14 days |
 
 The Brevo payload contains only the email identifier, Shopify order/customer
 IDs, bottle/pack classification, subscription-order flag/plan ID, lifecycle
@@ -130,8 +132,12 @@ prices, payment data, and raw Shopify objects.
   positively consented one-time purchase.
 - Single replenishment eligibility: paid +35 days. Two-pack: paid +77 days.
 - A true carrier delivery cancels the estimate. Without one,
-  `bl_delivery_window_elapsed_v1` is eligible at fulfilled +5 days; Brevo may
-  send education one day later.
+  `bl_delivery_window_elapsed_v1` is eligible at fulfilled +5 days. Supabase
+  schedules the quickstart/results signals from that estimate and rechecks
+  consent and order state at +1/+14 days. A later real delivery suppresses
+  unsent estimate-basis education and schedules actual-basis education. If an
+  estimate-basis email already sent, the matching actual-basis event is
+  suppressed to prevent a duplicate.
 - Any product-line refund exits that order's education and replenishment and
   applies a 60-day lifecycle hold. A shipping-only adjustment keeps education
   but cancels urgency/replenishment. Full refund/cancel hard-exits all journeys
@@ -251,6 +257,47 @@ Create these exact attributes; unknown attributes can reject the event:
    existing PushOwl purchase/cart exits.
 9. Change both functions to publish only after written operator acceptance.
    Do not release old held jobs.
+
+### Current audit handoff (2026-08-18)
+
+- `COMMERCE_LIFECYCLE_MODE=audit`; the authenticated production scheduler
+  reports `claimed: 0`. The shared worker secret is present in Supabase and
+  Netlify and the public scheduler route remains inaccessible.
+- Shopify Flow drafts `BL | Subscription State | Contract Created` and
+  `BL | Subscription State | Contract Updated` are both inactive. Their
+  triggers are respectively `Subscription contract created` and
+  `Subscription contract updated`; each has ACTIVE/CANCELLED/EXPIRED/FAILED/
+  PAUSED plus a fallback and exclusively removes/adds the six `bl_sub_*` tags.
+- Brevo remains 5 active / 7 inactive. The existing welcome and cart journeys
+  are unchanged. These authoritative retention drafts are inactive and have
+  no legacy `order_created` trigger or redundant internal wait:
+  - #5 `BL | Post-Purchase | Delivery +1 | Usage` →
+    `bl_postpurchase_quickstart_v1`
+  - #6 `BL | Post-Purchase | Delivery +14 | Results Check-In` →
+    `bl_postpurchase_results_v1`
+  - #7 `BL | Replenishment | Single | Day 35` →
+    `bl_replenishment_due_v1` where `basis = single_day_35`
+  - #12 `BL | Replenishment | Two-Pack | Day 77` →
+    `bl_replenishment_due_v1` where `basis = two_pack_day_77`
+- Representative custom-event schemas were staged only to the internal test
+  contact `samuel.r.doyle@gmail.com`; every staging endpoint was deleted after
+  the Brevo event catalog learned the names/properties. No automation was
+  activated and no lifecycle email was sent.
+- Production SQL acceptance passed twice after the final migrations:
+  `bl-sql-audit-1787076792437-a4c9c8d0` and
+  `bl-sql-audit-1787076802003-206b7cd6`, 40 checks each, zero published events.
+- The remaining activation gate is the full two-pass **real Shopify** matrix
+  below, including subscription transitions and carrier delivery. Synthetic
+  state-machine coverage is not a substitute. Keep both Flow drafts, all four
+  Brevo retention drafts, and the bridge inactive/audit until it passes.
+
+### Rollback
+
+If any live acceptance check fails, set `COMMERCE_LIFECYCLE_MODE=audit`
+immediately, deactivate Brevo automations #5/#6/#7/#12, and deactivate both BL
+subscription Flow workflows. Do not delete receipts or replay historical held
+outbox jobs. Diagnose using the operational queries below, fix forward, and
+repeat the full matrix twice before reconsidering activation.
 
 ## Acceptance matrix
 
