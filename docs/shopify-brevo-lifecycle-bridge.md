@@ -265,6 +265,54 @@ environment variables.
    `X-Shopify-Webhook-Id` must remain one. Confirm Brevo has no `bl_*_v1`
    event and the worker still reports `claimed: 0`.
 
+### Dedicated lifecycle QA store
+
+Use the Shopify development store `base-layer-lifecycle-qa.myshopify.com` for
+state-machine and suppression testing. It is intentionally separate from the
+live storefront and uses Shopify's generated test data and payment behavior.
+
+The Base Layer QA catalog is:
+
+| Item | Shopify ID | QA value |
+| --- | --- | --- |
+| Product | `15227427488048` | Performance Daily Face Cream |
+| One-bottle variant | `67548639199536` | $38, 88 g |
+| Two-bottle variant | `67548639232304` | $68, 176 g |
+| Subscription offer | Shopify Subscriptions plan page `80118907184` | one bottle, $35 every 6 weeks; not the signed `selling_plan_id` |
+
+Install the read-only `Base Layer Lifecycle Bridge` app and register its seven
+shop-specific webhook subscriptions after every new dev-store install:
+
+```bash
+SHOPIFY_SHOP_DOMAIN=base-layer-lifecycle-qa.myshopify.com \
+SHOPIFY_CLIENT_ID='...' \
+SHOPIFY_CLIENT_SECRET='...' \
+SHOPIFY_LIFECYCLE_CALLBACK_URL='https://rymidvhuyxqvvyjpodqn.supabase.co/functions/v1/shopify-lifecycle-webhook' \
+npm run shopify:webhooks:register
+```
+
+The command is idempotent and supports `-- --dry-run`. Never put the client
+secret in a checked-in env file or a `VITE_*` variable.
+
+Production Supabase must remain configured with:
+
+- `COMMERCE_LIFECYCLE_MODE=audit` during QA;
+- `COMMERCE_PUBLISH_SHOP_DOMAINS=kpfzdg-kw.myshopify.com`, excluding the QA shop;
+- the QA shop/variant environment variables documented above;
+- an empty QA selling-plan allowlist only until the first real subscription
+  checkout reveals the signed line-item `selling_plan_id`, then pin that ID.
+
+On 2026-08-18, dev order `#1002` (`18834932007216`) passed the first paid-order
+smoke test: one `orders/paid` receipt, one retained bottle, non-subscription,
+and exactly two held outbox rows (`bl_order_paid_v1` and
+`bl_replenishment_due_v1`) with `hold_reason = 'audit_mode'`. Replaying the
+same webhook ID returned `duplicate: true`; no job was pending or published.
+
+The Shopify Flow contract-created/updated workflows belong only in the QA
+store until every status transition passes twice. They must remove all six
+`bl_sub_*` tags before adding exactly one state tag. Keep production Flow
+workflows inactive until the activation checklist is complete.
+
 ## Brevo attributes required before publish mode
 
 Create these exact attributes; unknown attributes can reject the event:
