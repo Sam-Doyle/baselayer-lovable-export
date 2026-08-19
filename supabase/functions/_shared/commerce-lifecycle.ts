@@ -484,3 +484,18 @@ export async function verifyShopifyHmac(rawBody: string, suppliedHmac: string, s
   }
   return difference === 0;
 }
+
+export async function verifyShopifyHmacWithRotation(
+  rawBody: string,
+  suppliedHmac: string,
+  secrets: readonly string[],
+): Promise<boolean> {
+  let verified = false;
+  for (const secret of [...new Set(secrets.map((value) => value.trim()).filter(Boolean))]) {
+    // Check every configured secret so the rotation path does not reveal which
+    // secret Shopify used through an observable short-circuit.
+    const matches = await verifyShopifyHmac(rawBody, suppliedHmac, secret);
+    verified = matches || verified;
+  }
+  return verified;
+}

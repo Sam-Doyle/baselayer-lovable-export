@@ -6,7 +6,7 @@ import {
   normalizeShopifyWebhook,
   sha256Hex,
   validateCanonicalSignal,
-  verifyShopifyHmac,
+  verifyShopifyHmacWithRotation,
   type ShopifyOrderEnrichment,
   type ShopifyTopic,
 } from "../_shared/commerce-lifecycle.ts";
@@ -183,9 +183,12 @@ Deno.serve(async (req) => {
   }
 
   const clientSecret = Deno.env.get("SHOPIFY_CLIENT_SECRET") ?? "";
-  const webhookSecret = Deno.env.get("SHOPIFY_WEBHOOK_SECRET") || clientSecret;
+  const webhookSecrets = [
+    Deno.env.get("SHOPIFY_WEBHOOK_SECRET") || clientSecret,
+    Deno.env.get("SHOPIFY_WEBHOOK_SECRET_NEXT") || "",
+  ];
   const suppliedHmac = header(req, "x-shopify-hmac-sha256");
-  if (!webhookSecret || !await verifyShopifyHmac(rawBody, suppliedHmac, webhookSecret)) {
+  if (!await verifyShopifyHmacWithRotation(rawBody, suppliedHmac, webhookSecrets)) {
     return jsonResponse(401, { success: false, error: "invalid_signature" });
   }
 

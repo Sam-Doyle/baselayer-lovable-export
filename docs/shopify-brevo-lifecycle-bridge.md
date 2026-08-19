@@ -360,12 +360,13 @@ Create these exact attributes; unknown attributes can reject the event:
 9. Change both functions to publish only after written operator acceptance.
    Start with an empty claim and do not release old held jobs.
 
-### Current production containment and repair (2026-08-19)
+### Current production activation (2026-08-19)
 
-- `COMMERCE_LIFECYCLE_MODE=audit`. The bridge was returned to fail-closed audit
-  mode after an adversarial concurrency review. The authenticated worker
-  reports `claimed: 0`; historical `audit_mode` jobs remain held and must never
-  be replayed.
+- `COMMERCE_LIFECYCLE_MODE=publish`, with
+  `COMMERCE_PUBLISH_SHOP_DOMAINS=kpfzdg-kw.myshopify.com`. Publish mode applies
+  only to newly-created, qualifying production events. Historical
+  `audit_mode` jobs remain held and must never be replayed; the lifecycle QA
+  shop remains non-publishable.
 - Migration `20260819120000_commerce_lifecycle_delivery_safety.sql` adds
   chronological consent, safe Shopify customer-email migration, fenced worker
   leases, send-time shop allowlisting, and `delivery_uncertain` quarantine for
@@ -375,6 +376,12 @@ Create these exact attributes; unknown attributes can reject the event:
 - `COMMERCE_PUBLISH_SHOP_DOMAINS` contains only
   `kpfzdg-kw.myshopify.com`; the lifecycle QA store cannot publish Brevo
   events even though its signed webhooks continue populating audit state.
+- The dedicated Shopify app client secret was rotated before activation and
+  the retired secret was revoked. During the handoff the webhook endpoint
+  accepted both configured secrets without short-circuiting; a signed QA
+  probe verified the replacement secret, after which the primary webhook
+  secret was consolidated to the replacement and the temporary next-secret
+  value was removed.
 - Shopify Flow workflows `BL | Subscription State | Contract Created` and
   `BL | Subscription State | Contract Updated` are active. Their triggers are
   respectively `Subscription contract created` and `Subscription contract
@@ -422,21 +429,23 @@ Create these exact attributes; unknown attributes can reject the event:
   remained replenishment-blocked. The final projection is cancelled with one
   tag and is fail-closed for replenishment until a genuinely later one-time
   order.
-- Current queues are quiescent: production has 19 held rows; QA has only held
-  or cancelled rows; neither shop has pending, processing, succeeded, failed,
-  or delivery-uncertain work. Every QA row remains `held/audit_mode` or an
-  explicit cancellation, and no Brevo lifecycle event or customer email was
-  published by this matrix.
+- Activation began with quiescent queues: production had 19 held rows; QA had
+  only held or cancelled rows; neither shop had pending, processing,
+  succeeded, failed, or delivery-uncertain work. Every pre-activation QA row
+  remains `held/audit_mode` or an explicit cancellation, and no historical
+  row was released.
 - The Netlify scheduler credential was rotated and restored as a secret for
-  the production context. The same value is installed in Supabase; an
-  authenticated worker probe returns `mode: audit`, `claimed: 0`, and zero
-  failures. Netlify's current plan exposes the secret to the builds/functions/
-  runtime scopes rather than the preferred functions-only scope, but its value
-  remains masked and only production has a non-empty value.
-- Keep `COMMERCE_LIFECYCLE_MODE=audit` until the Shopify app client secret is
-  rotated (it appeared in operator tooling during setup) and an operator gives
-  explicit written approval to publish. Never release historical held rows;
-  the first publish-mode run must start from newly-created qualifying events.
+  the production context. The same value is installed in Supabase. A
+  pre-activation authenticated worker probe returned `mode: audit`,
+  `claimed: 0`, and zero failures; the production scheduler remains registered
+  every five minutes after activation, and its first no-op window left every
+  historical row held with zero unsafe or published jobs. Netlify's current
+  plan exposes the secret to the builds/functions/runtime scopes rather than
+  the preferred functions-only scope, but its value remains masked and only
+  production has a non-empty value.
+- Samuel Doyle gave explicit written approval to publish on 2026-08-19 after
+  the acceptance matrix passed. Never release historical held rows; live
+  publishing starts only from newly-created qualifying production events.
 
 ### Rollback
 
@@ -484,8 +493,10 @@ contract export against tags and projection weekly.
 | Refund exit followed by positive repurchase | Real QA orders `#1006`→`#1007` plus two SQL-matrix runs |
 | Customer-email migration, lease fencing, provider uncertainty | Two SQL-matrix runs and focused code tests |
 
-Result: **PASS in audit mode**. This is a release-readiness result, not an
-authorization to publish. Provider dispatch remains disabled.
+Result: **PASS**. The matrix was completed in audit mode, followed by explicit
+operator authorization, credential rotation, a production-only allowlist
+check, and publish-mode activation. Provider dispatch is enabled only for new
+qualifying production events.
 
 ## Operational queries
 
