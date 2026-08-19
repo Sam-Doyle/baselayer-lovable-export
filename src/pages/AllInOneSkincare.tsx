@@ -749,6 +749,8 @@ const AllInOneSkincare = () => {
                 { label: "Face Cream Details", path: "/face-cream" },
                 { label: "Best Men's Moisturizers Compared", path: "/comparisons/best-mens-face-moisturizers-compared" },
                 { label: "CeraVe vs Base Layer", path: "/comparisons/cerave-vs-base-layer" },
+                { label: "Non-Greasy Moisturizer Guide", path: "/non-greasy-moisturizer-for-men" },
+                { label: "Matte Moisturizer Guide", path: "/matte-moisturizer-for-men" },
                 { label: "All Skin Concerns", path: "/skin-concerns" },
               ].map((link) => (
                 <Link

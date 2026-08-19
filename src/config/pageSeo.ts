@@ -113,18 +113,18 @@ export const PAGE_SEO = {
     priority: "0.8",
   },
   "/matte-moisturizer-for-men": {
-    title: "Matte Moisturizer for Men | Zero Shine, All Day | Base Layer",
+    title: "Matte Moisturizer for Men With Oily Skin | Base Layer",
     description:
-      "The best matte moisturizer for men. Niacinamide 5% controls oil, squalane absorbs in 15 seconds. No shine, no grease, no fragrance. $38.",
+      "Matte moisturizer for men with oily skin. Niacinamide 5% cuts shine at the source, not a mattifying primer or powder. Fragrance-free, $38.",
     ogType: "product",
     ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",
     priority: "0.9",
   },
   "/non-greasy-moisturizer-for-men": {
-    title: "Non-Greasy Moisturizer for Men | Absorbs in 15 Seconds",
+    title: "Non-Greasy Face Moisturizer for Men | Zero Residue",
     description:
-      "The best non-greasy moisturizer for men. Squalane absorbs in 15 seconds. Niacinamide 5% controls oil. No residue, no fragrance, no subscriptions. $38.",
+      "Non-greasy face moisturizer for men. Lightweight gel-cream texture, squalane absorbs in 15 seconds, zero oily film. Niacinamide 5%. $38.",
     ogType: "product",
     ogImage: PRODUCT_OG_IMAGE,
     changefreq: "weekly",

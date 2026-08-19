@@ -23,6 +23,9 @@ const Footer = () => {
               <li><Link to="/ingredients" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Ingredients</Link></li>
               <li><Link to="/skin-concerns" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Skin Concerns</Link></li>
               <li><Link to="/comparisons" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Compare Moisturizers</Link></li>
+              <li><Link to="/non-greasy-moisturizer-for-men" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Non-Greasy Moisturizer</Link></li>
+              <li><Link to="/matte-moisturizer-for-men" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Matte Moisturizer</Link></li>
+              <li><Link to="/all-in-one-skincare-for-men" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">All-in-One Skincare</Link></li>
             </ul>
           </div>
 

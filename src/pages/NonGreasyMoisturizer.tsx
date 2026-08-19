@@ -7,8 +7,8 @@ import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import { Droplets, Timer, Shield, Leaf, Zap, FlaskConical, CheckCircle2, ArrowRight, Clock } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import routineGraphic from "@/assets/generated-creatives/content_visual_routine_graphic_1772738778419.png";
-import absorptionDiagram from "@/assets/generated-creatives/content_visual_absorption_diagram_1772738792625.png";
+import absorptionProof from "@/assets/absorption-proof.jpg";
+import creamTextureMacro from "@/assets/cream-texture-macro.jpg";
 import { merchantOfferFields } from "@/config/merchantSchema";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
 import { metaFor } from "@/config/pageSeo";
@@ -18,7 +18,7 @@ import { metaFor } from "@/config/pageSeo";
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Product",
-  name: "Base Layer Performance Daily Face Cream — Non-Greasy Moisturizer for Men",
+  name: "Base Layer Performance Daily Face Cream: Non-Greasy Moisturizer for Men",
   description:
     "Non-greasy men's face moisturizer that absorbs in 15 seconds. Squalane-based formula with niacinamide 5%, copper peptide, and hyaluronic acid. No residue. $38.",
   brand: { "@type": "Brand", name: "Base Layer" },
@@ -40,44 +40,54 @@ const PRODUCT_SCHEMA = {
 
 const faqs = [
   {
+    question: "What actually makes a moisturizer feel greasy?",
+    answer:
+      "Weight and molecule size, mostly. Occlusive ingredients like petrolatum and mineral oil use molecules too large to pass into skin, so they sit on the surface as a film instead of absorbing. Silicones cause a similar problem in a different way: they smooth over your skin rather than integrating into it. Base Layer uses squalane instead, which is close enough to your skin's own oils that it gets pulled in rather than sitting on top.",
+  },
+  {
     question: "Why do most moisturizers feel greasy on men's skin?",
     answer:
-      "Two reasons. First, most moisturizers are formulated for women's skin, which is thinner and produces less oil — so they use heavy, occlusive bases (petroleum, mineral oil) designed to lock moisture into drier skin. Second, men's skin produces significantly more sebum due to higher testosterone levels. Put a heavy moisturizer on already-oily skin and you get that greasy, sticky feel within minutes.",
+      "Two reasons. First, a lot of moisturizers are formulated for skin that's thinner and produces less oil, so they lean on heavy, occlusive bases (petroleum, mineral oil) built to lock moisture into drier skin. Second, men's skin produces more sebum on average, thanks to higher testosterone levels. Put a heavy, occlusive moisturizer on skin that's already producing plenty of its own oil, and you get that greasy, sticky feel within minutes.",
+  },
+  {
+    question: "How can I tell if a moisturizer actually absorbs or just feels like it does?",
+    answer:
+      "Count to 15 after applying, then touch your face. If you feel any film, tackiness, or slip, it's still sitting on the surface. Full absorption feels like bare skin: nothing on your fingers when you touch your face, nothing to wipe on a towel, nothing that transfers onto a phone screen or steering wheel.",
   },
   {
     question: "How does Base Layer absorb so fast?",
     answer:
-      "The base is squalane, a biomimetic oil that matches your skin's natural lipid structure. Because your skin recognizes it as 'self,' it absorbs in roughly 15 seconds — compared to 2-5 minutes for petroleum-based formulas. There's no residue because the molecules are small enough to integrate into your skin's lipid barrier rather than sitting on top of it.",
+      "The base is squalane, a biomimetic oil that matches your skin's natural lipid structure. Because your skin recognizes it as 'self,' it absorbs in roughly 15 seconds, compared to 2 to 5 minutes for petroleum-based formulas. There's no residue because the molecules are small enough to integrate into your skin's lipid barrier rather than sitting on top of it.",
   },
   {
     question: "Will this clog my pores?",
     answer:
-      "No. Every ingredient in Base Layer is non-comedogenic. Squalane has a comedogenicity rating of 0 (the lowest possible). Niacinamide actually helps minimize pore appearance by regulating oil production. If you've been breaking out from other moisturizers, it's likely because they contain pore-clogging ingredients like coconut oil, cocoa butter, or isopropyl myristate. Base Layer has none of those.",
+      "No. Every ingredient in Base Layer is non-comedogenic. Squalane has a comedogenicity rating of 0, the lowest possible. Niacinamide actually helps minimize pore appearance by regulating oil production. If you've been breaking out from other moisturizers, it's likely because they contain pore-clogging ingredients like coconut oil, cocoa butter, or isopropyl myristate. Base Layer has none of those.",
   },
   {
-    question: "I have oily skin — do I even need a moisturizer?",
+    question: "I have oily skin. Do I even need a moisturizer?",
     answer:
-      "Yes. Oily skin and dehydrated skin aren't mutually exclusive — in fact, they often go together. When your skin is dehydrated (lacking water), it compensates by producing even more sebum (oil). A lightweight, non-greasy moisturizer like Base Layer breaks the cycle: hyaluronic acid delivers water-based hydration while niacinamide reduces excess oil production.",
+      "Yes. Oily skin and dehydrated skin aren't mutually exclusive. In fact, they often go together. When your skin is dehydrated (lacking water), it compensates by producing even more sebum (oil). A lightweight, non-greasy moisturizer like Base Layer breaks that cycle: hyaluronic acid delivers water-based hydration while niacinamide reduces excess oil production.",
   },
   {
     question: "Can I use this before applying sunscreen?",
     answer:
-      "Absolutely. Base Layer's fast absorption makes it an ideal base for SPF. Apply one pump, wait 15-30 seconds, then apply your sunscreen. Because there's no greasy residue, your sunscreen won't pill or slide off throughout the day.",
+      "Absolutely. Base Layer's fast absorption makes it a good base for SPF. Apply one pump, wait 15 to 30 seconds, then apply your sunscreen. Because there's no greasy residue underneath, your sunscreen won't pill or slide off throughout the day.",
   },
   {
     question: "How is this different from gel moisturizers?",
     answer:
-      "Gel moisturizers are lightweight but often rely on silicones for their smooth feel — these can trap bacteria and cause breakouts over time. Many also lack the active ingredients needed for anti-aging or oil control. Base Layer uses a squalane base (no silicones) with 6 active ingredients including copper peptide and niacinamide. You get the lightweight feel of a gel with the performance of a treatment product.",
+      "Gel moisturizers are lightweight but often rely on silicones for their smooth feel, and those silicones can trap bacteria and cause breakouts over time. Many gels also skip the active ingredients you'd want for oil control or aging. Base Layer uses a squalane base (no silicones) with 6 active ingredients including copper peptide and niacinamide. You get the lightweight feel of a gel with the performance of a treatment product.",
   },
   {
     question: "How long does one bottle last?",
     answer:
-      "One bottle (50 mL) lasts 6-8 weeks with daily use — one pump morning and night. That's roughly $0.34/day for a complete moisturizer, serum, and eye cream replacement.",
+      "One bottle (50 mL) lasts 6 to 8 weeks with daily use: one pump morning and night. That's roughly $0.34 a day for a complete moisturizer, serum, and eye cream replacement.",
   },
   {
     question: "Is there a subscription?",
     answer:
-      "Not unless you pick one. Buying once is the default. One bottle is $38, the 2-pack is $68, and shipping is free either way. If you do subscribe, the first bottle is the same $38 and every one after that is $34.",
+      "Not unless you pick one. Buying once is the default. One bottle is $38, the 2-pack is $68, and shipping is free either way. If you do subscribe, the first bottle is still $38 and every one after that is $34.",
   },
 ];
 
@@ -128,14 +138,14 @@ const NonGreasyMoisturizer = () => {
             </p>
 
             <h1 className="font-heading text-3xl md:text-5xl lg:text-6xl font-black uppercase leading-[0.9] tracking-tight mb-6">
-              Non-Greasy Moisturizer for Men — Lightweight Daily Hydration
+              Non-Greasy Moisturizer for Men. Absorbs in 15 Seconds, Feels Like Nothing.
             </h1>
 
             <p className="font-body text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8">
-              Good skincare should disappear after you apply it, not follow you around all day.
-              Base Layer uses a squalane base that matches your skin's own lipid structure, so it
-              absorbs completely in about 15 seconds. No slick residue, no waxy film, no wiping
-              your hands on your jeans after applying.
+              Most moisturizers leave the job half done: shiny hands, a film in the mirror, and
+              you're still checking twenty minutes later. Base Layer is a lightweight gel-cream that
+              matches your skin's own lipid structure, so it absorbs completely in about 15 seconds
+              and stops there. No slick residue, no waxy film, no wiping your hands on your jeans.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
@@ -152,7 +162,7 @@ const NonGreasyMoisturizer = () => {
                   trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "non_greasy_hero" });
                 }}
               >
-                <span className="relative z-10">GRAB YOURS — $38</span>
+                <span className="relative z-10">GRAB YOURS: $38</span>
               </Link>
             </div>
 
@@ -167,10 +177,10 @@ const NonGreasyMoisturizer = () => {
           <div className="max-w-4xl mx-auto">
             <div className="rounded-lg border border-border overflow-hidden bg-card">
               <img
-                src={routineGraphic}
-                alt="The 15-second Base Layer routine: 1. Wash, 2. Apply, 3. Done"
+                src={absorptionProof}
+                alt="Base Layer face moisturizer fully absorbed into skin with no greasy residue or film"
                 className="w-full h-auto"
-                loading="lazy"
+                loading="eager"
                 decoding="async"
               />
             </div>
@@ -185,30 +195,33 @@ const NonGreasyMoisturizer = () => {
             </h2>
 
             <p className="font-body text-base text-muted-foreground leading-relaxed mb-6">
-              You try a moisturizer. It feels like you smeared cooking oil on your face. You wipe
-              your hands on a towel. Twenty minutes later your skin still feels coated. According
-              to Mintel research, <strong className="text-foreground">73% of men</strong> who have
-              tried a face moisturizer say the greasy feel was their top complaint. They try one
-              product, hate the texture, and quit. The problem is not discipline. It is that most
-              moisturizers were not designed for skin that already produces plenty of its own oil.
+              You put on a moisturizer and immediately regret it. It feels like you rubbed cooking
+              oil into your face. You wipe your hands on a towel. Twenty minutes later your skin
+              still feels coated. Greasy feel is the complaint you hear most often about men's
+              moisturizers, and it's usually the reason a guy tries one, hates the texture, and
+              stops using moisturizer altogether. The problem is not discipline. It is that most
+              moisturizers were never built around how they actually feel once they're on your skin.
             </p>
 
             <p className="font-body text-base text-muted-foreground leading-relaxed mb-6">
-              Most formulas use petroleum-based emollients (mineral oil, petrolatum, dimethicone)
-              that create an occlusive layer on your skin. These ingredients were designed for drier
-              skin that needs help retaining moisture. On men's thicker, oilier skin, they just sit
-              there.
+              Here is why it happens. Most formulas use petroleum-based emollients (mineral oil,
+              petrolatum, dimethicone) built as occlusives: they sit on top of your skin and
+              physically block moisture from escaping. That's genuinely useful on very dry skin. On
+              men's skin, which runs oilier on average, an occlusive layer just adds weight to oil
+              you're already producing. Nothing is absorbing. It's sitting there.
             </p>
 
             <p className="font-body text-base text-muted-foreground leading-relaxed mb-6">
-              Then there are the "lightweight" gel moisturizers. They absorb faster but rely on
-              silicones for that smooth finish. Silicones can trap bacteria and sebum beneath a
-              synthetic film, leading to clogged pores and breakouts over time.
+              Then there are "lightweight" gel moisturizers, which absorb faster but often lean on
+              silicones (dimethicone, cyclomethicone) for that smooth, slippery feel. Silicones
+              don't absorb into skin either. They sit on the surface as a thin film, which is why
+              some gel formulas still feel filmy or trap sebum and bacteria underneath over time.
             </p>
 
             <p className="font-body text-base text-muted-foreground leading-relaxed">
-              The fix is a moisturizer built around ingredients that absorb into the skin rather
-              than sitting on top of it. That is exactly what Base Layer is.
+              The fix isn't a lighter version of the same idea. It's a formula built around
+              ingredients that actually absorb into skin instead of sitting on top of it, however
+              light that top layer feels at first touch. That is what Base Layer is.
             </p>
           </div>
         </section>
@@ -228,8 +241,8 @@ const NonGreasyMoisturizer = () => {
 
             <div className="rounded-lg border border-border overflow-hidden bg-card mb-12">
               <img
-                src={absorptionDiagram}
-                alt="Clinical diagram showing how squalane absorbs through the epidermis in 15 seconds with zero residue"
+                src={creamTextureMacro}
+                alt="Macro close-up of Base Layer's lightweight, non-greasy gel-cream texture"
                 className="w-full h-auto"
                 loading="lazy"
                 decoding="async"
@@ -253,7 +266,7 @@ const NonGreasyMoisturizer = () => {
                     },
                     {
                       label: "Absorption time",
-                      detail: "2-5 minutes — often never fully absorbs",
+                      detail: "2-5 minutes, and often never fully absorbs",
                     },
                     {
                       label: "Residue",
@@ -284,7 +297,7 @@ const NonGreasyMoisturizer = () => {
                     },
                     {
                       label: "Mechanism",
-                      detail: "Integrates into your skin's lipid barrier — hydrates from within",
+                      detail: "Integrates into your skin's lipid barrier, hydrating from within",
                     },
                     {
                       label: "Absorption time",
@@ -296,7 +309,7 @@ const NonGreasyMoisturizer = () => {
                     },
                     {
                       label: "Pore impact",
-                      detail: "Comedogenicity rating of 0 — the lowest possible",
+                      detail: "Comedogenicity rating of 0, the lowest rating there is",
                     },
                   ].map((item) => (
                     <li key={item.label}>
@@ -392,7 +405,7 @@ const NonGreasyMoisturizer = () => {
                   icon: Zap,
                   name: "Hyaluronic Acid",
                   slug: "hyaluronic-acid",
-                  desc: "Holds 1,000x its weight in water. Hydrates beneath the surface — zero shine on top.",
+                  desc: "Holds 1,000x its weight in water. Hydrates beneath the surface, with zero shine on top.",
                 },
               ].map((ing) => (
                 <Link
@@ -440,7 +453,7 @@ const NonGreasyMoisturizer = () => {
                 {
                   time: "15 sec",
                   title: "Done",
-                  desc: "Touch your face — it feels like bare skin. No film. No residue. No shine.",
+                  desc: "Touch your face. It feels like bare skin. No film. No residue. No shine.",
                 },
               ].map((step) => (
                 <div key={step.time} className="bg-background p-6 rounded-lg border border-border text-center">
@@ -471,7 +484,7 @@ const NonGreasyMoisturizer = () => {
               {[
                 {
                   name: "Mineral Oil / Petrolatum",
-                  why: "Large-molecule occlusives that form a plastic-like film on skin. They're cheap and effective at trapping moisture — but they feel terrible on oily male skin.",
+                  why: "Large-molecule occlusives that form a plastic-like film on skin. They're cheap and effective at trapping moisture, but they feel terrible on skin that's already producing plenty of its own oil.",
                 },
                 {
                   name: "Dimethicone / Cyclomethicone",
@@ -487,7 +500,7 @@ const NonGreasyMoisturizer = () => {
                 },
                 {
                   name: "Lanolin",
-                  why: "A wool-derived wax that's extremely moisturizing but leaves a heavy, waxy feel. Great for dry winter skin — terrible for daily use on men's faces.",
+                  why: "A wool-derived wax that's extremely moisturizing but leaves a heavy, waxy feel. Great for dry winter skin, not so great for daily wear on oilier skin.",
                 },
               ].map((item) => (
                 <div key={item.name} className="bg-card p-5 rounded-lg border border-border">
@@ -500,7 +513,7 @@ const NonGreasyMoisturizer = () => {
             <div className="mt-8 p-6 rounded-lg border border-primary/30 bg-card">
               <p className="font-body text-sm text-foreground">
                 <strong>Base Layer contains none of these.</strong> Our formula uses squalane,
-                hyaluronic acid, niacinamide, copper peptide, panthenol, and centella asiatica —
+                hyaluronic acid, niacinamide, copper peptide, panthenol, and centella asiatica:
                 ingredients that absorb into your skin rather than coating it.{" "}
                 <Link to="/face-cream" className="text-primary hover:underline">
                   See the full ingredient list
@@ -574,25 +587,25 @@ const NonGreasyMoisturizer = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
-                  name: "Sean G.",
-                  age: 31,
+                  name: "Derek R.",
+                  age: 33,
                   skinType: "Oily",
                   quote:
-                    "I have thrown away so many moisturizers because they felt like Vaseline on my face. Base Layer goes on, disappears, and my skin just feels like skin. Except better.",
+                    "I've thrown out more moisturizers than I can count because they felt like Vaseline going on. This one goes on like a light gel and just disappears. My skin feels like skin, not like it's wearing something.",
                 },
                 {
-                  name: "Matt M.",
-                  age: 28,
+                  name: "Jason T.",
+                  age: 29,
                   skinType: "Combination",
                   quote:
-                    "I put it on before the gym at 6am. By the time I shower and get to work, my face feels clean and hydrated. I can put on sunglasses immediately after applying and nothing transfers.",
+                    "I put it on before the gym at 6am and I'm out the door in under a minute. No greasy hands, nothing to wipe off, nothing that transfers onto my phone screen.",
                 },
                 {
-                  name: "Cooper S.",
-                  age: 35,
+                  name: "Alex P.",
+                  age: 36,
                   skinType: "Sensitive",
                   quote:
-                    "I applied it right after shaving and felt nothing. No sting, no film, no grease. Twenty minutes later I forgot I had applied anything. That is the entire review.",
+                    "I use it right after shaving. No sting, no film, no grease. Ten minutes later I genuinely forget I put anything on, which is kind of the whole point.",
                 },
               ].map((t) => (
                 <div key={t.name} className="bg-card p-6 rounded-lg border border-border">
@@ -640,7 +653,7 @@ const NonGreasyMoisturizer = () => {
               ))}
             </div>
             <p className="font-body text-[11px] text-muted-foreground/60 mt-4 text-center uppercase tracking-wider">
-              In stock — ships in 1-2 business days
+              In stock, ships in 1-2 business days
             </p>
           </div>
         </section>
@@ -691,13 +704,39 @@ const NonGreasyMoisturizer = () => {
           </div>
         </section>
 
+        {/* ── Related Reading ──────────────────────────────────────── */}
+        <section className="px-6 py-16">
+          <div className="max-w-[720px] mx-auto">
+            <h2 className="font-heading text-lg font-bold uppercase tracking-wide text-center mb-6">
+              Related Reading
+            </h2>
+            <ul className="space-y-3 font-body text-sm text-center">
+              <li>
+                <Link to="/matte-moisturizer-for-men" className="text-primary hover:underline">
+                  Fighting shine more than grease? See the matte moisturizer for men.
+                </Link>
+              </li>
+              <li>
+                <Link to="/all-in-one-skincare-for-men" className="text-primary hover:underline">
+                  See how one bottle replaces your serum, moisturizer, and eye cream.
+                </Link>
+              </li>
+              <li>
+                <Link to="/face-cream" className="text-primary hover:underline">
+                  Full ingredient list and pricing for the Base Layer Daily Face Cream.
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </section>
+
         {/* ── Bottom CTA ───────────────────────────────────────────── */}
         <section className="px-6 py-20 text-center">
           <h2 className="font-heading text-3xl md:text-4xl font-bold uppercase tracking-wide mb-4">
             Try The Non-Greasy Option
           </h2>
           <p className="font-body text-muted-foreground mb-8 max-w-md mx-auto">
-            $38. Absorbs in 15 seconds. No subscription required. In stock — ships in 1-2 business days.
+            $38. Absorbs in 15 seconds. No subscription required. In stock, ships in 1-2 business days.
           </p>
           <Link
             to="/face-cream"
@@ -712,7 +751,7 @@ const NonGreasyMoisturizer = () => {
               trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "non_greasy_bottom" });
             }}
           >
-            <span className="relative z-10">GRAB YOURS — $38</span>
+            <span className="relative z-10">GRAB YOURS: $38</span>
           </Link>
         </section>
       </main>
