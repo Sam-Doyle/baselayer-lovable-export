@@ -37,6 +37,23 @@ export interface PageSeo {
   ogImage?: string;
   changefreq: string;
   priority: string;
+  /**
+   * Prerender this route but keep it out of sitemap.xml. Set on the paid
+   * landing pages: they need a real <head> in the served HTML so social
+   * unfurlers and non-rendering crawlers stop reading them as the homepage,
+   * but they are not organic surface area and should not be submitted as such.
+   * Prerendering and sitemap inclusion are separate decisions; this field is
+   * what keeps them separate.
+   */
+  noSitemap?: boolean;
+  /**
+   * This route renders without the site's <nav> and <footer>. The prerenderer
+   * treats those two landmarks as "the app finished mounting", which holds for
+   * every page that carries site chrome and for none of the paid landing pages,
+   * which drop it on purpose so the only exit is the buy button. Without this
+   * flag they time out on a landmark that is never coming and ship a skeleton.
+   */
+  noSiteChrome?: boolean;
 }
 
 export const PAGE_SEO = {
@@ -151,6 +168,82 @@ export const PAGE_SEO = {
     description: `Free US standard shipping with code ${FREE_SHIPPING_CODE} or on orders $${LEGAL.freeShippingThresholdUsd}+, plus processing times and tracking.`,
     changefreq: "yearly",
     priority: "0.3",
+  },
+
+  /*
+   * Paid landing pages. Prerendered but not in the sitemap (see noSitemap).
+   *
+   * These titles used to live only inside each component's useMetaTags call,
+   * which meant the served HTML carried the homepage's title and the real one
+   * appeared only after hydration. Googlebot renders JS so it saw the right
+   * head; Facebook, Instagram, X, LinkedIn and every AI crawler robots.txt
+   * invites do not, so each paid placement previewed as the homepage instead
+   * of its own hook. Moving the strings here is what lets the prerenderer
+   * write them — same fix, and same reason, as the fourteen routes above.
+   */
+  "/article/5-reasons": {
+    title: "5 Reasons Men Are Switching From Drugstore Face Creams",
+    description:
+      "Discover why men are ditching oily drugstore moisturizers for this one-step clinical alternative.",
+    ogType: "article",
+    changefreq: "monthly",
+    priority: "0.5",
+    noSitemap: true,
+    noSiteChrome: true,
+  },
+  "/article/2-minute-routine": {
+    title: "The 2-Minute Routine I Secretly Started Using",
+    description:
+      "Most guys are destroying their face with the same harsh soap they use on their armpits. Here is why upgrading your routine is the easiest win you'll have all year.",
+    ogType: "article",
+    changefreq: "monthly",
+    priority: "0.5",
+    noSitemap: true,
+    noSiteChrome: true,
+  },
+  "/article/one-bottle-experiment": {
+    title: "The One-Bottle Experiment",
+    description:
+      "What happened when men stopped buying serums, toners, and eye cream. Published ingredient percentages, a 15-second habit, and one bottle doing the job of four.",
+    ogType: "article",
+    changefreq: "monthly",
+    priority: "0.5",
+    noSitemap: true,
+    noSiteChrome: true,
+  },
+  "/article/peptide-stack": {
+    title: "Peptides Went Mainstream. Most Men Still Do Nothing.",
+    description:
+      "Copper peptides are all over the forums. The men chasing them are 22 and stacking serums. The men who actually need them are 38 and using nothing. What the published concentrations say.",
+    ogType: "article",
+    changefreq: "monthly",
+    priority: "0.5",
+    noSitemap: true,
+    noSiteChrome: true,
+  },
+  "/article/concentration-test": {
+    title: "Most Men's Anti-Aging Creams Won't Tell You How Much Is In Them",
+    description:
+      "Niacinamide and copper peptides carry most of the published evidence for aging skin. Both only do anything at a dose — and an ingredient list is a ranking, not a recipe. How to read a label, and which brands print the numbers.",
+    ogType: "article",
+    changefreq: "monthly",
+    priority: "0.5",
+    noSitemap: true,
+    noSiteChrome: true,
+  },
+  /*
+   * /lp was the worst case of the set: LandingPage.tsx had no useCanonical and
+   * no useMetaTags at all, so unlike the advertorials it presented as the
+   * homepage even after hydration, to Googlebot included.
+   */
+  "/lp": {
+    title: "One Cream. 15 Seconds. Done. | Base Layer for Men",
+    description:
+      "The one-step face cream for men who won't do a routine. Niacinamide 5% and copper peptides, absorbs in 15 seconds, no shine. $38 with a 30-day guarantee.",
+    changefreq: "monthly",
+    priority: "0.5",
+    noSitemap: true,
+    noSiteChrome: true,
   },
 } satisfies Record<string, PageSeo>;
 

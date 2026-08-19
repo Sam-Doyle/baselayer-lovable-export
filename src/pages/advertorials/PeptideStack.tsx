@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { trackEvent } from "@/lib/analytics";
 import { Check, X } from "lucide-react";
 import { BUY_TIERS } from "@/config/product";
@@ -32,10 +33,9 @@ const TWO_PACK = BUY_TIERS.find(t => t.id === 2);
 
 const PeptideStack = () => {
   useCanonical();
-  useMetaTags({
-    title: "Peptides Went Mainstream. Most Men Still Do Nothing.",
-    description: "Copper peptides are all over the forums. The men chasing them are 22 and stacking serums. The men who actually need them are 38 and using nothing. What the published concentrations say."
-  });
+  // Same strings the prerenderer writes into the served HTML. Kept in
+  // pageSeo.ts so the two heads can't drift apart again.
+  useMetaTags(metaFor("/article/peptide-stack"));
 
   const [showSticky, setShowSticky] = useState(false);
 

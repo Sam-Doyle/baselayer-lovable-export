@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { trackEvent } from "@/lib/analytics";
 import { CheckCircle2, ChevronRight, Star } from "lucide-react";
 
@@ -23,10 +24,9 @@ const LISTICLE_SCHEMA = {
 
 const ListicleGirlfriend = () => {
   useCanonical();
-  useMetaTags({
-    title: "The 2-Minute Routine I Secretly Started Using",
-    description: "Most guys are destroying their face with the same harsh soap they use on their armpits. Here is why upgrading your routine is the easiest win you'll have all year."
-  });
+  // Same strings the prerenderer writes into the served HTML. Kept in
+  // pageSeo.ts so the two heads can't drift apart again.
+  useMetaTags(metaFor("/article/2-minute-routine"));
 
   const [showSticky, setShowSticky] = useState(false);
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { trackEvent } from "@/lib/analytics";
 import { ChevronRight } from "lucide-react";
 import { BUY_TIERS } from "@/config/product";
@@ -31,10 +32,9 @@ const perDay = (price: number, bottles: number) =>
 
 const OneBottleExperiment = () => {
   useCanonical();
-  useMetaTags({
-    title: "The One-Bottle Experiment",
-    description: "What happened when men stopped buying serums, toners, and eye cream. Published ingredient percentages, a 15-second habit, and one bottle doing the job of four."
-  });
+  // Same strings the prerenderer writes into the served HTML. Kept in
+  // pageSeo.ts so the two heads can't drift apart again.
+  useMetaTags(metaFor("/article/one-bottle-experiment"));
 
   const [showSticky, setShowSticky] = useState(false);
 

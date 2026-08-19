@@ -55,6 +55,10 @@ interface PageMeta {
   priority?: string;
   /** YYYY-MM-DD. Omitted when we can't establish one honestly — see gitLastModified. */
   lastmod?: string;
+  /** Prerender but keep out of sitemap.xml. See PageSeo.noSitemap. */
+  noSitemap?: boolean;
+  /** Renders without site nav/footer. See PageSeo.noSiteChrome. */
+  noSiteChrome?: boolean;
 }
 
 /*
@@ -82,6 +86,16 @@ const STATIC_PAGE_SOURCES: Record<string, string> = {
   "/terms-of-service": "src/pages/TermsOfService.tsx",
   "/refund-policy": "src/pages/RefundPolicy.tsx",
   "/shipping-policy": "src/pages/ShippingPolicy.tsx",
+  // noSitemap routes. They never emit a lastmod, but a route missing from this
+  // map falls through to gitLastModified("") — an empty pathspec, which git
+  // answers with the repo's last commit rather than an error. Listing them
+  // keeps that from ever becoming a date.
+  "/article/5-reasons": "src/pages/advertorials/Listicle.tsx",
+  "/article/2-minute-routine": "src/pages/advertorials/ListicleGirlfriend.tsx",
+  "/article/one-bottle-experiment": "src/pages/advertorials/OneBottleExperiment.tsx",
+  "/article/peptide-stack": "src/pages/advertorials/PeptideStack.tsx",
+  "/article/concentration-test": "src/pages/advertorials/ConcentrationTest.tsx",
+  "/lp": "src/pages/LandingPage.tsx",
 };
 
 /**
@@ -224,7 +238,7 @@ function injectMeta(html: string, page: PageMeta): string {
  */
 function generateSitemap(pages: PageMeta[]): string {
   const urls = pages
-    .filter((p) => p.path !== "/checkout")
+    .filter((p) => p.path !== "/checkout" && !p.noSitemap)
     .map(
       (p) => `  <url>
     <loc>${BASE_URL}${p.path}</loc>${p.lastmod ? `\n    <lastmod>${p.lastmod}</lastmod>` : ""}
@@ -487,10 +501,14 @@ function prerenderPlugin(): Plugin {
         ...p,
         lastmod: gitLastModified(STATIC_PAGE_SOURCES[p.path] ?? "", shallow),
       }));
-      const undatedStatic = staticPages.filter((p) => !p.lastmod).length;
+      // Only pages that actually reach the sitemap can have a missing lastmod
+      // that matters — counting the noSitemap routes here would inflate the
+      // warning with pages that never emit the field.
+      const datedStatic = staticPages.filter((p) => !p.noSitemap);
+      const undatedStatic = datedStatic.filter((p) => !p.lastmod).length;
       if (undatedStatic > 0) {
         console.warn(
-          `\u26a0\ufe0f  ${undatedStatic}/${staticPages.length} static routes have no git date` +
+          `\u26a0\ufe0f  ${undatedStatic}/${datedStatic.length} static routes have no git date` +
             `${shallow ? " (shallow clone \u2014 the build needs full history)" : ""}` +
             ` \u2014 shipping those sitemap entries without lastmod.`
         );
@@ -650,16 +668,29 @@ function prerenderPlugin(): Plugin {
                 // with it the <footer>) is deliberately deferred ~3s to keep it
                 // off the LCP path, so `/` timed out at 20s while the footer
                 // sat in the DOM the whole time, and shipped as a skeleton.
+                //
+                // nav + footer is not a universal signal. The paid landing
+                // pages render neither on purpose — no site nav, no footer, so
+                // the only way off the page is the buy button — and they sat
+                // here until the timeout waiting for a landmark that was never
+                // coming, then shipped as skeletons. They get a content-volume
+                // check instead. Both branches still throw on timeout: a page
+                // that never mounts must fail loudly and keep its skeleton
+                // rather than quietly ship half a render.
                 await pageInstance.waitForFunction(
-                  () => {
+                  (chromeless: boolean) => {
                     const root = document.getElementById("root");
                     if (!root) return false;
+                    if (chromeless) {
+                      return (root.textContent || "").trim().length > 2000;
+                    }
                     const hasNav = root.querySelector("nav") !== null;
                     const hasFooter = root.querySelector("footer") !== null;
                     // Basic structure is ready when nav + footer exist
                     return hasNav && hasFooter;
                   },
-                  { timeout: PAGE_TIMEOUT, polling: 500 }
+                  { timeout: PAGE_TIMEOUT, polling: 500 },
+                  page.noSiteChrome === true
                 );
 
                 // Wait for dynamic content (Sanity API) to render.
@@ -965,10 +996,10 @@ function prerenderPlugin(): Plugin {
       fs.writeFileSync(path.join(distDir, "404.html"), notFoundHtml);
 
       redirectLines.push("");
-      redirectLines.push("# Client-only routes (ad landing pages, dynamic product URLs) — not");
-      redirectLines.push("# prerendered, must keep serving the SPA shell with a 200 status.");
-      redirectLines.push("/lp  /__shell.html  200");
-      redirectLines.push("/article/*  /__shell.html  200");
+      redirectLines.push("# /product/:handle is a dynamic route with no fixed URL set, so it can't be");
+      redirectLines.push("# prerendered and still needs the SPA shell with a 200 status. /lp and");
+      redirectLines.push("# /article/* used to be here too, which is why every paid placement");
+      redirectLines.push("# unfurled as the homepage — they are prerendered now, see PAGE_SEO.");
       redirectLines.push("/product/*  /__shell.html  200");
       redirectLines.push("");
       redirectLines.push("# Unknown routes — real 404 status (React still renders the NotFound UI)");
@@ -980,7 +1011,12 @@ function prerenderPlugin(): Plugin {
       // Generate sitemap
       const sitemap = generateSitemap(allPages);
       fs.writeFileSync(path.join(distDir, "sitemap.xml"), sitemap);
-      console.log(`  ✅ sitemap.xml (${allPages.length} URLs)`);
+      // allPages, not sitemap entries — the noSitemap routes are prerendered but
+      // never reach the file, so counting them here overstates it by six.
+      const sitemapCount = allPages.filter(
+        (p) => p.path !== "/checkout" && !p.noSitemap
+      ).length;
+      console.log(`  ✅ sitemap.xml (${sitemapCount} URLs)`);
 
       console.log("✅ Prerender + sitemap complete.");
     },

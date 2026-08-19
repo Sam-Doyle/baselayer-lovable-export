@@ -19,6 +19,15 @@
 
 # Blog → Articles (canonical)
 /blog                                       /articles         301
+# First match wins, so these five sit above the wildcard. Without them
+# /blog/<slug> matched /blog/* first, landed on an /articles/<slug> that is
+# itself a 301, and became a two-hop chain. Any slug added to the renamed list
+# below needs its /blog twin here too.
+/blog/3-step-skincare-routine-men           /articles/3-step-skincare-routine         301
+/blog/skincare-ingredients-that-work        /articles/skincare-ingredients            301
+/blog/skin-barrier-guide                    /articles/skincare-ingredients            301
+/blog/post-shave-recovery                   /skin-concerns/post-shave-irritation      301
+/blog/razor-burn-guide                      /skin-concerns/post-shave-irritation      301
 /blog/*                                     /articles/:splat  301
 /blogs/articles                             /articles         301
 

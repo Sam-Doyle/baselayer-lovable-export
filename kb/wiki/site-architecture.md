@@ -2,8 +2,8 @@
 title: Site Architecture
 domain: technical
 created: 2026-04-03
-last_compiled: 2026-08-18
-revision: 5
+last_compiled: 2026-08-19
+revision: 6
 sources: [package.json, vite.config.ts, App.tsx, netlify.toml, tailwind.config.ts, tsconfig.json, analytics.ts, sanity.ts, netlify _redirects, live Storefront API testing, production debugging, /last30days research, Sanity assets API, GA4 sessionSource report, Meta Commerce Manager, Brevo tracker documentation]
 codePaths:
   - src/App.tsx
@@ -352,8 +352,7 @@ Unknown routes fall back to `__shell.html` (generic SPA shell with no page-speci
 | Script | Command | Purpose |
 |--------|---------|---------|
 | `dev` | `vite` | Local dev server on port 8080 |
-| `build` | `node scripts/generate-sitemap.mjs && vite build` | Production build with sitemap generation + prerender |
-| `build:sitemap` | `node scripts/generate-sitemap.mjs` | Standalone sitemap generation |
+| `build` | `node scripts/fetch-reviews.mjs && vite build` | Production build: pull reviews, then prerender + sitemap |
 | `build:dev` | `vite build --mode development` | Development build (no minification) |
 | `lint` | `eslint .` | ESLint check |
 | `preview` | `vite preview` | Preview production build locally |
@@ -583,3 +582,13 @@ duplicate sends — pick one owner per event.
 The storefront queues pre-opt-in behaviour **in memory only**, identifies the
 visitor after explicit marketing opt-in plus analytics consent, and keeps these
 events separate from GA4/Meta measurement to prevent duplicate commerce events.
+
+## The Sitemap Had Two Writers Until 2026-08-19
+
+`scripts/generate-sitemap.mjs` ran first in the build and wrote `public/sitemap.xml`.
+Vite then copied that file into `dist/`, and the prerender plugin overwrote it with
+its own. So the script's output never shipped, but it did rewrite a tracked file on
+every local build, which made `git status` dirty for a sitemap nobody served and made
+`public/sitemap.xml` look authoritative when reading the repo. Both the script and the
+tracked file are gone; `vite.config.ts` is the only writer. If the plugin ever fails
+the site ships no sitemap, which is the honest failure rather than a stale one.

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 import { trackEvent } from "@/lib/analytics";
 import { Check, X } from "lucide-react";
 import { BUY_TIERS } from "@/config/product";
@@ -49,10 +50,9 @@ const TWO_PACK = BUY_TIERS.find(t => t.id === 2);
  */
 const ConcentrationTest = () => {
   useCanonical();
-  useMetaTags({
-    title: "Most Men's Anti-Aging Creams Won't Tell You How Much Is In Them",
-    description: "Niacinamide and copper peptides carry most of the published evidence for aging skin. Both only do anything at a dose — and an ingredient list is a ranking, not a recipe. How to read a label, and which brands print the numbers."
-  });
+  // Same strings the prerenderer writes into the served HTML. Kept in
+  // pageSeo.ts so the two heads can't drift apart again.
+  useMetaTags(metaFor("/article/concentration-test"));
 
   const [showSticky, setShowSticky] = useState(false);
 

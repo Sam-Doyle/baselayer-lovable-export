@@ -737,3 +737,9 @@ Each session appends a digest here. Never edit or delete prior entries.
   - CWV not measured — no PSI key at `~/.seo-os/psi-key.txt`.
 - **Files changed**: `runs/tech-debt-2026-08-18.md` (new), `runs/quick-wins-2026-08-18.md` (new), `kb/wiki/technical-seo.md` (rev 1→2), `kb/wiki/seo-strategy.md` (rev 4→5), `kb/_index.md`, `kb/_inbox.md`, `kb/_session-log.md`
 - **KB updates**: 4 inbox entries compiled and cleared. `technical-seo.md` gained Instance 4 and a crawl-health baseline; `seo-strategy.md` gained the cannibalization section and an update to the open advertorial decision.
+
+## 2026-08-19 — Prerender the paid landing pages, drop the second sitemap writer
+- **Task**: Shipped ticket 1 from `runs/tech-debt-2026-08-18.md` plus the redirect-chain and dead-script hygiene from its appendix.
+- **Findings**: `/lp` had no `useMetaTags` at all, so it presented as the homepage after hydration too, not just in raw HTML. Prerendering a route forced it into the sitemap, since `STATIC_PAGES` feeds both loops. The prerenderer's readiness check waited on `<nav>` + `<footer>`, which the chrome-free paid pages never render, so four of six shipped correct heads over empty bodies until that was fixed. `scripts/generate-sitemap.mjs` was not dead: it ran every build and wrote a tracked `public/sitemap.xml` that the prerender plugin then overwrote. The comparison page lists 5 brands and 2 published-concentration brands, not the 8 and 3 the quick-wins draft assumed.
+- **Files changed**: `src/config/pageSeo.ts`, `vite.config.ts`, `src/pages/LandingPage.tsx`, `src/pages/advertorials/*.tsx` (5), `public/_redirects`, `package.json`; deleted `scripts/generate-sitemap.mjs` and `public/sitemap.xml`.
+- **KB updates**: `wiki/technical-seo.md` rev 3 (Instance 4 marked fixed, with the two follow-on findings), `wiki/site-architecture.md` rev 6 (build script table corrected, two-sitemap-writers section added).

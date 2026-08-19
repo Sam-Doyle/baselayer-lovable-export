@@ -2,8 +2,8 @@
 title: Technical SEO — Crawl, Index, Schema, Prerender
 domain: technical
 created: 2026-08-18
-last_compiled: 2026-08-18
-revision: 2
+last_compiled: 2026-08-19
+revision: 3
 sources: [Google Search Console warnings, served HTML on baselayerskin.co, curl host/protocol probes, puppeteer polling probe, vite.config.ts prerender plugin, /seo-os:tech-debt full-sitemap crawl 2026-08-18, GA4 property 526066920]
 codePaths:
   - vite.config.ts
@@ -265,6 +265,35 @@ one broken, because a social unfurler does not read robots directives either.
 Prerendering fixes both surfaces; `noindex` fixes one.
 
 ---
+
+### Fixed 2026-08-19
+
+All six routes are prerendered now and carry their own title, description, og:*
+and canonical in the served HTML. The five advertorials also stopped defining
+their titles inline: they call `useMetaTags(metaFor("/article/..."))` against the
+same `PAGE_SEO` entry the prerenderer reads, so this instance cannot recur on
+these routes the way the first three did.
+
+Two things fell out of the fix that are worth keeping:
+
+**Prerendering and sitemap inclusion were the same decision.** `STATIC_PAGES` is
+`Object.entries(PAGE_SEO)` and feeds both the prerender loop and
+`generateSitemap`, so adding a route to `PAGE_SEO` forced it into the sitemap.
+Paid landing pages need the first and not the second. A `noSitemap` flag on
+`PageSeo`/`PageMeta` plus a filter in `generateSitemap` separates them. Sitemap
+stayed at 60 URLs while prerendered routes went 60 → 66.
+
+**The prerenderer's readiness check assumed site chrome.** It waited for `<nav>`
+and `<footer>` inside `#root` before capturing. The paid pages render neither on
+purpose, so four of the six timed out and shipped 7KB skeletons with correct
+heads and empty bodies — which would have looked like a successful fix if nobody
+checked file sizes. They now declare `noSiteChrome` and are gated on content
+volume instead. Both branches still throw on timeout; a page that never mounts
+must fail loudly rather than ship half a render.
+
+**`/product/*` was left as a `__shell.html` rewrite.** `/product/:handle` is a
+dynamic route with no fixed URL set, so it cannot be a prerendered static path.
+Its served HTML still carries the homepage title.
 
 ## Crawl Health Baseline (2026-08-18, `/seo-os:tech-debt`, all 60 sitemap URLs, confidence: high)
 

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
 import { ChevronDown } from "lucide-react";
 import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { useCanonical, useMetaTags } from "@/components/SEO";
+import { metaFor } from "@/config/pageSeo";
 
 import productRockWebp from "@/assets/product-hero-rock-1200w.webp";
 import productRockPng from "@/assets/product-hero-rock.png";
@@ -147,6 +149,12 @@ const ShieldIcon = () => (
    ═══════════════════════════════════════════════════════════════════ */
 
 const LandingPage = () => {
+  // This page had neither hook, so it inherited whatever <head> the shell
+  // shipped — the homepage's. Unlike the advertorials it stayed wrong after
+  // hydration too, which meant Google saw the homepage title here as well.
+  useCanonical();
+  useMetaTags(metaFor("/lp"));
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
