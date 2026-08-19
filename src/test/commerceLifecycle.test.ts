@@ -183,6 +183,36 @@ describe("commerce lifecycle Shopify normalization", () => {
     });
   });
 
+  it("uses authoritative customer consent enrichment and its observation time", () => {
+    const customer = normalizeShopifyWebhook("customers/update", {
+      id: 123,
+      email: "buyer@example.com",
+      tags: "bl_sub_active",
+      updated_at: "2026-08-19T14:42:02Z",
+    }, {
+      ...context,
+      sourceEventId: "customer-consent",
+      triggeredAt: "2026-08-19T14:42:03Z",
+      orderEnrichment: {
+        customerId: "gid://shopify/Customer/123",
+        email: "buyer@example.com",
+        marketingConsentState: "SUBSCRIBED",
+        marketingConsentObservedAt: "2026-08-19T14:41:07Z",
+        subscriptionTags: ["bl_sub_paused", "VIP"],
+      },
+    });
+
+    expect(customer).toMatchObject({
+      event_type: "subscription_projection_observed",
+      customer_id: "123",
+      marketing_consent_state: "subscribed",
+      marketing_consent_observed_at: "2026-08-19T14:41:07.000Z",
+      occurred_at: "2026-08-19T14:42:03.000Z",
+      subscription_projection: "paused",
+      subscription_tag_count: 1,
+    });
+  });
+
   it("accepts only actual DELIVERED fulfillment events", () => {
     expect(normalizeShopifyWebhook("fulfillment_events/create", {
       id: 30,

@@ -27,7 +27,10 @@ describe("Shopify order enrichment GraphQL", () => {
           customer: {
             id: "gid://shopify/Customer/123",
             email: "customer@example.com",
-            emailMarketingConsent: { marketingState: "SUBSCRIBED" },
+            emailMarketingConsent: {
+              marketingState: "SUBSCRIBED",
+              consentUpdatedAt: "2026-08-19T14:41:07Z",
+            },
           },
         },
       },
@@ -35,8 +38,10 @@ describe("Shopify order enrichment GraphQL", () => {
       customerId: "gid://shopify/Customer/123",
       email: "buyer@example.com",
       marketingConsentState: "SUBSCRIBED",
+      marketingConsentObservedAt: "2026-08-19T14:41:07Z",
       isFullyRefunded: false,
     });
+    expect(SHOPIFY_ORDER_ENRICHMENT_QUERY).toContain("consentUpdatedAt");
   });
 
   it("detects a fully refunded order without reading product data", () => {

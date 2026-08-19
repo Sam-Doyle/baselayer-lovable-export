@@ -63,6 +63,7 @@ export interface CanonicalCommerceSignal {
   customer_id: string | null;
   email: string | null;
   marketing_consent_state: MarketingConsentState;
+  marketing_consent_observed_at: string | null;
   order_id: string | null;
   fulfillment_id: string | null;
   purchased_bottles: number | null;
@@ -89,6 +90,8 @@ export interface ShopifyOrderEnrichment {
   customerId?: string | null;
   email?: string | null;
   marketingConsentState?: unknown;
+  marketingConsentObservedAt?: string | null;
+  subscriptionTags?: string[] | null;
   isFullyRefunded?: boolean | null;
 }
 
@@ -333,6 +336,12 @@ function baseSignal(
     marketing_consent_state: canonicalMarketingConsent(
       enrichment?.marketingConsentState ?? consent.state ?? consent.marketing_state,
     ),
+    marketing_consent_observed_at: (() => {
+      const observedAt = stringValue(
+        enrichment?.marketingConsentObservedAt ?? consent.consent_updated_at ?? consent.consentUpdatedAt,
+      );
+      return observedAt ? canonicalDate(observedAt) : null;
+    })(),
     order_id: canonicalId(payload.order_id ?? payload.id),
     fulfillment_id: null,
     purchased_bottles: null,
@@ -405,9 +414,16 @@ export function normalizeShopifyWebhook(
     return signal;
   }
 
-  const projection = subscriptionProjectionFromTags(payload.tags);
+  const projection = subscriptionProjectionFromTags(
+    context.orderEnrichment?.subscriptionTags ?? payload.tags,
+  );
   const signal = baseSignal(topic, payload, context, "subscription_projection_observed");
   signal.customer_id = canonicalId(payload.id ?? payload.customer_id);
+  signal.occurred_at = canonicalDate(
+    context.triggeredAt,
+    payload.updated_at,
+    payload.created_at,
+  );
   signal.subscription_projection = projection.projection;
   signal.subscription_tag_count = projection.tagCount;
   signal.order_id = null;

@@ -45,7 +45,7 @@ function signal(eventType, overrides = {}) {
     order_delivered: "fulfillment_events/create",
     subscription_projection_observed: "customers/update",
   };
-  return {
+  const payload = {
     source: "shopify_webhook",
     source_event_id: sourceEventId,
     shop_domain: shopDomain,
@@ -57,6 +57,13 @@ function signal(eventType, overrides = {}) {
     marketing_consent_state: "unknown",
     ...overrides,
   };
+  if (
+    payload.marketing_consent_state !== "unknown" &&
+    !payload.marketing_consent_observed_at
+  ) {
+    payload.marketing_consent_observed_at = payload.occurred_at;
+  }
+  return payload;
 }
 
 async function record(eventType, overrides = {}, publishEnabled = false) {
@@ -326,6 +333,33 @@ try {
   );
   assert.equal(fullRefundState[0].lifecycle_hard_exit, true);
 
+  const repurchaseOrder = `${runId}-after-full-refund`;
+  await record("order_paid", {
+    order_id: repurchaseOrder,
+    customer_id: `${runId}-customer-full-refund`,
+    email: fullRefundEmail,
+    marketing_consent_state: "subscribed",
+    purchased_bottles: 1,
+    is_subscription_order: false,
+  });
+  const repurchaseState = await rows(
+    "commerce_customer_state",
+    { email: `eq.${fullRefundEmail}` },
+    "last_order_id,lifecycle_hard_exit,lifecycle_hard_exit_at,lifecycle_hold_until,replenishment_blocked",
+  );
+  assert.deepEqual(repurchaseState[0], {
+    last_order_id: repurchaseOrder,
+    lifecycle_hard_exit: false,
+    lifecycle_hard_exit_at: null,
+    lifecycle_hold_until: null,
+    replenishment_blocked: false,
+  });
+  const repurchaseOutbox = await outboxFor(repurchaseOrder);
+  assert.equal(
+    repurchaseOutbox.filter((row) => row.event_name === "bl_replenishment_due_v1").length,
+    1,
+  );
+
   // Cancel/refund can arrive before paid. Once paid supplies identity, the
   // customer projection and minimized exit authority must be backfilled.
   const cancelFirstOrder = `${runId}-cancel-first`;
@@ -470,6 +504,36 @@ try {
       subscription_tag_count: 1,
     });
   }
+  let terminalProjection = await rows(
+    "commerce_customer_state",
+    { email: `eq.${transitionEmail}` },
+    "subscription_projection,replenishment_blocked",
+  );
+  assert.deepEqual(terminalProjection[0], {
+    subscription_projection: "cancelled",
+    replenishment_blocked: true,
+  });
+
+  const afterCancellationOrder = `${runId}-after-subscription-cancel`;
+  await record("order_paid", {
+    order_id: afterCancellationOrder,
+    customer_id: transitionCustomer,
+    email: transitionEmail,
+    occurred_at: "2026-08-12T12:00:00.000Z",
+    marketing_consent_state: "subscribed",
+    purchased_bottles: 1,
+    is_subscription_order: false,
+  });
+  terminalProjection = await rows(
+    "commerce_customer_state",
+    { email: `eq.${transitionEmail}` },
+    "subscription_projection,replenishment_blocked,last_order_id",
+  );
+  assert.deepEqual(terminalProjection[0], {
+    subscription_projection: "cancelled",
+    replenishment_blocked: false,
+    last_order_id: afterCancellationOrder,
+  });
   // A delayed older update cannot overwrite the later cancellation.
   await record("subscription_projection_observed", {
     customer_id: transitionCustomer,
@@ -487,7 +551,7 @@ try {
   assert.deepEqual(transitionState[0], {
     subscription_projection: "cancelled",
     subscription_tag_count: 1,
-    replenishment_blocked: true,
+    replenishment_blocked: false,
   });
 
   // Product refunds impose a hold and invalidate a job even if it was already
@@ -719,7 +783,9 @@ try {
       "single_two_pack_subscription_routing",
       "webhook_idempotency",
       "cancel_refund_and_consent_exits",
+      "positive_repurchase_reentry",
       "subscription_projection_ordering",
+      "terminal_subscription_reentry",
       "consent_chronology",
       "customer_email_migration",
       "lease_fencing",

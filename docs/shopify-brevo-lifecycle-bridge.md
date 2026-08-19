@@ -399,25 +399,44 @@ Create these exact attributes; unknown attributes can reject the event:
   contact `samuel.r.doyle@gmail.com`; every staging endpoint was deleted after
   the Brevo event catalog learned the names/properties. No automation was
   active during that catalog-staging exercise and no lifecycle email was sent.
-- Remote SQL acceptance passed after the safety migration as
-  `bl-sql-audit-1787148747592-ed5f1d76`. It now covers duplicate and
-  out-of-order delivery, cancellation/full-refund exits, product-refund holds,
-  subscription suppression, monotonic consent chronology, customer email
-  migration, fenced worker leases, provider-outcome quarantine, and one-/
-  two-bottle replenishment routing. The script reports named scenarios instead
-  of hardcoded check totals and performs no external provider call.
-- Two real signed Shopify QA orders were also verified before activation:
-  order `#1002` classified one bottle and replayed idempotently; order `#1003`
-  (`18835060064560`) classified two bottles, queued day-77 replenishment, and
-  on fulfillment queued the explicit +5-day delivery estimate plus +1/+14
-  education signals. Every QA outbox row remained `held/audit_mode` and no
-  Brevo event or customer email was published.
-- Real carrier `DELIVERED`, refund, and subscription-transition scenarios stay
-  on the ongoing regression matrix below. Their absence does not bypass the
-  production guards: delivery estimates are labeled, refunds/cancellations are
-  send-time exits, subscription orders are conservatively excluded from
-  one-time replenishment. Do not restore publish mode until the repaired
-  functions and full acceptance matrix pass twice with zero uncertain jobs.
+- The repaired remote SQL acceptance matrix passed twice on 2026-08-19 as
+  `bl-sql-audit-1787152928249-efed41e7` and
+  `bl-sql-audit-1787152942773-f580b839`. It covers duplicate and out-of-order
+  delivery, cancel/refund exits, shipping-only adjustments, product-refund
+  holds, positive repurchase re-entry, subscription suppression and terminal
+  re-entry, monotonic consent snapshots, customer email migration, fenced
+  worker leases, provider-outcome quarantine, and one-/two-bottle routing.
+  Both runs reported `externalProviderCalls: 0` and cleaned up their fixtures.
+- Real signed Shopify QA evidence now includes two single orders (`#1002`,
+  `#1004`) and two two-pack orders (`#1003`, `#1005`). Order `#1004`
+  (`18836125122864`) retained education but suppressed replenishment after a
+  shipping-only refund. Order `#1005` (`18836141605168`) fulfilled and then
+  reached actual `DELIVERED`; the actual-delivery rows replaced and cancelled
+  the estimate-based +1/+14 rows. Order `#1006` (`18836151304496`) exercised a
+  partial product refund followed by a full product refund, producing the
+  60-day hold and then hard exit. Later order `#1007` (`18836165984560`)
+  proved a newer positively-consented purchase clears that prior refund exit.
+- The dedicated QA customer completed two active → paused → active → cancelled
+  subscription-state passes. Interim zero-tag updates preserved prior state;
+  simultaneous active+cancelled tags converged to `unknown_conflict` and
+  remained replenishment-blocked. The final projection is cancelled with one
+  tag and is fail-closed for replenishment until a genuinely later one-time
+  order.
+- Current queues are quiescent: production has 19 held rows; QA has only held
+  or cancelled rows; neither shop has pending, processing, succeeded, failed,
+  or delivery-uncertain work. Every QA row remains `held/audit_mode` or an
+  explicit cancellation, and no Brevo lifecycle event or customer email was
+  published by this matrix.
+- The Netlify scheduler credential was rotated and restored as a secret for
+  the production context. The same value is installed in Supabase; an
+  authenticated worker probe returns `mode: audit`, `claimed: 0`, and zero
+  failures. Netlify's current plan exposes the secret to the builds/functions/
+  runtime scopes rather than the preferred functions-only scope, but its value
+  remains masked and only production has a non-empty value.
+- Keep `COMMERCE_LIFECYCLE_MODE=audit` until the Shopify app client secret is
+  rotated (it appeared in operator tooling during setup) and an operator gives
+  explicit written approval to publish. Never release historical held rows;
+  the first publish-mode run must start from newly-created qualifying events.
 
 ### Rollback
 
@@ -450,6 +469,23 @@ Run each scenario twice with tagged internal test customers:
 Subscription tag/state propagation must complete in under five minutes. Audit
 the two historical contracts manually before activation, then reconcile the
 contract export against tags and projection weekly.
+
+### 2026-08-19 matrix result
+
+| Scenario | Audit evidence |
+| --- | --- |
+| Single and two-pack routing | Two real signed QA orders of each size plus two SQL-matrix runs |
+| Subscription selling-plan suppression | Unit fixtures and two SQL-matrix runs |
+| Shipping-only, partial product, full product refund | Real QA orders `#1004`/`#1006` plus two SQL-matrix runs |
+| Fulfillment estimate and actual delivery replacement | Real QA orders `#1003`/`#1005` plus two SQL-matrix runs |
+| Duplicate and out-of-order delivery | Signed QA replay plus two SQL-matrix runs |
+| Cancel-before-paid and unsubscribe-during-wait | Two SQL-matrix runs against the deployed production functions; no weaker admin mutation path was added for testing |
+| Active/paused/active/cancelled, zero-tag preservation, tag conflict | Two real QA transition passes plus two SQL-matrix runs |
+| Refund exit followed by positive repurchase | Real QA orders `#1006`→`#1007` plus two SQL-matrix runs |
+| Customer-email migration, lease fencing, provider uncertainty | Two SQL-matrix runs and focused code tests |
+
+Result: **PASS in audit mode**. This is a release-readiness result, not an
+authorization to publish. Provider dispatch remains disabled.
 
 ## Operational queries
 

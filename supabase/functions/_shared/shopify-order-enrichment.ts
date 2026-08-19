@@ -11,7 +11,10 @@ export const SHOPIFY_ORDER_ENRICHMENT_QUERY = `query BaseLayerLifecycleOrder($id
     customer {
       id
       email
-      emailMarketingConsent { marketingState }
+      emailMarketingConsent {
+        marketingState
+        consentUpdatedAt
+      }
     }
   }
 }`;
@@ -24,7 +27,10 @@ interface ShopifyOrderEnrichmentGraphqlResponse {
       customer?: {
         id?: string | null;
         email?: string | null;
-        emailMarketingConsent?: { marketingState?: string | null } | null;
+        emailMarketingConsent?: {
+          marketingState?: string | null;
+          consentUpdatedAt?: string | null;
+        } | null;
       } | null;
     } | null;
   };
@@ -43,6 +49,7 @@ export function parseShopifyOrderEnrichmentResponse(payload: unknown): ShopifyOr
     customerId: order.customer?.id ?? null,
     email: order.email ?? order.customer?.email ?? null,
     marketingConsentState: order.customer?.emailMarketingConsent?.marketingState ?? null,
+    marketingConsentObservedAt: order.customer?.emailMarketingConsent?.consentUpdatedAt ?? null,
     isFullyRefunded: order.displayFinancialStatus?.toUpperCase() === "REFUNDED",
   };
 }

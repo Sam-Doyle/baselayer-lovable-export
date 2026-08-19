@@ -19,6 +19,10 @@ import {
   SHOPIFY_ORDER_ENRICHMENT_QUERY,
   shopifyTopicRequiresOrderEnrichment,
 } from "../_shared/shopify-order-enrichment.ts";
+import {
+  parseShopifyCustomerEnrichmentResponse,
+  SHOPIFY_CUSTOMER_ENRICHMENT_QUERY,
+} from "../_shared/shopify-customer-enrichment.ts";
 import { SHOPIFY_ORDER_ENRICHMENT_TIMEOUT_MS } from "../_shared/shopify-webhook-budget.ts";
 
 const MAX_BODY_BYTES = 256 * 1024;
@@ -43,6 +47,14 @@ function orderGid(value: unknown): string | null {
   if (typeof value === "string" && value.startsWith("gid://shopify/Order/")) return value;
   if ((typeof value === "string" || typeof value === "number") && /^\d+$/u.test(String(value))) {
     return `gid://shopify/Order/${value}`;
+  }
+  return null;
+}
+
+function customerGid(value: unknown): string | null {
+  if (typeof value === "string" && value.startsWith("gid://shopify/Customer/")) return value;
+  if ((typeof value === "string" || typeof value === "number") && /^\d+$/u.test(String(value))) {
+    return `gid://shopify/Customer/${value}`;
   }
   return null;
 }
@@ -97,12 +109,57 @@ async function fetchOrderEnrichmentWithClientCredentials(
   }
 }
 
+async function fetchCustomerEnrichment(
+  shopDomain: string,
+  customerId: string,
+  adminToken: string,
+  fetcher: typeof fetch = fetch,
+): Promise<ShopifyOrderEnrichment> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SHOPIFY_ORDER_ENRICHMENT_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetcher(`https://${shopDomain}/admin/api/${SHOPIFY_GRAPHQL_VERSION}/graphql.json`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-shopify-access-token": adminToken,
+      },
+      body: JSON.stringify({ query: SHOPIFY_CUSTOMER_ENRICHMENT_QUERY, variables: { id: customerId } }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+  if (!response.ok) throw new Error(`shopify_customer_enrichment_http_${response.status}`);
+  return parseShopifyCustomerEnrichmentResponse(await response.json());
+}
+
+async function fetchCustomerEnrichmentWithClientCredentials(
+  shopDomain: string,
+  customerId: string,
+  credentials: ShopifyClientCredentials,
+): Promise<ShopifyOrderEnrichment> {
+  const adminToken = await shopifyAdminTokenProvider.getAccessToken(credentials);
+  try {
+    return await fetchCustomerEnrichment(shopDomain, customerId, adminToken);
+  } catch (error) {
+    if (!(error instanceof Error) || error.message !== "shopify_customer_enrichment_http_401") throw error;
+    shopifyAdminTokenProvider.invalidate(shopDomain, credentials.clientId);
+    throw error;
+  }
+}
+
 function orderIdForEnrichment(topic: ShopifyTopic, payload: Record<string, unknown>): string | null {
   // The signed paid-order payload already contains the email, consent,
   // variants, quantities, and selling plan required by the bridge. Only
   // refunds need a current financial-status lookup.
   if (shopifyTopicRequiresOrderEnrichment(topic)) return orderGid(payload.order_id);
   return null;
+}
+
+function customerIdForEnrichment(topic: ShopifyTopic, payload: Record<string, unknown>): string | null {
+  return topic === "customers/update" ? customerGid(payload.id ?? payload.customer_id) : null;
 }
 
 Deno.serve(async (req) => {
@@ -157,17 +214,17 @@ Deno.serve(async (req) => {
 
   let orderEnrichment: ShopifyOrderEnrichment | null = null;
   const enrichmentOrderId = orderIdForEnrichment(topicHeader, payload);
-  if (enrichmentOrderId) {
+  const enrichmentCustomerId = customerIdForEnrichment(topicHeader, payload);
+  if (enrichmentOrderId || enrichmentCustomerId) {
     const clientId = Deno.env.get("SHOPIFY_CLIENT_ID") ?? "";
     if (!clientId || !clientSecret) {
       return jsonResponse(503, { success: false, error: "shopify_admin_not_configured" });
     }
     try {
-      orderEnrichment = await fetchOrderEnrichmentWithClientCredentials(shopDomain, enrichmentOrderId, {
-        shopDomain,
-        clientId,
-        clientSecret,
-      });
+      const credentials = { shopDomain, clientId, clientSecret };
+      orderEnrichment = enrichmentOrderId
+        ? await fetchOrderEnrichmentWithClientCredentials(shopDomain, enrichmentOrderId, credentials)
+        : await fetchCustomerEnrichmentWithClientCredentials(shopDomain, enrichmentCustomerId!, credentials);
     } catch (error) {
       const code = error instanceof Error ? error.message : "shopify_order_enrichment_failed";
       console.error("shopify-lifecycle-webhook: order enrichment failed", code);
