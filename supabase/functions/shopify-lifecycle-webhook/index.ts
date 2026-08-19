@@ -17,7 +17,9 @@ import {
 import {
   parseShopifyOrderEnrichmentResponse,
   SHOPIFY_ORDER_ENRICHMENT_QUERY,
+  shopifyTopicRequiresOrderEnrichment,
 } from "../_shared/shopify-order-enrichment.ts";
+import { SHOPIFY_ORDER_ENRICHMENT_TIMEOUT_MS } from "../_shared/shopify-webhook-budget.ts";
 
 const MAX_BODY_BYTES = 256 * 1024;
 const SHOPIFY_GRAPHQL_VERSION = "2026-07";
@@ -52,7 +54,7 @@ async function fetchOrderEnrichment(
   fetcher: typeof fetch = fetch,
 ): Promise<ShopifyOrderEnrichment> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 6_000);
+  const timeout = setTimeout(() => controller.abort(), SHOPIFY_ORDER_ENRICHMENT_TIMEOUT_MS);
   let response: Response;
   try {
     response = await fetcher(`https://${shopDomain}/admin/api/${SHOPIFY_GRAPHQL_VERSION}/graphql.json`, {
@@ -82,20 +84,24 @@ async function fetchOrderEnrichmentWithClientCredentials(
   orderId: string,
   credentials: ShopifyClientCredentials,
 ): Promise<ShopifyOrderEnrichment> {
-  let adminToken = await shopifyAdminTokenProvider.getAccessToken(credentials);
+  const adminToken = await shopifyAdminTokenProvider.getAccessToken(credentials);
   try {
     return await fetchOrderEnrichment(shopDomain, orderId, adminToken);
   } catch (error) {
     if (!(error instanceof Error) || error.message !== "shopify_order_enrichment_http_401") throw error;
+    // Do not spend Shopify's five-second webhook acknowledgement budget on a
+    // second upstream round trip. Invalidate the token and let Shopify's retry
+    // receive a freshly minted credential.
     shopifyAdminTokenProvider.invalidate(shopDomain, credentials.clientId);
-    adminToken = await shopifyAdminTokenProvider.getAccessToken(credentials);
-    return await fetchOrderEnrichment(shopDomain, orderId, adminToken);
+    throw error;
   }
 }
 
 function orderIdForEnrichment(topic: ShopifyTopic, payload: Record<string, unknown>): string | null {
-  if (topic === "orders/paid") return orderGid(payload.admin_graphql_api_id ?? payload.id);
-  if (topic === "refunds/create") return orderGid(payload.order_id);
+  // The signed paid-order payload already contains the email, consent,
+  // variants, quantities, and selling plan required by the bridge. Only
+  // refunds need a current financial-status lookup.
+  if (shopifyTopicRequiresOrderEnrichment(topic)) return orderGid(payload.order_id);
   return null;
 }
 

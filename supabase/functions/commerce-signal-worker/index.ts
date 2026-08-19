@@ -3,6 +3,8 @@ import {
   processCommerceSignalJob,
   type CommerceSignalJob,
 } from "../_shared/commerce-signal-job.ts";
+import { commercePublishShopDomainsFromEnv } from "../_shared/commerce-lifecycle.ts";
+import { parseBrevoEmailSendability } from "../_shared/brevo-suppression.ts";
 
 class ProviderError extends Error {
   constructor(message: string, readonly retryable: boolean) {
@@ -41,8 +43,13 @@ async function brevoContactIsSendable(email: string, apiKey: string): Promise<bo
   if (!response.ok) {
     throw new ProviderError(`Brevo contact lookup HTTP ${response.status}`, response.status === 408 || response.status === 429 || response.status >= 500);
   }
-  const body = await response.json() as { emailBlacklisted?: unknown };
-  return body.emailBlacklisted !== true;
+  let body: unknown;
+  try {
+    body = await response.json();
+    return parseBrevoEmailSendability(body);
+  } catch {
+    throw new ProviderError("Brevo contact lookup returned malformed suppression state", true);
+  }
 }
 
 async function publishBrevoEvent(payload: Record<string, unknown>, apiKey: string): Promise<void> {
@@ -57,12 +64,15 @@ async function publishBrevoEvent(payload: Record<string, unknown>, apiKey: strin
       signal: controller.signal,
     });
   } catch {
-    throw new ProviderError("Brevo event publish failed", true);
+    throw new ProviderError("Brevo event publish outcome unknown", false);
   } finally {
     clearTimeout(timeout);
   }
   if (response.ok) return;
-  throw new ProviderError(`Brevo event publish HTTP ${response.status}`, response.status === 408 || response.status === 429 || response.status >= 500);
+  // Once the dispatch request has started, prefer a missed marketing message
+  // over a possible duplicate. Brevo's Events API has no idempotency key, so
+  // provider failures are never automatically replayed.
+  throw new ProviderError(`Brevo event publish HTTP ${response.status}`, false);
 }
 
 Deno.serve(async (req) => {
@@ -88,7 +98,14 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data, error: claimError } = await supabase.rpc("claim_commerce_lifecycle_jobs", { p_limit: 25 });
+  const allowedShopDomains = [...commercePublishShopDomainsFromEnv((name) => Deno.env.get(name))];
+  if (allowedShopDomains.length === 0) {
+    return jsonResponse(503, { success: false, error: "publish_allowlist_missing" });
+  }
+  const { data, error: claimError } = await supabase.rpc("claim_commerce_lifecycle_jobs", {
+    p_limit: 25,
+    p_allowed_shop_domains: allowedShopDomains,
+  });
   if (claimError) {
     console.error("commerce-signal-worker: claim failed", claimError.code);
     return jsonResponse(503, { success: false, error: "claim_failed" });
@@ -104,15 +121,19 @@ Deno.serve(async (req) => {
       try {
         const result = await processCommerceSignalJob(job, {
           contactIsSendable: (email) => brevoContactIsSendable(email, brevoApiKey),
-          jobIsStillEligible: async (id) => {
-            const { data: eligible, error: eligibilityError } = await supabase.rpc(
-              "commerce_lifecycle_job_is_still_eligible",
-              { p_outbox_id: id },
+          beginDispatch: async (id, leaseToken) => {
+            const { data: dispatchStarted, error: eligibilityError } = await supabase.rpc(
+              "begin_commerce_lifecycle_dispatch",
+              {
+                p_outbox_id: id,
+                p_lease_token: leaseToken,
+                p_allowed_shop_domains: allowedShopDomains,
+              },
             );
             if (eligibilityError) {
               throw new ProviderError("Commerce send-time eligibility check failed", true);
             }
-            return eligible === true;
+            return dispatchStarted === true;
           },
           publish: (payload) => publishBrevoEvent(payload, brevoApiKey),
         });
@@ -128,15 +149,17 @@ Deno.serve(async (req) => {
 
       const { data: finalStatus, error: completionError } = await supabase.rpc("complete_commerce_lifecycle_job", {
         p_outbox_id: job.id,
+        p_lease_token: job.lease_token,
         p_outcome: outcome,
         p_error: errorMessage,
         p_retryable: retryable,
       });
       if (completionError) {
         console.error("commerce-signal-worker: completion failed", completionError.code);
-        return "pending";
+        return "failed";
       }
-      return String(finalStatus ?? "pending");
+      const completed = String(finalStatus ?? "failed");
+      return completed === "stale_lease" ? "failed" : completed;
     }));
     for (const outcome of outcomes) {
       if (outcome in counts) counts[outcome as keyof typeof counts] += 1;
@@ -144,5 +167,31 @@ Deno.serve(async (req) => {
     }
   }
 
-  return jsonResponse(200, { success: true, mode: "publish", claimed: jobs.length, ...counts });
+  const { data: unresolvedRows, error: unresolvedError } = await supabase
+    .from("commerce_lifecycle_outbox")
+    .select("status")
+    .in("shop_domain", allowedShopDomains)
+    .in("status", ["failed", "delivery_uncertain"])
+    .limit(100);
+  if (unresolvedError) {
+    console.error("commerce-signal-worker: unresolved-state check failed", unresolvedError.code);
+    return jsonResponse(503, { success: false, error: "unresolved_state_check_failed" });
+  }
+  const unresolved = (unresolvedRows ?? []).reduce(
+    (result, row) => {
+      if (row.status === "failed") result.failed += 1;
+      if (row.status === "delivery_uncertain") result.delivery_uncertain += 1;
+      return result;
+    },
+    { failed: 0, delivery_uncertain: 0 },
+  );
+  const hasFailures = counts.pending > 0 || counts.failed > 0 ||
+    unresolved.failed > 0 || unresolved.delivery_uncertain > 0;
+  return jsonResponse(hasFailures ? 503 : 200, {
+    success: !hasFailures,
+    mode: "publish",
+    claimed: jobs.length,
+    ...counts,
+    unresolved,
+  });
 });

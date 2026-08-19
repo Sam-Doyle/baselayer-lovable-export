@@ -1,4 +1,8 @@
-import type { ShopifyOrderEnrichment } from "./commerce-lifecycle.ts";
+import type { ShopifyOrderEnrichment, ShopifyTopic } from "./commerce-lifecycle.ts";
+
+export function shopifyTopicRequiresOrderEnrichment(topic: ShopifyTopic): boolean {
+  return topic === "refunds/create";
+}
 
 export const SHOPIFY_ORDER_ENRICHMENT_QUERY = `query BaseLayerLifecycleOrder($id: ID!) {
   order(id: $id) {

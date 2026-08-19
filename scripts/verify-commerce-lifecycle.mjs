@@ -108,6 +108,28 @@ async function outboxFor(orderId) {
   );
 }
 
+async function moveJobToProcessing(jobId) {
+  const leaseToken = randomUUID();
+  const updated = await patch(
+    "commerce_lifecycle_outbox",
+    { id: `eq.${jobId}` },
+    { status: "processing", lease_token: leaseToken, dispatch_started_at: null },
+  );
+  assert.equal(updated.length, 1);
+  return leaseToken;
+}
+
+async function jobIsEligible(jobId, leaseToken) {
+  return request("rpc/commerce_lifecycle_job_is_still_eligible", {
+    method: "POST",
+    body: JSON.stringify({
+      p_outbox_id: jobId,
+      p_lease_token: leaseToken,
+      p_allowed_shop_domains: [shopDomain],
+    }),
+  });
+}
+
 try {
   // Fulfillment before paid must be reconciled after the paid webhook supplies
   // the canonical email/customer identity.
@@ -264,16 +286,13 @@ try {
   });
   let cancelledOutbox = await outboxFor(cancelledOrder);
   const cancelledPaidJob = cancelledOutbox.find((row) => row.event_name === "bl_order_paid_v1");
-  await patch("commerce_lifecycle_outbox", { id: `eq.${cancelledPaidJob.id}` }, { status: "processing" });
+  const cancelledLease = await moveJobToProcessing(cancelledPaidJob.id);
   await record("order_cancelled", {
     order_id: cancelledOrder,
     email: cancelledEmail,
     marketing_consent_state: "subscribed",
   });
-  const eligibleAfterCancel = await request("rpc/commerce_lifecycle_job_is_still_eligible", {
-    method: "POST",
-    body: JSON.stringify({ p_outbox_id: cancelledPaidJob.id }),
-  });
+  const eligibleAfterCancel = await jobIsEligible(cancelledPaidJob.id, cancelledLease);
   assert.equal(eligibleAfterCancel, false);
   const cancelledState = await rows(
     "commerce_customer_state",
@@ -380,17 +399,14 @@ try {
   const consentOutbox = await outboxFor(consentOrder);
   const paidJob = consentOutbox.find((row) => row.event_name === "bl_order_paid_v1");
   assert.ok(paidJob);
-  await patch("commerce_lifecycle_outbox", { id: `eq.${paidJob.id}` }, { status: "processing" });
+  const consentLease = await moveJobToProcessing(paidJob.id);
   await record("subscription_projection_observed", {
     customer_id: `${runId}-customer-3`,
     email: consentEmail,
     marketing_consent_state: "unsubscribed",
     subscription_tag_count: 0,
   });
-  const eligibleAfterUnsubscribe = await request("rpc/commerce_lifecycle_job_is_still_eligible", {
-    method: "POST",
-    body: JSON.stringify({ p_outbox_id: paidJob.id }),
-  });
+  const eligibleAfterUnsubscribe = await jobIsEligible(paidJob.id, consentLease);
   assert.equal(eligibleAfterUnsubscribe, false);
 
   // Flow's transient zero-tag update preserves state; conflicting durable tags
@@ -488,7 +504,7 @@ try {
   });
   let refundOutbox = await outboxFor(refundOrder);
   const refundPaidJob = refundOutbox.find((row) => row.event_name === "bl_order_paid_v1");
-  await patch("commerce_lifecycle_outbox", { id: `eq.${refundPaidJob.id}` }, { status: "processing" });
+  const refundLease = await moveJobToProcessing(refundPaidJob.id);
   await record("refund_created", {
     order_id: refundOrder,
     email: refundEmail,
@@ -497,10 +513,7 @@ try {
     is_full_order_refund: false,
     refunded_bottles_delta: 1,
   });
-  const eligibleAfterRefund = await request("rpc/commerce_lifecycle_job_is_still_eligible", {
-    method: "POST",
-    body: JSON.stringify({ p_outbox_id: refundPaidJob.id }),
-  });
+  const eligibleAfterRefund = await jobIsEligible(refundPaidJob.id, refundLease);
   assert.equal(eligibleAfterRefund, false);
   const refundState = await rows(
     "commerce_customer_state",
@@ -533,17 +546,192 @@ try {
   assert.equal(shippingReplenishment.status, "cancelled");
   assert.equal(shippingReplenishment.hold_reason, "shipping_adjustment_no_urgency");
 
+  // Consent chronology is monotonic: a delayed older subscribed observation
+  // cannot reverse a newer unsubscribe.
+  const chronologyEmail = `${runId}+chronology@example.com`;
+  const chronologyCustomer = `${runId}-customer-chronology`;
+  await record("subscription_projection_observed", {
+    customer_id: chronologyCustomer,
+    email: chronologyEmail,
+    occurred_at: "2026-08-01T12:00:00.000Z",
+    marketing_consent_state: "subscribed",
+    subscription_tag_count: 0,
+  });
+  await record("subscription_projection_observed", {
+    customer_id: chronologyCustomer,
+    email: chronologyEmail,
+    occurred_at: "2026-08-03T12:00:00.000Z",
+    marketing_consent_state: "unsubscribed",
+    subscription_tag_count: 0,
+  });
+  await record("subscription_projection_observed", {
+    customer_id: chronologyCustomer,
+    email: chronologyEmail,
+    occurred_at: "2026-08-02T12:00:00.000Z",
+    marketing_consent_state: "subscribed",
+    subscription_tag_count: 0,
+  });
+  const chronologyState = await rows(
+    "commerce_customer_state",
+    { email: `eq.${chronologyEmail}` },
+    "marketing_consent_state,marketing_consent_observed_at",
+  );
+  assert.equal(chronologyState[0].marketing_consent_state, "unsubscribed");
+  assert.equal(chronologyState[0].marketing_consent_observed_at, "2026-08-03T12:00:00+00:00");
+
+  // A Shopify customer changing email migrates the projection and queued
+  // jobs instead of violating the independent customer-ID uniqueness index.
+  const oldEmail = `${runId}+old@example.com`;
+  const newEmail = `${runId}+new@example.com`;
+  const emailChangeCustomer = `${runId}-customer-email-change`;
+  await record("subscription_projection_observed", {
+    customer_id: emailChangeCustomer,
+    email: oldEmail,
+    occurred_at: "2026-08-04T12:00:00.000Z",
+    marketing_consent_state: "subscribed",
+    subscription_projection: "active",
+    subscription_tag_count: 1,
+  });
+  await record("subscription_projection_observed", {
+    customer_id: emailChangeCustomer,
+    email: newEmail,
+    occurred_at: "2026-08-05T12:00:00.000Z",
+    marketing_consent_state: "unsubscribed",
+    subscription_projection: "cancelled",
+    subscription_tag_count: 1,
+  });
+  emails.push(oldEmail);
+  const migratedRows = await rows(
+    "commerce_customer_state",
+    { customer_id: `eq.${emailChangeCustomer}` },
+    "email,marketing_consent_state,subscription_projection",
+  );
+  assert.deepEqual(migratedRows, [{
+    email: newEmail,
+    marketing_consent_state: "unsubscribed",
+    subscription_projection: "cancelled",
+  }]);
+
+  // A stale worker cannot complete a job after a newer lease has succeeded.
+  const leaseOrder = `${runId}-lease-fence`;
+  const leaseEmail = `${runId}+lease@example.com`;
+  await record("order_paid", {
+    order_id: leaseOrder,
+    customer_id: `${runId}-customer-lease`,
+    email: leaseEmail,
+    marketing_consent_state: "subscribed",
+    purchased_bottles: 1,
+    is_subscription_order: false,
+  }, true);
+  const firstClaim = await request("rpc/claim_commerce_lifecycle_jobs", {
+    method: "POST",
+    body: JSON.stringify({ p_limit: 1, p_allowed_shop_domains: [shopDomain] }),
+  });
+  assert.equal(firstClaim.length, 1);
+  await patch(
+    "commerce_lifecycle_outbox",
+    { id: `eq.${firstClaim[0].id}` },
+    { locked_at: "2026-08-01T00:00:00.000Z" },
+  );
+  const secondClaim = await request("rpc/claim_commerce_lifecycle_jobs", {
+    method: "POST",
+    body: JSON.stringify({ p_limit: 1, p_allowed_shop_domains: [shopDomain] }),
+  });
+  assert.equal(secondClaim[0].id, firstClaim[0].id);
+  const secondCompletion = await request("rpc/complete_commerce_lifecycle_job", {
+    method: "POST",
+    body: JSON.stringify({
+      p_outbox_id: secondClaim[0].id,
+      p_lease_token: secondClaim[0].lease_token,
+      p_outcome: "succeeded",
+      p_retryable: false,
+    }),
+  });
+  assert.equal(secondCompletion, "succeeded");
+  const staleCompletion = await request("rpc/complete_commerce_lifecycle_job", {
+    method: "POST",
+    body: JSON.stringify({
+      p_outbox_id: firstClaim[0].id,
+      p_lease_token: firstClaim[0].lease_token,
+      p_outcome: "failed",
+      p_error: "stale worker",
+      p_retryable: true,
+    }),
+  });
+  assert.equal(staleCompletion, "stale_lease");
+  const fencedRow = await rows(
+    "commerce_lifecycle_outbox",
+    { id: `eq.${firstClaim[0].id}` },
+    "status",
+  );
+  assert.equal(fencedRow[0].status, "succeeded");
+
+  // Once provider dispatch starts, an unacknowledged stale lease becomes
+  // delivery_uncertain and is never reclaimed for a duplicate send.
+  const uncertainOrder = `${runId}-delivery-uncertain`;
+  const uncertainEmail = `${runId}+uncertain@example.com`;
+  await record("order_paid", {
+    order_id: uncertainOrder,
+    customer_id: `${runId}-customer-uncertain`,
+    email: uncertainEmail,
+    marketing_consent_state: "subscribed",
+    purchased_bottles: 1,
+    is_subscription_order: false,
+  }, true);
+  const uncertainClaim = await request("rpc/claim_commerce_lifecycle_jobs", {
+    method: "POST",
+    body: JSON.stringify({ p_limit: 1, p_allowed_shop_domains: [shopDomain] }),
+  });
+  assert.equal(uncertainClaim.length, 1);
+  const dispatchStarted = await request("rpc/begin_commerce_lifecycle_dispatch", {
+    method: "POST",
+    body: JSON.stringify({
+      p_outbox_id: uncertainClaim[0].id,
+      p_lease_token: uncertainClaim[0].lease_token,
+      p_allowed_shop_domains: [shopDomain],
+    }),
+  });
+  assert.equal(dispatchStarted, true);
+  await patch(
+    "commerce_lifecycle_outbox",
+    { id: `eq.${uncertainClaim[0].id}` },
+    { locked_at: "2026-08-01T00:00:00.000Z" },
+  );
+  await request("rpc/claim_commerce_lifecycle_jobs", {
+    method: "POST",
+    body: JSON.stringify({ p_limit: 25, p_allowed_shop_domains: [shopDomain] }),
+  });
+  const uncertainRow = await rows(
+    "commerce_lifecycle_outbox",
+    { id: `eq.${uncertainClaim[0].id}` },
+    "status,hold_reason",
+  );
+  assert.deepEqual(uncertainRow[0], {
+    status: "delivery_uncertain",
+    hold_reason: "provider_outcome_unknown",
+  });
+
   console.log(JSON.stringify({
     success: true,
     runId,
-    checks: 40,
-    publishedEvents: 0,
+    scenarios: [
+      "out_of_order_fulfillment_delivery",
+      "single_two_pack_subscription_routing",
+      "webhook_idempotency",
+      "cancel_refund_and_consent_exits",
+      "subscription_projection_ordering",
+      "consent_chronology",
+      "customer_email_migration",
+      "lease_fencing",
+      "provider_outcome_quarantine",
+    ],
+    externalProviderCalls: 0,
   }));
 } finally {
   // Keep the production audit tables clean. Delete only the unique identities
   // created by this run and preserve every real Shopify receipt.
-  await remove("commerce_lifecycle_outbox", "email", emails).catch(() => {});
-  await remove("commerce_customer_state", "email", emails).catch(() => {});
-  await remove("commerce_orders", "order_id", orders).catch(() => {});
-  await remove("commerce_lifecycle_receipts", "id", receipts).catch(() => {});
+  await remove("commerce_lifecycle_outbox", "email", emails);
+  await remove("commerce_customer_state", "email", emails);
+  await remove("commerce_orders", "order_id", orders);
+  await remove("commerce_lifecycle_receipts", "id", receipts);
 }

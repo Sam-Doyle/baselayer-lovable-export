@@ -29,5 +29,21 @@ describe("commerce lifecycle scheduler", () => {
       "missing required environment configuration",
     );
   });
-});
 
+  it("surfaces worker job failures instead of acknowledging a healthy schedule", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      success: false,
+      mode: "publish",
+      claimed: 1,
+      failed: 1,
+    }), { status: 503, headers: { "Content-Type": "application/json" } }));
+
+    await expect(runCommerceSync({
+      env: {
+        SUPABASE_URL: "https://example.supabase.co",
+        COMMERCE_SYNC_WORKER_SECRET: "worker-secret",
+      },
+      fetcher,
+    })).rejects.toThrow("HTTP 503");
+  });
+});

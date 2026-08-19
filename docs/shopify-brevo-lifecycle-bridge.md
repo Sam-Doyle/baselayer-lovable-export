@@ -360,14 +360,18 @@ Create these exact attributes; unknown attributes can reject the event:
 9. Change both functions to publish only after written operator acceptance.
    Start with an empty claim and do not release old held jobs.
 
-### Current production activation (2026-08-18)
+### Current production containment and repair (2026-08-19)
 
-- `COMMERCE_LIFECYCLE_MODE=publish`. The authenticated worker started with
-  `claimed: 0`, `succeeded: 0`, `pending: 0`, and `failed: 0`; historical
-  `audit_mode` jobs remain held and were not replayed. The shared worker secret
-  is synchronized between Supabase and Netlify. Netlify production deploy
-  `6a84ced758f904b69a707773` is ready and registers the five-minute commerce
-  scheduler.
+- `COMMERCE_LIFECYCLE_MODE=audit`. The bridge was returned to fail-closed audit
+  mode after an adversarial concurrency review. The authenticated worker
+  reports `claimed: 0`; historical `audit_mode` jobs remain held and must never
+  be replayed.
+- Migration `20260819120000_commerce_lifecycle_delivery_safety.sql` adds
+  chronological consent, safe Shopify customer-email migration, fenced worker
+  leases, send-time shop allowlisting, and `delivery_uncertain` quarantine for
+  provider requests whose final acknowledgement is unknown.
+- The shared worker secret was rotated, synchronized between Supabase and
+  Netlify, restricted to the production Functions scope, and marked secret.
 - `COMMERCE_PUBLISH_SHOP_DOMAINS` contains only
   `kpfzdg-kw.myshopify.com`; the lifecycle QA store cannot publish Brevo
   events even though its signed webhooks continue populating audit state.
@@ -395,11 +399,13 @@ Create these exact attributes; unknown attributes can reject the event:
   contact `samuel.r.doyle@gmail.com`; every staging endpoint was deleted after
   the Brevo event catalog learned the names/properties. No automation was
   active during that catalog-staging exercise and no lifecycle email was sent.
-- Remote SQL acceptance passed again after the final migrations as
-  `bl-sql-audit-1787088027707-757b9a4d`: 40 checks and zero published events.
-  It covers duplicate and out-of-order delivery, cancellation/full-refund
-  exits, product-refund holds, subscription suppression, consent revocation
-  during processing, and one-/two-bottle replenishment routing.
+- Remote SQL acceptance passed after the safety migration as
+  `bl-sql-audit-1787148747592-ed5f1d76`. It now covers duplicate and
+  out-of-order delivery, cancellation/full-refund exits, product-refund holds,
+  subscription suppression, monotonic consent chronology, customer email
+  migration, fenced worker leases, provider-outcome quarantine, and one-/
+  two-bottle replenishment routing. The script reports named scenarios instead
+  of hardcoded check totals and performs no external provider call.
 - Two real signed Shopify QA orders were also verified before activation:
   order `#1002` classified one bottle and replayed idempotently; order `#1003`
   (`18835060064560`) classified two bottles, queued day-77 replenishment, and
@@ -410,7 +416,8 @@ Create these exact attributes; unknown attributes can reject the event:
   on the ongoing regression matrix below. Their absence does not bypass the
   production guards: delivery estimates are labeled, refunds/cancellations are
   send-time exits, subscription orders are conservatively excluded from
-  one-time replenishment, and publish mode can be rolled back independently.
+  one-time replenishment. Do not restore publish mode until the repaired
+  functions and full acceptance matrix pass twice with zero uncertain jobs.
 
 ### Rollback
 

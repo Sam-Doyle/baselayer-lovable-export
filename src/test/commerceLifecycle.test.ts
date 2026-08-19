@@ -54,14 +54,21 @@ describe("commerce lifecycle Shopify normalization", () => {
       twoBottleVariantId: "67548639232304",
       subscriptionSellingPlanIds: [],
     });
-    expect([...commercePublishShopDomainsFromEnv((name) => values[name])])
-      .toEqual([BASE_LAYER_SHOP_DOMAIN]);
+    expect([...commercePublishShopDomainsFromEnv((name) => values[name])]).toEqual([]);
+    expect([...commercePublishShopDomainsFromEnv((name) => (
+      name === "COMMERCE_PUBLISH_SHOP_DOMAINS" ? BASE_LAYER_SHOP_DOMAIN : values[name]
+    ))]).toEqual([BASE_LAYER_SHOP_DOMAIN]);
   });
 
   it("fails closed when a QA domain is configured without its complete catalog", () => {
     expect(() => commerceStoreConfigsFromEnv((name) => (
       name === "SHOPIFY_QA_SHOP_DOMAIN" ? "base-layer-lifecycle-qa.myshopify.com" : undefined
     ))).toThrow("invalid_shopify_qa_single_bottle_variant_id");
+  });
+
+  it("fails closed when the publish allowlist is missing or malformed", () => {
+    expect([...commercePublishShopDomainsFromEnv(() => undefined)]).toEqual([]);
+    expect([...commercePublishShopDomainsFromEnv(() => "not-a-shop, also.invalid")]).toEqual([]);
   });
 
   it("classifies only the configured development-store variants and selling plans", () => {

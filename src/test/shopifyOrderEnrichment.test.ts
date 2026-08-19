@@ -2,9 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   parseShopifyOrderEnrichmentResponse,
   SHOPIFY_ORDER_ENRICHMENT_QUERY,
+  shopifyTopicRequiresOrderEnrichment,
 } from "../../supabase/functions/_shared/shopify-order-enrichment";
 
 describe("Shopify order enrichment GraphQL", () => {
+  it("keeps paid-order webhooks on the fast signed-payload path", () => {
+    expect(shopifyTopicRequiresOrderEnrichment("orders/paid")).toBe(false);
+    expect(shopifyTopicRequiresOrderEnrichment("refunds/create")).toBe(true);
+  });
+
   it("does not require read_products to enrich order authority", () => {
     expect(SHOPIFY_ORDER_ENRICHMENT_QUERY).not.toContain("lineItems");
     expect(SHOPIFY_ORDER_ENRICHMENT_QUERY).not.toContain("variant");

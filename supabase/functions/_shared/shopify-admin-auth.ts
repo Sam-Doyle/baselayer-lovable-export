@@ -1,4 +1,4 @@
-const DEFAULT_TIMEOUT_MS = 6_000;
+import { SHOPIFY_TOKEN_TIMEOUT_MS } from "./shopify-webhook-budget.ts";
 const MAX_REFRESH_SKEW_MS = 5 * 60 * 1_000;
 const MIN_REFRESH_SKEW_MS = 1_000;
 
@@ -70,7 +70,7 @@ export function createShopifyAdminTokenProvider(
 ): ShopifyAdminTokenProvider {
   const fetcher = dependencies.fetcher ?? fetch;
   const now = dependencies.now ?? Date.now;
-  const timeoutMs = dependencies.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeoutMs = dependencies.timeoutMs ?? SHOPIFY_TOKEN_TIMEOUT_MS;
   const requiredScopes = dependencies.requiredScopes ?? REQUIRED_SHOPIFY_ADMIN_SCOPES;
   const cache = new Map<string, CachedToken>();
   const inFlight = new Map<string, Promise<string>>();

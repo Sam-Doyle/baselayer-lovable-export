@@ -1,13 +1,15 @@
 export interface CommerceSignalJob {
   id: string;
+  shop_domain: string;
   email: string;
   payload: Record<string, unknown>;
   attempts: number;
+  lease_token: string;
 }
 
 export interface CommerceSignalJobDependencies {
   contactIsSendable(email: string): Promise<boolean>;
-  jobIsStillEligible(id: string): Promise<boolean>;
+  beginDispatch(id: string, leaseToken: string): Promise<boolean>;
   publish(payload: Record<string, unknown>): Promise<void>;
 }
 
@@ -27,10 +29,11 @@ export async function processCommerceSignalJob(
     };
   }
 
-  // This check intentionally happens after the provider blocklist lookup and
-  // immediately before event publication. It closes the material Shopify /
-  // Supabase state window without weakening Brevo's authoritative suppression.
-  if (!await dependencies.jobIsStillEligible(job.id)) {
+  // This fenced transition rechecks consent, commerce state, the current shop
+  // allowlist, and the claim lease in one database statement immediately
+  // before the provider request. A dispatch that reaches Brevo is never
+  // automatically reclaimed if its final acknowledgement becomes uncertain.
+  if (!await dependencies.beginDispatch(job.id, job.lease_token)) {
     return {
       outcome: "suppressed",
       retryable: false,

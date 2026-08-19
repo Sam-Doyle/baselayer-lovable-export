@@ -234,7 +234,9 @@ export function commercePublishShopDomainsFromEnv(
   getEnv: (name: string) => string | undefined,
 ): ReadonlySet<string> {
   const configured = getEnv("COMMERCE_PUBLISH_SHOP_DOMAINS");
-  const domains = (configured ?? BASE_LAYER_SHOP_DOMAIN).split(",")
+  // Publishing is an explicit allowlist. A missing or malformed value must
+  // never silently fall back to the production store.
+  const domains = (configured ?? "").split(",")
     .map((value) => value.trim().toLowerCase())
     .filter((value) => validShopDomain(value));
   return new Set(domains);
