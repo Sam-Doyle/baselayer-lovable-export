@@ -96,3 +96,12 @@ confidence: high
 target_article: seo-indexing
 ---
 GSC verdicts on the three "failed" SEO pages: /all-in-one-skincare-for-men was actually INDEXED (crawled 2026-08-17). /matte-moisturizer-for-men: "Crawled - currently not indexed", last crawl 2026-05-21 (crawled once, rejected). /non-greasy-moisturizer-for-men: "Discovered - currently not indexed" (never crawled). Root cause found: zero crawlable internal links pointed at these pages; the only referring URL Google knew was the homepage, the footer skipped them, and SkinConcernQuiz navigates client-side. Fix shipped 2026-08-19: footer links (site-wide), Learn More grid links from the indexed all-in-one page, Related Reading cross-links between siblings, plus full copy differentiation (matte = oily skin/shine angle, non-greasy = texture/absorption angle) and real photography replacing the duplicated generated-creative PNGs both pages shared. Sitemap lastmod updates automatically from git commit dates on static routes.
+
+---
+date: 2026-08-19
+category: product
+source: user (Sam), authoritative formulation spec
+confidence: high
+target_article: formulation / canonical concentrations
+---
+CORRECTION to earlier canonical-concentrations entry from today: Sam's authoritative spec is Niacinamide 5%, GHK-Cu 0.03%, Panthenol 2% (confirmed keep), Centella asiatica 1%, Disodium EDTA 0.075% (chelator, full-disclosure contexts only, not a marketing active), Hyaluronic Acid = the cream base (no percentage claim), Squalane = no published percentage. The earlier entry's centella 2%, squalane 3%, and HA 0.5% values are WRONG and came from a stale FaceCream.tsx FAQ. Fixed 2026-08-19 in code (FaceCream FAQ, centella cards on matte/non-greasy/all-in-one pages) and in Sanity (comparison keyIngredients plus four skinConcern docs that claimed GHK-Cu 1.5% and squalane 8-12%).

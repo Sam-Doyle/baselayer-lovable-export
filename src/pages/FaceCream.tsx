@@ -81,7 +81,7 @@ const faqs = [
   { question: "Will this leave my face greasy?", answer: "It is designed to absorb quickly with a lightweight, matte finish. Skin varies, so the 30-day guarantee gives you time to judge the finish on your own face." },
   { question: "Can I put this on right after shaving?", answer: "Yes. The formula includes 2% panthenol to help soothe skin and support its natural moisture barrier. If shaving leaves your skin raw or broken, let it settle before applying." },
   { question: "Will this break me out?", answer: "The formula is designed to be non-comedogenic, but no moisturizer can promise the same response for every person. Patch test first if you are acne-prone or reactive, and stop use if irritation develops." },
-  { question: "How is this different from CeraVe or Nivea?", answer: "Base Layer combines moisturizer and serum-style ingredients in one step and discloses all six highlighted concentrations: 5% niacinamide, 0.03% GHK-Cu, 2% panthenol, 2% centella asiatica, 3% squalane, and 0.5% hyaluronic acid. Compare the full ingredient lists and choose the formula that fits your skin and routine." },
+  { question: "How is this different from CeraVe or Nivea?", answer: "Base Layer combines moisturizer and serum-style ingredients in one step and publishes its active concentrations: 5% niacinamide, 0.03% GHK-Cu, 2% panthenol, and 1% centella asiatica, all in a hyaluronic acid cream base with squalane. Compare the full ingredient lists and choose the formula that fits your skin and routine." },
   { question: "Do I have to subscribe?", answer: "No. Buying once is the default and always will be. Subscribe & Save is there if you want the discount and hate reordering — pause or cancel in one click, no lock-in, no hoops." },
 ];
 

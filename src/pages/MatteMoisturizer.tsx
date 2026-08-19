@@ -325,7 +325,7 @@ const MatteMoisturizer = () => {
                 },
                 {
                   icon: Leaf,
-                  name: "Centella Asiatica",
+                  name: "Centella Asiatica (1%)",
                   slug: "centella-asiatica",
                   benefit: "Anti-inflammatory, rebuilds moisture barrier",
                   matteRole: "Reduces irritation that triggers excess oil production",

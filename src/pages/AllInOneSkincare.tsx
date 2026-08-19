@@ -350,7 +350,7 @@ const AllInOneSkincare = () => {
                     { ingredient: "Niacinamide 5%", role: "Oil control + brightening (serum replacement)" },
                     { ingredient: "Copper Peptide GHK-Cu 0.03%", role: "Anti-aging + collagen (eye cream replacement)" },
                     { ingredient: "Squalane + HA", role: "Hydration + moisture lock (moisturizer replacement)" },
-                    { ingredient: "Panthenol 2% + Centella", role: "Barrier repair + anti-inflammatory (bonus)" },
+                    { ingredient: "Panthenol 2% + Centella 1%", role: "Barrier repair + anti-inflammatory (bonus)" },
                   ].map((item) => (
                     <div key={item.ingredient}>
                       <p className="font-heading font-bold text-sm">{item.ingredient}</p>
@@ -414,7 +414,7 @@ const AllInOneSkincare = () => {
                 },
                 {
                   icon: Leaf,
-                  name: "Centella Asiatica",
+                  name: "Centella Asiatica (1%)",
                   slug: "centella-asiatica",
                   functions: ["Anti-inflammatory", "Antioxidant", "Barrier rebuilding", "Irritation relief"],
                   replaces: "Calming serum",

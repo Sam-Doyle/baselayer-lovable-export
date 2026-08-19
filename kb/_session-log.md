@@ -755,3 +755,9 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Findings**: Root cause was zero crawlable internal links, not thin content. Also caught fabricated concentrations on live comparison (GHK-Cu 1.5%, squalane 8-12%, panthenol 3%); corrected in Sanity to canonical 0.03%/3%/2%. Agent also stripped fabricated stats (2006 journal cite, Mintel 73%) from the two pages.
 - **Files changed**: MatteMoisturizer.tsx, NonGreasyMoisturizer.tsx, AllInOneSkincare.tsx, Footer.tsx, pageSeo.ts, kb files; Sanity comparison doc a2f9507e.
 - **KB updates**: 2 inbox entries (canonical concentrations + GSC indexing diagnosis).
+
+## 2026-08-19 — Concentration spec correction
+- **Task**: Applied Sam's authoritative formulation spec (niacinamide 5%, GHK-Cu 0.03%, panthenol 2%, centella 1%, HA cream base, squalane no %, disodium EDTA 0.075%) across code and Sanity
+- **Findings**: Full dataset export grep found four skinConcern docs still claiming GHK-Cu 1.5% and squalane 8-12%; all patched and published alongside the comparison keyIngredients fix
+- **Files changed**: FaceCream.tsx, AllInOneSkincare.tsx, MatteMoisturizer.tsx, NonGreasyMoisturizer.tsx, kb/_inbox.md
+- **KB updates**: Correction entry in inbox superseding earlier canonical-concentrations entry

@@ -397,7 +397,7 @@ const NonGreasyMoisturizer = () => {
                 },
                 {
                   icon: Leaf,
-                  name: "Centella Asiatica",
+                  name: "Centella Asiatica (1%)",
                   slug: "centella-asiatica",
                   desc: "Anti-inflammatory that rebuilds your moisture barrier. Soothes without a film.",
                 },
