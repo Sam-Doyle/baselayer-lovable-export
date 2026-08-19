@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test:commerce-sql": "node scripts/verify-commerce-lifecycle.mjs",
+    "test:email-program": "node scripts/verify-email-program.mjs --templates email-templates",
     "shopify:webhooks:register": "node scripts/register-shopify-lifecycle-webhooks.mjs",
     "dev": "vite",
     "build": "node scripts/fetch-reviews.mjs && vite build",

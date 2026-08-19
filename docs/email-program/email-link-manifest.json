@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "storefront_origin": "https://baselayerskin.co",
+  "utm": {
+    "source": "brevo",
+    "medium": "email",
+    "campaign_by_journey": {
+      "welcome": "welcome",
+      "cart_recovery": "cart_recovery",
+      "post_purchase": "post_purchase",
+      "replenishment": "replenishment"
+    }
+  },
+  "required_marketing_elements": [
+    "brand_name",
+    "preheader",
+    "primary_cta",
+    "postal_address",
+    "visible_unsubscribe"
+  ],
+  "messages": [
+    {
+      "id": "w01_code",
+      "journey": "welcome",
+      "format": "alpine_editorial",
+      "job": "deliver_skin15",
+      "required_elements": ["discount_code", "guarantee"],
+      "links": [
+        {
+          "name": "primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?offer=single&discount=SKIN15&utm_source=brevo&utm_medium=email&utm_campaign=welcome&utm_content=w01_code_primary#offer"
+        },
+        {
+          "name": "logo",
+          "kind": "static",
+          "url": "https://baselayerskin.co/?utm_source=brevo&utm_medium=email&utm_campaign=welcome&utm_content=w01_code_logo"
+        }
+      ]
+    },
+    {
+      "id": "w02_concern",
+      "journey": "welcome",
+      "format": "alpine_editorial",
+      "job": "concern_specific_education",
+      "required_elements": ["concern_copy", "formula_proof", "guarantee"],
+      "links": [
+        {
+          "name": "dryness_primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?concern=dryness&utm_source=brevo&utm_medium=email&utm_campaign=welcome&utm_content=w02_dryness_formula#formula"
+        },
+        {
+          "name": "shine_primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?concern=shine&utm_source=brevo&utm_medium=email&utm_campaign=welcome&utm_content=w02_shine_formula#formula"
+        },
+        {
+          "name": "irritation_primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?concern=irritation&utm_source=brevo&utm_medium=email&utm_campaign=welcome&utm_content=w02_irritation_formula#formula"
+        },
+        {
+          "name": "texture_primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?concern=texture&utm_source=brevo&utm_medium=email&utm_campaign=welcome&utm_content=w02_texture_formula#formula"
+        }
+      ]
+    },
+    {
+      "id": "w03_proof",
+      "journey": "welcome",
+      "format": "alpine_editorial",
+      "job": "resolve_skepticism",
+      "required_elements": ["real_customer_review", "guarantee"],
+      "links": [
+        {
+          "name": "primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?utm_source=brevo&utm_medium=email&utm_campaign=welcome&utm_content=w03_proof_primary#reviews"
+        }
+      ]
+    },
+    {
+      "id": "c01_restore",
+      "journey": "cart_recovery",
+      "format": "commerce_utility",
+      "job": "restore_exact_cart",
+      "required_elements": ["dynamic_cart_items", "guarantee", "shipping_offer"],
+      "links": [
+        {
+          "name": "primary",
+          "kind": "dynamic_shopify",
+          "url": "{{ params.url }}",
+          "measurement": {
+            "content_id": "c01_restore_primary",
+            "method": "brevo_unique_click_plus_shopify_restored_cart",
+            "exception": "event_owned_exact_cart_url"
+          },
+          "preserve": ["checkout_key", "cart_lines", "selling_plan", "discount_codes"],
+          "fallback_url": "https://baselayerskin.co/face-cream?offer=single&utm_source=brevo&utm_medium=email&utm_campaign=cart_recovery&utm_content=c01_fallback_offer#offer"
+        },
+        {
+          "name": "logo",
+          "kind": "static",
+          "url": "https://baselayerskin.co/?utm_source=brevo&utm_medium=email&utm_campaign=cart_recovery&utm_content=c01_restore_logo"
+        }
+      ]
+    },
+    {
+      "id": "c02_objection",
+      "journey": "cart_recovery",
+      "format": "commerce_utility",
+      "job": "resolve_final_objection",
+      "required_elements": ["dynamic_cart_items", "guarantee", "shipping_offer"],
+      "links": [
+        {
+          "name": "primary",
+          "kind": "dynamic_shopify",
+          "url": "{{ params.url }}",
+          "measurement": {
+            "content_id": "c02_objection_primary",
+            "method": "brevo_unique_click_plus_shopify_restored_cart",
+            "exception": "event_owned_exact_cart_url"
+          },
+          "preserve": ["checkout_key", "cart_lines", "selling_plan", "discount_codes"],
+          "fallback_url": "https://baselayerskin.co/face-cream?offer=single&utm_source=brevo&utm_medium=email&utm_campaign=cart_recovery&utm_content=c02_fallback_offer#offer"
+        }
+      ]
+    },
+    {
+      "id": "p01_quickstart",
+      "journey": "post_purchase",
+      "format": "founder_field_note",
+      "job": "improve_adoption",
+      "required_elements": ["usage_amount", "usage_timing", "expectations"],
+      "links": [
+        {
+          "name": "logo",
+          "kind": "static",
+          "url": "https://baselayerskin.co/?utm_source=brevo&utm_medium=email&utm_campaign=post_purchase&utm_content=p01_quickstart_logo"
+        },
+        {
+          "name": "primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?utm_source=brevo&utm_medium=email&utm_campaign=post_purchase&utm_content=p01_quickstart_primary#formula"
+        }
+      ]
+    },
+    {
+      "id": "p02_results",
+      "journey": "post_purchase",
+      "format": "founder_field_note",
+      "job": "set_results_expectations",
+      "required_elements": ["results_timeline", "support_reply"],
+      "links": [
+        {
+          "name": "primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?utm_source=brevo&utm_medium=email&utm_campaign=post_purchase&utm_content=p02_results_primary#results"
+        }
+      ]
+    },
+    {
+      "id": "r01_single",
+      "journey": "replenishment",
+      "format": "founder_field_note",
+      "job": "one_bottle_reorder",
+      "required_elements": ["bottle_count", "no_subscription_lock_in"],
+      "links": [
+        {
+          "name": "primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?offer=single&utm_source=brevo&utm_medium=email&utm_campaign=replenishment&utm_content=r01_single_offer#offer"
+        }
+      ]
+    },
+    {
+      "id": "r01_two_pack",
+      "journey": "replenishment",
+      "format": "founder_field_note",
+      "job": "two_bottle_reorder",
+      "required_elements": ["bottle_count", "no_subscription_lock_in"],
+      "links": [
+        {
+          "name": "primary",
+          "kind": "static",
+          "url": "https://baselayerskin.co/face-cream?offer=two&utm_source=brevo&utm_medium=email&utm_campaign=replenishment&utm_content=r01_two_offer#offer"
+        }
+      ]
+    }
+  ]
+}
