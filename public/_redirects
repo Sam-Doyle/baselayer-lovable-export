@@ -2,6 +2,16 @@
 # Base Layer — Netlify Redirects (Lovable SPA)
 # =============================================================================
 
+# Host canonicalization must stay above every path-only rule in this file.
+# Netlify evaluates _redirects before netlify.toml and stops at the first
+# match, so putting these in netlify.toml would let the catch-all below serve
+# duplicate content first. Netlify upgrades HTTP to HTTPS before these rules
+# and preserves the original query string automatically on 301 redirects.
+https://baselayer.skin/*                    https://baselayerskin.co/:splat            301!
+https://www.baselayer.skin/*                https://baselayerskin.co/:splat            301!
+https://baselayerskin.netlify.app/*         https://baselayerskin.co/:splat            301!
+https://www.baselayerskin.co/*              https://baselayerskin.co/:splat            301!
+
 # Shopify checkout passthrough — Shopify has baselayerskin.co set as its
 # primary domain, so Storefront-API checkoutUrls point at this host. DNS
 # serves Netlify, so without these rules checkout links dead-end into the

@@ -761,3 +761,10 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Findings**: Full dataset export grep found four skinConcern docs still claiming GHK-Cu 1.5% and squalane 8-12%; all patched and published alongside the comparison keyIngredients fix
 - **Files changed**: FaceCream.tsx, AllInOneSkincare.tsx, MatteMoisturizer.tsx, NonGreasyMoisturizer.tsx, kb/_inbox.md
 - **KB updates**: Correction entry in inbox superseding earlier canonical-concentrations entry
+
+## 2026-09-01 — Consent-safe tracking and canonical host redirects
+- **Task**: Removed the no-JavaScript Meta PageView that bypassed the storefront's consent decision and added permanent host redirects for `baselayer.skin`, `www.baselayer.skin`, `baselayerskin.netlify.app`, and `www.baselayerskin.co` to `baselayerskin.co`.
+- **Findings**: Netlify evaluates the generated `_redirects` file before `netlify.toml`; because this site has a catch-all path rule, host canonicalization belongs at the top of `public/_redirects`. Netlify preserves query strings automatically for these 301s. The existing JavaScript GA4, Meta Pixel, and CAPI paths remain consent-gated.
+- **Files changed**: `index.html`, `netlify.toml`, `public/_redirects`, `src/test/launchAuditHosting.test.ts`, `kb/_session-log.md`.
+- **Verification**: The full 196-test suite, typecheck, focused ESLint, Netlify config parsing, and the production build passed with 66 rendered / 0 failed. Generated HTML contains no no-JS Meta request, and the four host rules are the first rules in `dist/_redirects`. Full-repo ESLint still reports the pre-existing baseline (83 errors / 21 warnings outside these changed files); the scoped test file is clean.
+- **KB updates**: No inbox entry added; the redirect precedence rule is documented beside the deployed source rules and here.

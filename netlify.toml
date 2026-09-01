@@ -83,13 +83,6 @@
   [headers.values]
     Cache-Control = "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400"
 
-# www → apex redirect (Netlify auto-handles HTTP→HTTPS)
-[[redirects]]
-  from = "https://www.baselayerskin.co/*"
-  to = "https://baselayerskin.co/:splat"
-  status = 301
-  force = true
-
 # Noindex for checkout path (belt-and-suspenders with client-side meta)
 [[headers]]
   for = "/checkout"
