@@ -22,6 +22,12 @@
 [functions."commerce-sync-scheduler"]
   schedule = "*/5 * * * *"
 
+# Reviews are rendered into static HTML for SEO and zero-CLS delivery. Refresh
+# the Judge.me snapshot once daily at 09:17 UTC (early morning Mountain Time)
+# by triggering a production build through a write-only Netlify build hook.
+[functions."review-refresh-scheduler"]
+  schedule = "17 9 * * *"
+
 
 # Cache static assets aggressively
 [[headers]]

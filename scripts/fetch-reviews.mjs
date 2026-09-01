@@ -50,6 +50,13 @@ const DISPLAY_CAP = 50;
 const PER_PAGE = 100;
 const MAX_PAGES = 20; // 2,000 reviews. A runaway-pagination backstop, not a limit we expect to hit.
 
+class JudgeMeAuthenticationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'JudgeMeAuthenticationError';
+  }
+}
+
 /* ── env ─────────────────────────────────────────────────────────────── */
 
 function loadEnv() {
@@ -86,14 +93,14 @@ async function fetchAllReviews(shopDomain, apiToken) {
        * keys off the original myshopify handle, which here is neither the
        * primary domain nor the alias the rest of this repo uses.
        */
-      throw new Error(
+      throw new JudgeMeAuthenticationError(
         `401 from Judge.me. Check JUDGEME_SHOP_DOMAIN and JUDGEME_PRIVATE_TOKEN against ` +
         `Settings > Integrations > View API tokens — the shop domain is printed on that ` +
         `same page and is the usual culprit. Tried shop_domain="${shopDomain}".`
       );
     }
     if (res.status === 403) {
-      throw new Error(
+      throw new JudgeMeAuthenticationError(
         `403 from Judge.me — this is what the *public* token returns for /api/v1/reviews. ` +
         `JUDGEME_PRIVATE_TOKEN must hold the private token.`
       );
@@ -269,6 +276,17 @@ try {
   const gated = data.count >= REVIEW_GATE ? '' : ` — below the ${REVIEW_GATE}-review gate, the PDP block stays hidden`;
   console.log(`✅ ${data.count} reviews, ${data.rating || 'no'} average${gated}.`);
 } catch (err) {
+  /*
+   * A transient Judge.me outage should not take the storefront down, but an
+   * invalid credential will never self-heal. Silently accepting 401/403 here
+   * left production pinned to an old snapshot until somebody noticed the
+   * review count. Refuse that deployment so Netlify raises a visible build
+   * failure while the last known-good production deploy remains online.
+   */
+  if (err instanceof JudgeMeAuthenticationError) {
+    console.error('❌ Judge.me authentication failed; refusing to deploy stale review data:', err.message);
+    process.exit(1);
+  }
   console.warn('⚠️  Judge.me fetch failed, proceeding with the committed reviews.json:', err.message);
   process.exit(0);
 }

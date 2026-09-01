@@ -1,15 +1,27 @@
 {
-  "fetchedAt": "2026-08-14",
-  "rating": 4.8,
-  "count": 5,
+  "fetchedAt": "2026-09-01",
+  "rating": 4.9,
+  "count": 7,
   "histogram": [
     0,
     0,
     0,
     1,
-    4
+    6
   ],
   "reviews": [
+    {
+      "id": 1317844428,
+      "rating": 5,
+      "title": "",
+      "body": "I’m pretty picky about what I use on my face, but this has become my go-to and part of my daily routine. It feels great after shaving, moisturizes well, not greasy, and doesn’t leave my skin feeling heavy- its very light! I also tend to have some redness, and I’ve noticed my face looks calmer and more even since I started using it. Really happy with it.",
+      "reviewer": "Kevin Bong",
+      "verified": false,
+      "createdAt": "2026-09-01",
+      "pictures": [
+        "https://review-images.judgeme.com/base-layer-skin/1788277889__1788277886393-screenshot2026-09-01at9512__original.png?quality=80&width=320"
+      ]
+    },
     {
       "id": 1294378990,
       "rating": 5,
@@ -57,6 +69,16 @@
       "pictures": [
         "https://review-images.judgeme.com/base-layer-skin/1786566497__1786566494428-img_4569__original.jpeg?quality=80&width=320"
       ]
+    },
+    {
+      "id": 1308063233,
+      "rating": 5,
+      "title": "",
+      "body": "Great product.  I don’t usually like having things on my skin, so am skeptical of moisturizers.  But this one rubs in and doesn’t even feel like it’s there.  Highly recommend",
+      "reviewer": "Cooper Stainbrook",
+      "verified": true,
+      "createdAt": "2026-08-25",
+      "pictures": []
     },
     {
       "id": 1295448160,
