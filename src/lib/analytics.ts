@@ -1,6 +1,7 @@
 import { hasAnalyticsConsent } from "@/lib/consent";
 import { DEFAULT_TIER, SINGLE_TIER, metaContentId } from "@/config/product";
 import type { Metric } from "web-vitals";
+import type { Json } from "@/integrations/supabase/types";
 
 interface MetaPixelFunction {
   (...args: unknown[]): void;
@@ -10,6 +11,15 @@ interface MetaPixelFunction {
   queue: unknown[][];
   version: string;
 }
+
+type AnalyticsWindow = Window & {
+  __BL?: { u: string; q: string };
+  __BL_PV_EID?: string;
+  dataLayer?: unknown[];
+  gtag?: (...args: unknown[]) => void;
+  fbq?: MetaPixelFunction;
+  _fbq?: MetaPixelFunction;
+};
 
 let _supabase: typeof import("@/integrations/supabase/client")["supabase"] | null = null;
 
@@ -119,6 +129,33 @@ function ga4Items(payload: Record<string, unknown>): Record<string, unknown>[] {
   }));
 }
 
+function readSessionValue(key: string): string | null {
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionValue(key: string, value: string): void {
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch {
+    // Cookies remain the durable identifier when sessionStorage is blocked.
+  }
+}
+
+function storedCampaignParams(): Record<string, string> {
+  const source = readSessionValue("utm_source");
+  const medium = readSessionValue("utm_medium");
+  const campaign = readSessionValue("utm_campaign");
+  return {
+    ...(source && { utm_source: source }),
+    ...(medium && { utm_medium: medium }),
+    ...(campaign && { utm_campaign: campaign }),
+  };
+}
+
 function getSessionId(): string {
   // 1. Try to read the persistent cookie (survives IG browser closes)
   const match = document.cookie.split(";").find(c => c.trim().startsWith("bl_session="));
@@ -126,11 +163,11 @@ function getSessionId(): string {
 
   // 2. Fallback to sessionStorage, then to generating a new UUID
   if (!id) {
-    id = sessionStorage.getItem("bl_session") || crypto.randomUUID();
+    id = readSessionValue("bl_session") || crypto.randomUUID();
   }
 
   // 3. Always ensure it is written both to cookie & session for safety
-  sessionStorage.setItem("bl_session", id);
+  writeSessionValue("bl_session", id);
   document.cookie = `bl_session=${id}; path=/; max-age=2592000`; // 30 days
   return id;
 }
@@ -163,7 +200,7 @@ function sendCAPI(
   if (!fbMapping) return;
 
   const { fbc: cookieFbc, fbp } = getMetaCookies();
-  const fbc = cookieFbc || sessionStorage.getItem("_fbc");
+  const fbc = cookieFbc || readSessionValue("_fbc");
   const sessionId = getSessionId();
   const userData: Record<string, unknown> = {
     client_user_agent: navigator.userAgent,
@@ -196,9 +233,7 @@ function sendCAPI(
       custom_data: {
         ...fbMapping.defaults,
         ...safePayload,
-        ...(sessionStorage.getItem("utm_source") && { utm_source: sessionStorage.getItem("utm_source") }),
-        ...(sessionStorage.getItem("utm_medium") && { utm_medium: sessionStorage.getItem("utm_medium") }),
-        ...(sessionStorage.getItem("utm_campaign") && { utm_campaign: sessionStorage.getItem("utm_campaign") }),
+        ...storedCampaignParams(),
       },
     }),
   }).catch(() => { });
@@ -240,7 +275,7 @@ const pendingBrowserEvents: QueuedBrowserEvent[] = [];
 
 function fireBrowserEvent({ eventName, eventId, payload }: QueuedBrowserEvent): void {
   try {
-    const w = window as any;
+    const w = window as AnalyticsWindow;
     const { email: _email, ...safePayload } = payload;
 
     // GA4 via gtag() — fires properly with gtag.js (no GTM needed)
@@ -306,7 +341,7 @@ export async function trackEvent(eventName: string, payload: Record<string, unkn
   // GA4 + Meta Pixel (browser-side). Fires now if the scripts have loaded,
   // otherwise waits in the queue for initAnalyticsScripts() to flush it —
   // see the DEFERRED-SCRIPT QUEUE note above.
-  const w = window as any;
+  const w = window as AnalyticsWindow;
   const queued: QueuedBrowserEvent = { eventName, eventId, payload };
   if (typeof w.gtag === "function" || typeof w.fbq === "function") {
     fireBrowserEvent(queued);
@@ -324,7 +359,7 @@ export async function trackEvent(eventName: string, payload: Record<string, unkn
     const supabase = await getSupabase();
     await supabase.from("analytics_events").insert({
       event_name: eventName,
-      payload: payload as any,
+      payload: payload as Json,
       session_id: getSessionId(),
       user_agent: navigator.userAgent,
       referrer: document.referrer || null,
@@ -364,11 +399,18 @@ export function analyticsBlocked(): boolean {
  *  bl_session/_fbp to persistent cookies. Consent-gated. */
 export function fireInitialCapiPageView(): void {
   if (analyticsBlocked()) return;
+  const w = window as AnalyticsWindow;
+
+  if (_initialCapiPageViewEventId) {
+    w.__BL_PV_EID = _initialCapiPageViewEventId;
+    return;
+  }
 
   const pageViewEventId = crypto.randomUUID();
-  (window as any).__BL_PV_EID = pageViewEventId;
+  _initialCapiPageViewEventId = pageViewEventId;
+  w.__BL_PV_EID = pageViewEventId;
 
-  const bl = (window as any).__BL || { u: location.href, q: location.search };
+  const bl = w.__BL || { u: location.href, q: location.search };
   const cookies = document.cookie.split(";").reduce((acc, c) => {
     const [k, v] = c.trim().split("=");
     if (k && v) acc[k] = v;
@@ -386,13 +428,13 @@ export function fireInitialCapiPageView(): void {
     document.cookie = `_fbp=${fbp}; path=/; max-age=7776000; domain=${domain}`; // 90 days
   }
 
-  const fbc = cookies._fbc || sessionStorage.getItem("_fbc") || null;
+  const fbc = cookies._fbc || readSessionValue("_fbc") || null;
 
   // Upgrade bl_session to persistent cookie (max-age 30 days)
   let sessionId = cookies.bl_session;
   if (!sessionId) {
-    sessionId = sessionStorage.getItem("bl_session") || crypto.randomUUID();
-    sessionStorage.setItem("bl_session", sessionId);
+    sessionId = readSessionValue("bl_session") || crypto.randomUUID();
+    writeSessionValue("bl_session", sessionId);
     document.cookie = `bl_session=${sessionId}; path=/; max-age=2592000`; // 30 days
   }
 
@@ -413,9 +455,7 @@ export function fireInitialCapiPageView(): void {
         ...(fbp && { fbp }),
       },
       custom_data: {
-        ...(sessionStorage.getItem("utm_source") && { utm_source: sessionStorage.getItem("utm_source") }),
-        ...(sessionStorage.getItem("utm_medium") && { utm_medium: sessionStorage.getItem("utm_medium") }),
-        ...(sessionStorage.getItem("utm_campaign") && { utm_campaign: sessionStorage.getItem("utm_campaign") }),
+        ...storedCampaignParams(),
       },
     }),
   }).catch(() => { });
@@ -423,6 +463,27 @@ export function fireInitialCapiPageView(): void {
 
 let _analyticsScriptsInitialized = false;
 let _webVitalsInitialized = false;
+let _initialCapiPageViewEventId: string | null = null;
+
+const grantedConsent = {
+  analytics_storage: "granted",
+  ad_storage: "granted",
+  ad_user_data: "granted",
+  ad_personalization: "granted",
+};
+
+const deniedConsent = {
+  analytics_storage: "denied",
+  ad_storage: "denied",
+  ad_user_data: "denied",
+  ad_personalization: "denied",
+};
+
+function grantLoadedAnalytics(): void {
+  const w = window as AnalyticsWindow;
+  if (typeof w.gtag === "function") w.gtag("consent", "update", grantedConsent);
+  if (typeof w.fbq === "function") w.fbq("consent", "grant");
+}
 
 /**
  * Records real-user Core Web Vitals after analytics consent. Keeping the
@@ -462,10 +523,13 @@ export function initWebVitalsReporting(): void {
  *  short-circuits repeat calls regardless. */
 export function initAnalyticsScripts(): void {
   if (analyticsBlocked()) return;
-  if (_analyticsScriptsInitialized) return;
+  if (_analyticsScriptsInitialized) {
+    grantLoadedAnalytics();
+    return;
+  }
   _analyticsScriptsInitialized = true;
 
-  const w = window as any;
+  const w = window as AnalyticsWindow;
   const bl = w.__BL || { u: location.href, q: location.search };
   const landingParams = new URLSearchParams(bl.q || "");
 
@@ -477,7 +541,7 @@ export function initAnalyticsScripts(): void {
     document.head.appendChild(gtagScript);
 
     w.dataLayer = w.dataLayer || [];
-    w.gtag = function () { w.dataLayer.push(arguments); };
+    w.gtag = (...args: unknown[]) => { w.dataLayer?.push(args); };
     w.gtag("js", new Date());
     w.gtag("config", "G-E1GTL9RHY0", {
       send_page_view: true,
@@ -513,8 +577,10 @@ export function initAnalyticsScripts(): void {
 
     w.fbq("init", "916078074161719");
     // Use the same event_id as the CAPI PageView for deduplication
-    w.fbq("track", "PageView", {}, { eventID: (window as any).__BL_PV_EID });
+    w.fbq("track", "PageView", {}, { eventID: w.__BL_PV_EID });
   }
+
+  grantLoadedAnalytics();
 
   // Both globals exist now (gtag's stub is defined synchronously above, and
   // fbq's queue accepts calls before fbevents.js lands), so anything that
@@ -523,21 +589,54 @@ export function initAnalyticsScripts(): void {
   flushPendingBrowserEvents();
 }
 
-/** Best-effort cleanup for a visitor who had accepted and then revokes via
- *  the footer's "Cookie Preferences" link. Only clears the cookies this
- *  file writes directly (bl_session, _fbp) — it cannot retroactively purge
- *  GA4's own _ga/_ga_* cookies or unload an already-injected gtag.js /
- *  fbevents.js, since a loaded script can't be un-run. Going forward,
- *  hasAnalyticsConsent() returning false keeps trackEvent()/CAPI/bl_session
- *  off; full effect (GA4/Meta scripts not reloading at all) takes hold on
- *  the next page load. */
+/** Best-effort removal of every first-party analytics identifier the app can
+ *  reach. This cannot unload already-executing vendor JavaScript, which is why
+ *  revokeAnalyticsTracking() also sends explicit denial commands and App.tsx
+ *  reloads the document when the choice is durable. */
 export function clearAnalyticsCookies(): void {
   if (typeof document === "undefined") return;
-  document.cookie = "bl_session=; path=/; max-age=0";
-  document.cookie = "_fbp=; path=/; max-age=0";
+  const analyticsCookieNames = document.cookie
+    .split(";")
+    .map((cookie) => cookie.trim().split("=")[0])
+    .filter((name) =>
+      name === "bl_session"
+      || name === "_fbp"
+      || name === "_fbc"
+      || name === "_ga"
+      || name === "_gid"
+      || name === "_gat"
+      || name.startsWith("_ga_")
+      || name.startsWith("_gac_"),
+    );
+  const domain = window.location.hostname.replace(/^www\./, "");
+  for (const name of analyticsCookieNames) {
+    document.cookie = `${name}=; path=/; max-age=0`;
+    document.cookie = `${name}=; path=/; max-age=0; domain=${domain}`;
+    document.cookie = `${name}=; path=/; max-age=0; domain=.${domain}`;
+  }
   try {
     sessionStorage.removeItem("bl_session");
   } catch {
     // ignore — best-effort cleanup only
   }
+}
+
+/** Immediately tells already-loaded vendors to stop, clears queued events,
+ *  and removes every first-party analytics identifier this app can reach.
+ *  App.tsx follows this with a reload whenever the rejection is durable, so
+ *  the vendor runtimes are then absent from the new document as well. */
+export function revokeAnalyticsTracking(): void {
+  const w = window as AnalyticsWindow;
+  try {
+    if (typeof w.gtag === "function") w.gtag("consent", "update", deniedConsent);
+  } catch {
+    // Continue revoking the remaining providers.
+  }
+  try {
+    if (typeof w.fbq === "function") w.fbq("consent", "revoke");
+  } catch {
+    // Cookie and queue cleanup below must still run.
+  }
+  pendingBrowserEvents.length = 0;
+  clearAnalyticsCookies();
 }

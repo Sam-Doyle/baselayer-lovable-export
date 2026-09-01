@@ -16,6 +16,7 @@ const SHOPIFY_API_VERSION = '2025-07';
 const SHOPIFY_STORE_PERMANENT_DOMAIN = import.meta.env.VITE_SHOPIFY_DOMAIN;
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_PERMANENT_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
 const SHOPIFY_STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
+export const SHOPIFY_STOREFRONT_TIMEOUT_MS = 10_000;
 
 export interface ShopifyProduct {
   node: {
@@ -62,33 +63,42 @@ export interface ShopifyProduct {
 }
 
 export async function storefrontApiRequest(query: string, variables: Record<string, unknown> = {}) {
-  const response = await fetch(SHOPIFY_STOREFRONT_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
-    },
-    body: JSON.stringify({ query, variables }),
-  });
-
-  if (response.status === 402) {
-    toast.error("Shopify: Payment required", {
-      description: "Your store needs to be upgraded to a paid plan to access the API.",
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), SHOPIFY_STOREFRONT_TIMEOUT_MS);
+  try {
+    const response = await fetch(SHOPIFY_STOREFRONT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
     });
-    return;
+
+    if (response.status === 402) {
+      toast.error("Shopify: Payment required", {
+        description: "Your store needs to be upgraded to a paid plan to access the API.",
+      });
+      return;
+    }
+
+    if (!response.ok) {
+      throw new ShopifyHttpError(response.status);
+    }
+
+    const data = await response.json();
+
+    if (data.errors) {
+      throw new Error(`Error calling Shopify: ${data.errors.map((e: { message: string }) => e.message).join(', ')}`);
+    }
+
+    return data;
+  } finally {
+    // Keep the timeout alive through response.json(), not only until headers.
+    // A response whose body stalls must not leave cart controls locked either.
+    globalThis.clearTimeout(timeout);
   }
-
-  if (!response.ok) {
-    throw new ShopifyHttpError(response.status);
-  }
-
-  const data = await response.json();
-
-  if (data.errors) {
-    throw new Error(`Error calling Shopify: ${data.errors.map((e: { message: string }) => e.message).join(', ')}`);
-  }
-
-  return data;
 }
 
 const PRODUCT_BY_HANDLE_QUERY = `

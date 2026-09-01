@@ -2,6 +2,19 @@ import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { analyticsBlocked } from "@/lib/analytics";
 
+function readSessionValue(key: string): string | null {
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+type TrackingWindow = Window & {
+  gtag?: (...args: unknown[]) => void;
+  fbq?: (...args: unknown[]) => void;
+};
+
 /**
  * SPA route-change tracker for GA4 + Meta Pixel + CAPI.
  *
@@ -47,6 +60,8 @@ export default function MetaRouterTracker() {
       if (k && v) acc[k] = v;
       return acc;
     }, {} as Record<string, string>);
+    const sessionId = readSessionValue("bl_session") || "";
+    const sessionFbc = readSessionValue("_fbc");
 
     fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fb-capi`, {
       method: "POST",
@@ -61,8 +76,8 @@ export default function MetaRouterTracker() {
         event_source_url: url,
         user_data: {
           client_user_agent: navigator.userAgent,
-          external_id: sessionStorage.getItem("bl_session") || "",
-          ...(cookies._fbc || sessionStorage.getItem("_fbc") ? { fbc: cookies._fbc || sessionStorage.getItem("_fbc") } : {}),
+          external_id: sessionId,
+          ...(cookies._fbc || sessionFbc ? { fbc: cookies._fbc || sessionFbc } : {}),
           ...(cookies._fbp ? { fbp: cookies._fbp } : {}),
         },
         custom_data: {},
@@ -72,9 +87,10 @@ export default function MetaRouterTracker() {
     // ── Browser-side GA4 + Pixel (poll until available) ──
     const fire = () => {
       let fired = false;
+      const trackingWindow = window as TrackingWindow;
 
-      if (typeof (window as any).gtag === "function") {
-        (window as any).gtag("event", "page_view", {
+      if (typeof trackingWindow.gtag === "function") {
+        trackingWindow.gtag("event", "page_view", {
           page_path: location.pathname + location.search,
           page_location: url,
           page_title: document.title,
@@ -82,8 +98,8 @@ export default function MetaRouterTracker() {
         fired = true;
       }
 
-      if (typeof (window as any).fbq === "function") {
-        (window as any).fbq("track", "PageView", {}, { eventID: eventId });
+      if (typeof trackingWindow.fbq === "function") {
+        trackingWindow.fbq("track", "PageView", {}, { eventID: eventId });
         fired = true;
       }
 

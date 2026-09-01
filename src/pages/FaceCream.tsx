@@ -107,10 +107,10 @@ const FaceCream = () => {
   // F07: the correctness fix for the cart(2)/$76 double-add lives in
   // cartStore.addItem, which now early-returns while a request is in flight —
   // that covers every call site, not just this page. Subscribing to isLoading
-  // here is purely UX: it disables all three CTA buttons so the user gets
-  // immediate visual feedback instead of a dead-feeling button. Don't remove
-  // it as redundant; it's doing different work from the store guard.
-  const isAddingToCart = useCartStore(s => s.isLoading);
+  // here is purely UX: it disables all three CTA buttons while either an add or
+  // the mount/visibility cart sync is in flight, so the shopper never starts a
+  // mutation against a line set that is still being reconciled.
+  const isAddingToCart = useCartStore(s => s.isLoading || s.isSyncing);
 
   const selectedOption = BUY_OPTIONS.find(o => o.id === quantity) || BUY_OPTIONS[0];
 
@@ -120,7 +120,7 @@ const FaceCream = () => {
   // and Meta — inflating the funnel and training Meta's optimizer on
   // conversions that never happened. addItem now resolves { success }.
   const handleAddToCart = (source: string) => {
-    if (useCartStore.getState().isLoading) return;
+    if (useCartStore.getState().isLoading || useCartStore.getState().isSyncing) return;
     void addItem(buildCartItem(selectedOption)).then((result) => {
       if (!result.success) return;
       trackEvent("add_to_cart", {

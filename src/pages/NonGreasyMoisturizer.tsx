@@ -87,7 +87,7 @@ const faqs = [
   {
     question: "Is there a subscription?",
     answer:
-      "Not unless you pick one. Buying once is the default. One bottle is $38, the 2-pack is $68, and shipping is free either way. If you do subscribe, the first bottle is still $38 and every one after that is $34.",
+      "Not unless you pick one. Buying once is the default. One bottle is $38, the 2-pack is $68, and shipping is free either way. If you do subscribe, it's $35 every delivery, $3 less than buying one at a time.",
   },
 ];
 

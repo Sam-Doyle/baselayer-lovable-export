@@ -7,12 +7,12 @@ import MetaRouterTracker from "@/analytics/MetaRouterTracker";
 import { JsonLd, organizationSchema, websiteSchema } from "@/components/SEO";
 import { useCartSync } from "@/hooks/useCartSync";
 import {
-  clearAnalyticsCookies,
   fireInitialCapiPageView,
   initAnalyticsScripts,
   initWebVitalsReporting,
+  revokeAnalyticsTracking,
 } from "@/lib/analytics";
-import { onConsentChange } from "@/lib/consent";
+import { isConsentDecisionDurable, onConsentChange } from "@/lib/consent";
 import { clearLifecycleTracking, initLifecycleTracking } from "@/lib/lifecycle";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import PrerenderSnapshotRouteGuard from "@/components/PrerenderSnapshotRouteGuard";
@@ -182,9 +182,9 @@ const App = () => {
   // If the visitor accepts on the banner after this page has already
   // loaded, fire the page_view/PageView that the gated calls above skipped
   // and load GA4 + the Meta Pixel now. If they reject (including revoking
-  // an earlier accept via the footer's "Cookie Preferences" link), drop the
-  // first-party cookies this app controls directly — see the caveats in
-  // clearAnalyticsCookies() in src/lib/analytics.ts.
+  // an earlier accept via the footer's "Cookie Preferences" link), issue the
+  // vendor revocation commands, clear their first-party identifiers, and
+  // reload when the decision can survive that reload.
   useEffect(() => {
     return onConsentChange((choice) => {
       if (choice === "accepted") {
@@ -193,11 +193,14 @@ const App = () => {
         initWebVitalsReporting();
         initLifecycleTracking();
       } else {
-        clearAnalyticsCookies();
-        // Removing a script tag cannot stop JavaScript that has already
-        // executed. Reload only when the lifecycle SDK was active so Reject
-        // takes full effect without burdening first-time rejections.
-        if (clearLifecycleTracking()) window.location.reload();
+        revokeAnalyticsTracking();
+        clearLifecycleTracking();
+        // A reload is the only reliable way to remove already-executing
+        // vendor runtimes. Do it whenever the rejection survived in local or
+        // session storage. If all storage is blocked, keep this document alive:
+        // revokeAnalyticsTracking() has already issued vendor denial commands,
+        // and consent.ts retains the rejection in memory for this page.
+        if (isConsentDecisionDurable()) window.location.reload();
       }
     });
   }, []);

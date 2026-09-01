@@ -78,7 +78,7 @@ const faqs = [
   {
     question: "Is there a subscription?",
     answer:
-      "Not unless you pick one. Nothing auto-bills by default. A bottle is $38, the 2-pack is $68, and shipping is free on both. Subscribe if you want to — the first bottle costs the same $38 as buying once, and only the ones after that drop to $34. If you like it, you'll come back. If you don't, you're not trapped.",
+      "Not unless you pick one. Nothing auto-bills by default. A bottle is $38, the 2-pack is $68, and shipping is free on both. Subscribe if you want to — it's $35 every delivery, $3 less than buying one at a time. If you like it, you'll come back. If you don't, you're not trapped.",
   },
 ];
 

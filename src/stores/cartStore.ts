@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { storefrontApiRequest, ShopifyHttpError, ShopifyProduct } from '@/lib/shopify';
 import { trackEvent } from '@/lib/analytics';
 import { trackLifecycleCartDeleted, trackLifecycleCartUpdated } from '@/lib/lifecycle';
-import { metaContentId } from '@/config/product';
+import { BUY_TIERS, buildCartItem, metaContentId } from '@/config/product';
 import { activeCheckoutDiscountCodes } from '@/config/promotions';
 import { appendStoredEmailCampaignParams } from '@/lib/emailCampaign';
 
@@ -59,13 +59,30 @@ interface CartStore {
   isLoading: boolean;
   isSyncing: boolean;
   addItem: (item: Omit<CartItem, 'lineId'>) => Promise<MutationResult>;
-  updateQuantity: (variantId: string, quantity: number) => Promise<MutationResult>;
-  removeItem: (variantId: string) => Promise<MutationResult>;
+  updateQuantity: (lineId: string | null, quantity: number) => Promise<MutationResult>;
+  removeItem: (lineId: string | null) => Promise<MutationResult>;
   clearCart: () => void;
   syncCart: () => Promise<void>;
   applyDiscountCode: (code: string) => Promise<{ success: boolean; applicable?: boolean }>;
   getCheckoutUrl: () => string | null;
   toggleCart: (open?: boolean) => void;
+}
+
+// `syncCart()` and campaign/quiz discount reconciliation can both start outside
+// the drawer. Keep their completion outside persisted state so an add can wait
+// for the authoritative cart read before deciding which Shopify line to create
+// or increment. Without this, an older response can land after a successful add
+// and erase that new line from the drawer even though Shopify still charges it.
+let activeCartPreparationPromise: Promise<void> | null = null;
+
+async function waitForCartPreparation(): Promise<void> {
+  while (activeCartPreparationPromise) {
+    const pending = activeCartPreparationPromise;
+    await pending;
+    // A new preparation may have started while this one settled. Only return
+    // once the promise we observed is still the latest completed operation.
+    if (activeCartPreparationPromise === pending) return;
+  }
 }
 
 /**
@@ -136,7 +153,14 @@ const CART_FIELDS = `
         id
         quantity
         cost { amountPerQuantity { amount currencyCode } }
-        merchandise { ... on ProductVariant { id } }
+        merchandise {
+          ... on ProductVariant {
+            id
+            title
+            selectedOptions { name value }
+            product { id title handle }
+          }
+        }
         sellingPlanAllocation { sellingPlan { id } }
       }
     }
@@ -200,7 +224,12 @@ interface ShopifyCartLine {
   id: string;
   quantity: number;
   cost?: { amountPerQuantity?: Money };
-  merchandise?: { id?: string };
+  merchandise?: {
+    id?: string;
+    title?: string;
+    selectedOptions?: Array<{ name: string; value: string }>;
+    product?: { id?: string; title?: string; handle?: string };
+  };
   sellingPlanAllocation?: { sellingPlan?: { id?: string } } | null;
 }
 
@@ -219,30 +248,70 @@ function cartLines(cart: ShopifyCart | null | undefined): ShopifyCartLine[] {
 }
 
 /**
- * Overwrite local line ids, quantities and unit prices with Shopify's.
+ * Rebuild local line state from Shopify's complete authoritative line set.
  *
  * Match on lineId first (exact), falling back to variant + selling plan for a
- * line we just created and don't have an id for yet. A local item Shopify
- * doesn't know about is left alone rather than dropped — the caller has just
- * added it optimistically and the next response will pick it up.
+ * line we just created and don't have an id for yet. Iterating Shopify's lines
+ * instead of local items is deliberate: releases before 2026-09-01 could drop
+ * a same-variant subscription locally while leaving it in Shopify. A returning
+ * shopper must see every line checkout will charge, and local ghost lines must
+ * disappear. Known catalog lines can be reconstructed from product config; an
+ * unexpected line gets a transparent generic label rather than staying hidden.
  */
 function reconcileItems(items: CartItem[], cart: ShopifyCart | null | undefined): CartItem[] {
+  if (!cart?.lines?.edges) return items;
   const lines = cartLines(cart);
-  if (lines.length === 0) return items;
-  return items.map(item => {
-    const line =
-      (item.lineId && lines.find(l => l.id === item.lineId)) ||
-      lines.find(l =>
-        l.merchandise?.id === item.variantId &&
-        (l.sellingPlanAllocation?.sellingPlan?.id || null) === (item.sellingPlanId || null)
+  const usedLocalIndexes = new Set<number>();
+
+  return lines.map(line => {
+    let localIndex = items.findIndex((item, index) =>
+      !usedLocalIndexes.has(index) && !!item.lineId && item.lineId === line.id
+    );
+    if (localIndex < 0) {
+      localIndex = items.findIndex((item, index) =>
+        !usedLocalIndexes.has(index) &&
+        item.variantId === line.merchandise?.id &&
+        (item.sellingPlanId || null) === (line.sellingPlanAllocation?.sellingPlan?.id || null)
       );
-    if (!line) return item;
+    }
+
+    if (localIndex >= 0) usedLocalIndexes.add(localIndex);
+
+    const tier = BUY_TIERS.find(candidate =>
+      candidate.variantGid === line.merchandise?.id &&
+      (candidate.sellingPlanGid || null) === (line.sellingPlanAllocation?.sellingPlan?.id || null)
+    );
     const unit = line.cost?.amountPerQuantity;
+    const fallbackPrice = unit ?? { amount: '0.00', currencyCode: 'USD' };
+    const baseItem: Omit<CartItem, 'lineId'> = localIndex >= 0
+      ? items[localIndex]
+      : tier
+        ? buildCartItem(tier)
+        : {
+            product: {
+              node: {
+                id: line.merchandise?.product?.id ?? 'gid://shopify/Product/unknown',
+                title: line.merchandise?.product?.title ?? 'Cart item',
+                description: '',
+                handle: line.merchandise?.product?.handle ?? '',
+                priceRange: { minVariantPrice: fallbackPrice },
+                images: { edges: [] },
+                variants: { edges: [] },
+                options: [],
+              },
+            },
+            variantId: line.merchandise?.id ?? 'gid://shopify/ProductVariant/unknown',
+            variantTitle: line.merchandise?.title ?? 'Item',
+            price: fallbackPrice,
+            quantity: line.quantity,
+            selectedOptions: line.merchandise?.selectedOptions ?? [],
+            sellingPlanId: line.sellingPlanAllocation?.sellingPlan?.id ?? null,
+          };
     return {
-      ...item,
+      ...baseItem,
       lineId: line.id,
-      quantity: typeof line.quantity === 'number' ? line.quantity : item.quantity,
-      price: unit?.amount ? { amount: unit.amount, currencyCode: unit.currencyCode } : item.price,
+      quantity: typeof line.quantity === 'number' ? line.quantity : baseItem.quantity,
+      price: unit?.amount ? { amount: unit.amount, currencyCode: unit.currencyCode } : baseItem.price,
     };
   });
 }
@@ -568,29 +637,45 @@ export const useCartStore = create<CartStore>()(
 
       applyDiscountCode: async (code) => {
         const normalizedCode = code.trim().toUpperCase();
+        if (activeCartPreparationPromise) await waitForCartPreparation();
+        // An add/update/remove already in flight owns the authoritative line
+        // state. The promotion itself is persisted separately and remains on
+        // the checkout URL, so declining to race it is safer than applying a
+        // stale cart snapshot over the mutation response.
+        if (get().isLoading) return { success: false };
         const { cartId } = get();
         // No cart yet: the promotion module has already persisted the code,
         // and createShopifyCart() will include it on the shopper's first add.
         if (!cartId) return { success: true };
 
-        const discountCodes = Array.from(new Set([...activeCheckoutDiscountCodes(), normalizedCode]));
-        const result = await updateShopifyCartDiscountCodes(cartId, discountCodes);
-        if (!result.success) {
-          // Do not block the promised quiz reward on a stale or temporarily
-          // unreachable cart. The checkout URL fallback still carries both
-          // codes, and the next fresh cart includes them at creation.
-          return { success: false };
-        }
+        let releasePreparation!: () => void;
+        const preparation = new Promise<void>((resolve) => { releasePreparation = resolve; });
+        activeCartPreparationPromise = preparation;
+        set({ isLoading: true });
+        try {
+          const discountCodes = Array.from(new Set([...activeCheckoutDiscountCodes(), normalizedCode]));
+          const result = await updateShopifyCartDiscountCodes(cartId, discountCodes);
+          if (!result.success) {
+            // Do not block the promised quiz reward on a stale or temporarily
+            // unreachable cart. The checkout URL fallback still carries both
+            // codes, and the next fresh cart includes them at creation.
+            return { success: false };
+          }
 
-        const cart = result.cart;
-        set({
-          checkoutUrl: cart?.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : get().checkoutUrl,
-          cost: cart?.cost ?? get().cost,
-          items: reconcileItems(get().items, cart),
-        });
-        emitLifecycleCart(get());
-        const applied = cart?.discountCodes?.find((discount) => discount.code.toUpperCase() === normalizedCode);
-        return { success: true, applicable: applied?.applicable };
+          const cart = result.cart;
+          set({
+            checkoutUrl: cart?.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : get().checkoutUrl,
+            cost: cart?.cost ?? get().cost,
+            items: reconcileItems(get().items, cart),
+          });
+          emitLifecycleCart(get());
+          const applied = cart?.discountCodes?.find((discount) => discount.code.toUpperCase() === normalizedCode);
+          return { success: true, applicable: applied?.applicable };
+        } finally {
+          set({ isLoading: false });
+          releasePreparation();
+          if (activeCartPreparationPromise === preparation) activeCartPreparationPromise = null;
+        }
       },
 
       addItem: async (item) => {
@@ -598,6 +683,10 @@ export const useCartStore = create<CartStore>()(
         // EarlyAccessContext.openModal), and a second click before the Storefront API
         // responds creates a duplicate line instead of incrementing quantity.
         // Guarding here rather than per-component covers all call sites.
+        if (activeCartPreparationPromise) await waitForCartPreparation();
+        // Multiple clicks can queue behind the same sync. Re-check after the
+        // await so only the first one starts a mutation and the rest retain the
+        // existing double-submit behavior.
         if (get().isLoading) return { success: false };
         const { items, cartId, clearCart } = get();
         const existingItem = items.find(i => i.variantId === item.variantId && (i.sellingPlanId || null) === (item.sellingPlanId || null));
@@ -658,7 +747,7 @@ export const useCartStore = create<CartStore>()(
             const result = await updateShopifyCartLine(cartId, existingItem.lineId, newQuantity);
             if (result.success) {
               set({
-                items: reconcileItems(get().items.map(i => i.variantId === item.variantId ? { ...i, quantity: newQuantity } : i), result.cart),
+                items: reconcileItems(get().items.map(i => i.lineId === existingItem.lineId ? { ...i, quantity: newQuantity } : i), result.cart),
                 cost: result.cart?.cost ?? get().cost,
                 isOpen: true,
               });
@@ -729,28 +818,28 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      updateQuantity: async (variantId, quantity) => {
+      updateQuantity: async (lineId, quantity) => {
         // Same in-flight guard as addItem. The drawer's +/- buttons stay clickable
         // while the Storefront API round-trips, and each click sends an absolute
         // quantity rather than a delta, so two overlapping calls race and the
         // slower response wins — the cart lands on a quantity the user never chose.
-        if (get().isLoading) return { success: false };
+        if (get().isLoading || get().isSyncing) return { success: false };
         // Delegating below is safe because isLoading is still false here; the
         // set({ isLoading: true }) is deliberately after this branch so removeItem's
         // own guard doesn't reject the call. Don't hoist it.
-        if (quantity <= 0) return await get().removeItem(variantId);
+        if (quantity <= 0) return await get().removeItem(lineId);
         const { items, cartId, clearCart } = get();
-        const item = items.find(i => i.variantId === variantId);
+        const item = items.find(i => i.lineId === lineId);
         if (!item?.lineId || !cartId) return { success: false };
         // No analytics on this retry: quantity edits inside the drawer aren't
         // tracked on the happy path either, so there is nothing to under-count.
-        const retryUpdate = () => { void get().updateQuantity(variantId, quantity); };
+        const retryUpdate = () => { void get().updateQuantity(lineId, quantity); };
         set({ isLoading: true });
         try {
           const result = await updateShopifyCartLine(cartId, item.lineId, quantity);
           if (result.success) {
             set({
-              items: reconcileItems(get().items.map(i => i.variantId === variantId ? { ...i, quantity } : i), result.cart),
+              items: reconcileItems(get().items.map(i => i.lineId === lineId ? { ...i, quantity } : i), result.cart),
               cost: result.cart?.cost ?? get().cost,
             });
             emitLifecycleCart(get());
@@ -786,25 +875,26 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      removeItem: async (variantId) => {
+      removeItem: async (lineId) => {
         // Same in-flight guard as addItem. Reached both from the drawer's remove
         // button and from updateQuantity when quantity hits zero; that delegation
         // happens before updateQuantity sets isLoading, so it still passes.
-        if (get().isLoading) return { success: false };
+        if (get().isLoading || get().isSyncing) return { success: false };
         const { items, cartId, clearCart } = get();
-        const item = items.find(i => i.variantId === variantId);
+        const item = items.find(i => i.lineId === lineId);
         if (!item?.lineId || !cartId) return { success: false };
-        const retryRemove = () => { void get().removeItem(variantId); };
+        const retryRemove = () => { void get().removeItem(lineId); };
         set({ isLoading: true });
         try {
           const result = await removeLineFromShopifyCart(cartId, item.lineId);
           if (result.success) {
-            const newItems = get().items.filter(i => i.variantId !== variantId);
-            if (newItems.length === 0) {
+            const newItems = get().items.filter(i => i.lineId !== lineId);
+            const reconciledItems = reconcileItems(newItems, result.cart);
+            if (reconciledItems.length === 0) {
               clearCart();
               trackLifecycleCartDeleted(cartId);
             } else {
-              set({ items: reconcileItems(newItems, result.cart), cost: result.cart?.cost ?? get().cost });
+              set({ items: reconciledItems, cost: result.cart?.cost ?? get().cost });
               emitLifecycleCart(get());
             }
             return { success: true };
@@ -842,21 +932,33 @@ export const useCartStore = create<CartStore>()(
        * checkout page it hands off to.
        */
       syncCart: async () => {
-        const { cartId, isSyncing, clearCart } = get();
-        if (!cartId || isSyncing) return;
+        const { cartId, isLoading, isSyncing, clearCart } = get();
+        if (!cartId || isLoading) return;
+        if (isSyncing) {
+          if (activeCartPreparationPromise) await activeCartPreparationPromise;
+          return;
+        }
         set({ isSyncing: true });
+        const syncPromise = (async () => {
+          try {
+            const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
+            if (!data) return;
+            const cart: ShopifyCart = data?.data?.cart;
+            if (!cart || cart.totalQuantity === 0) { clearCart(); return; }
+            set({
+              items: reconcileItems(get().items, cart),
+              cost: cart.cost ?? get().cost,
+              checkoutUrl: cart.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : get().checkoutUrl,
+            });
+          } catch (error) { console.error('Failed to sync cart:', error); }
+          finally { set({ isSyncing: false }); }
+        })();
+        activeCartPreparationPromise = syncPromise;
         try {
-          const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
-          if (!data) return;
-          const cart: ShopifyCart = data?.data?.cart;
-          if (!cart || cart.totalQuantity === 0) { clearCart(); return; }
-          set({
-            items: reconcileItems(get().items, cart),
-            cost: cart.cost ?? get().cost,
-            checkoutUrl: cart.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : get().checkoutUrl,
-          });
-        } catch (error) { console.error('Failed to sync cart:', error); }
-        finally { set({ isSyncing: false }); }
+          await syncPromise;
+        } finally {
+          if (activeCartPreparationPromise === syncPromise) activeCartPreparationPromise = null;
+        }
       },
     }),
     {

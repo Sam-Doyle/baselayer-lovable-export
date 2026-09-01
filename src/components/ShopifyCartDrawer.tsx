@@ -91,7 +91,8 @@ const ShopifyCartDrawer = () => {
     // an already-consumed line. (The trailing addItem is safe on its own — removeItem's
     // finally clears isLoading before the await resumes.)
     if (useCartStore.getState().isLoading) return;
-    const removeResult = await removeItem(singleBottleLine.variantId);
+    if (!singleBottleLine.lineId) return;
+    const removeResult = await removeItem(singleBottleLine.lineId);
     // If the remove failed (removeItem already surfaced its own toast), don't
     // chase it with an add — that would leave the shopper with both the old
     // single-bottle line AND the 2-bottle line instead of a clean swap.
@@ -144,7 +145,7 @@ const ShopifyCartDrawer = () => {
                 // price/cadence persisted in localStorage when the line was added.
                 const subTier = item.sellingPlanId ? BUY_TIERS.find(t => t.sellingPlanGid === item.sellingPlanId) : null;
                 return (
-                <div key={item.variantId} className="flex gap-4 py-3 border-b border-border/50 last:border-0">
+                <div key={item.lineId ?? `${item.variantId}:${item.sellingPlanId ?? "one-time"}`} className="flex gap-4 py-3 border-b border-border/50 last:border-0">
                   <div className="w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
                     {item.product.node.images?.edges?.[0]?.node && (
                       <img src={item.product.node.images.edges[0].node.url} alt={item.product.node.title} className="w-full h-full object-cover" />
@@ -169,14 +170,14 @@ const ShopifyCartDrawer = () => {
                     )}
                     <p className="font-body text-xs mt-0.5">${parseFloat(item.price.amount).toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <button onClick={() => updateQuantity(item.variantId, item.quantity - 1)} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors" aria-label={`Decrease quantity of ${item.product.node.title}`}>
+                      <button onClick={() => updateQuantity(item.lineId, item.quantity - 1)} disabled={!item.lineId || isLoading || isSyncing} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Decrease quantity of ${item.product.node.title}`}>
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="font-body text-xs w-4 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.variantId, item.quantity + 1)} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors" aria-label={`Increase quantity of ${item.product.node.title}`}>
+                      <button onClick={() => updateQuantity(item.lineId, item.quantity + 1)} disabled={!item.lineId || isLoading || isSyncing} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Increase quantity of ${item.product.node.title}`}>
                         <Plus className="w-3 h-3" />
                       </button>
-                      <button onClick={() => removeItem(item.variantId)} className="ml-auto p-1 text-muted-foreground hover:text-foreground transition-colors" aria-label={`Remove ${item.product.node.title} from cart`}>
+                      <button onClick={() => removeItem(item.lineId)} disabled={!item.lineId || isLoading || isSyncing} className="ml-auto p-1 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Remove ${item.product.node.title} from cart`}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>

@@ -7,7 +7,7 @@
  * cookie must check `hasAnalyticsConsent()` first — see src/lib/analytics.ts.
  *
  * Default (no decision on file yet) is "no" — strictly-necessary only.
- * This module never touches window/document/localStorage at module scope;
+ * This module never touches window/document/browser storage at module scope;
  * every access happens inside a function so it stays safe to import from
  * code that runs during the Puppeteer prerender (see vite.config.ts).
  *
@@ -21,8 +21,13 @@
 export const CONSENT_VERSION = 2;
 
 const STORAGE_KEY = "bl_consent";
+const SESSION_STORAGE_KEY = "bl_consent_session";
 const CHANGE_EVENT = "bl-consent-change";
 const OPEN_REQUEST_EVENT = "bl-consent-open-request";
+const MAX_DATE_MS = 8_640_000_000_000_000;
+
+let memoryConsent: ConsentRecord | null = null;
+let memoryFallbackActive = false;
 
 export type ConsentChoice = "accepted" | "rejected";
 
@@ -33,23 +38,81 @@ export interface ConsentRecord {
 }
 
 function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return typeof window !== "undefined";
+}
+
+function parseConsent(raw: string | null): ConsentRecord | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<ConsentRecord>;
+    if (parsed.version !== CONSENT_VERSION) return null;
+    if (parsed.choice !== "accepted" && parsed.choice !== "rejected") return null;
+    if (typeof parsed.timestamp !== "string" || !Number.isFinite(Date.parse(parsed.timestamp))) return null;
+    return parsed as ConsentRecord;
+  } catch {
+    return null;
+  }
+}
+
+function readLocalConsent(): ConsentRecord | null {
+  try {
+    return parseConsent(window.localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+function readSessionConsent(): ConsentRecord | null {
+  try {
+    return parseConsent(window.sessionStorage.getItem(SESSION_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+/** Resolve two durable records by recency. A same-millisecond disagreement
+ *  fails closed so a Reject can never be reversed by ambiguous storage state. */
+function newestDurableConsent(): ConsentRecord | null {
+  const local = readLocalConsent();
+  const session = readSessionConsent();
+  if (!local) return session;
+  if (!session) return local;
+  const localTime = Date.parse(local.timestamp);
+  const sessionTime = Date.parse(session.timestamp);
+  if (localTime === sessionTime && local.choice !== session.choice) {
+    return local.choice === "rejected" ? local : session;
+  }
+  return sessionTime > localTime ? session : local;
+}
+
+/** Generate a timestamp later than any readable prior record. This keeps the
+ *  user's newest action authoritative even if a device clock moved backward
+ *  or cleanup of a stale fallback record is blocked. */
+function nextDecisionTimestamp(): string {
+  const priorTimes = [readLocalConsent(), readSessionConsent()]
+    .filter((record): record is ConsentRecord => record !== null)
+    .map((record) => Date.parse(record.timestamp));
+  const nextTime = Math.max(Date.now(), ...priorTimes.map((time) => Math.min(time + 1, MAX_DATE_MS)));
+  return new Date(Math.min(nextTime, MAX_DATE_MS)).toISOString();
 }
 
 /** Reads the stored decision. Returns null if none exists, it's malformed,
  *  or it was recorded against a previous CONSENT_VERSION. */
 export function getStoredConsent(): ConsentRecord | null {
   if (!isBrowser()) return null;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<ConsentRecord>;
-    if (parsed.version !== CONSENT_VERSION) return null;
-    if (parsed.choice !== "accepted" && parsed.choice !== "rejected") return null;
-    return parsed as ConsentRecord;
-  } catch {
-    return null;
-  }
+  // The decision made in this document is authoritative even if a storage
+  // provider is read-only and still exposes an older record.
+  if (memoryFallbackActive && memoryConsent) return memoryConsent;
+  return newestDurableConsent();
+}
+
+/** True when the current choice will survive a reload in this tab. */
+export function isConsentDecisionDurable(): boolean {
+  if (!isBrowser()) return false;
+  const durable = newestDurableConsent();
+  if (!durable) return false;
+  return !memoryConsent
+    || (durable.choice === memoryConsent.choice && durable.timestamp === memoryConsent.timestamp);
 }
 
 /*
@@ -113,16 +176,28 @@ export function hasAnalyticsConsent(): boolean {
  *  (the banner, and the analytics init code in App.tsx) synchronously. */
 export function setConsent(choice: ConsentChoice): void {
   if (!isBrowser()) return;
-  const record: ConsentRecord = { version: CONSENT_VERSION, choice, timestamp: new Date().toISOString() };
+  const record: ConsentRecord = { version: CONSENT_VERSION, choice, timestamp: nextDecisionTimestamp() };
+  const serialized = JSON.stringify(record);
+  memoryConsent = record;
+  let stored = false;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    window.localStorage.setItem(STORAGE_KEY, serialized);
+    stored = true;
+    try {
+      window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    } catch {
+      // The primary localStorage record is already durable.
+    }
   } catch {
-    // Storage unavailable (private browsing, quota, disabled) — the choice
-    // still applies for the rest of this page load via the event below, it
-    // just won't survive a reload. Fails safe: hasAnalyticsConsent() reads
-    // storage fresh each time, so a failed write here means the site keeps
-    // treating the visitor as undecided (strictly-necessary only) later.
+    try {
+      window.sessionStorage.setItem(SESSION_STORAGE_KEY, serialized);
+      stored = true;
+    } catch {
+      // The in-memory record below still keeps the explicit choice effective
+      // for the current document when all browser storage is unavailable.
+    }
   }
+  memoryFallbackActive = !stored;
   window.dispatchEvent(new CustomEvent<ConsentRecord>(CHANGE_EVENT, { detail: record }));
 }
 

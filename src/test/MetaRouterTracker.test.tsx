@@ -66,6 +66,7 @@ const OPT_OUT_TZ = "America/Denver"; // notice plus opt-out: no decision means t
 
 beforeEach(() => {
   window.localStorage.clear();
+  window.sessionStorage.clear();
   fetchMock = vi.fn().mockResolvedValue({ ok: true });
   global.fetch = fetchMock as unknown as typeof fetch;
 });
@@ -119,6 +120,25 @@ describe("MetaRouterTracker — consent gate", () => {
     expect(init).toMatchObject({ method: "POST" });
     const body = JSON.parse((init as RequestInit).body as string);
     expect(body.event_name).toBe("PageView");
+  });
+
+  it("keeps SPA PageView tracking alive when sessionStorage is blocked", async () => {
+    setConsent("accepted");
+    const originalGetItem = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(function (key: string) {
+      if (this === window.sessionStorage) throw new DOMException("Blocked", "SecurityError");
+      return originalGetItem.call(this, key);
+    });
+    const router = renderTracker("/a");
+
+    await act(async () => {
+      await router.navigate("/b");
+    });
+
+    expect(capiCalls()).toHaveLength(1);
+    const [, init] = capiCalls()[0];
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body.user_data.external_id).toBe("");
   });
 
   it("consent granted mid-session (after mount, no reload) starts firing on the next navigation — proves the gate reads consent at fire time, not a stale closure", async () => {

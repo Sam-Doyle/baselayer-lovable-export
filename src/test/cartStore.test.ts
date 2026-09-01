@@ -3,6 +3,7 @@ import { useCartStore, type CartItem } from "@/stores/cartStore";
 import { ShopifyHttpError } from "@/lib/shopify";
 import { FREE_SHIPPING_CODE } from "@/config/legal";
 import { SKIN_QUIZ_PROMOTION, activateSkinQuizDiscount } from "@/config/promotions";
+import { BUY_TIERS, buildCartItem } from "@/config/product";
 
 // The cart mutation guards are the revenue path: every CTA on the site
 // funnels through addItem/updateQuantity/removeItem, all wrapping the
@@ -312,6 +313,363 @@ describe("cartStore — prices come from Shopify, not from local config", () => 
   });
 });
 
+describe("cartStore — mixed one-time and subscription line identity", () => {
+  const oneTimeLine: CartItem = {
+    ...testItem,
+    lineId: "gid://shopify/CartLine/one-time",
+    quantity: 2,
+  };
+  const subscriptionLine: CartItem = {
+    ...testItem,
+    lineId: "gid://shopify/CartLine/subscription",
+    variantTitle: "Subscribe & Save · every 6 weeks",
+    price: { amount: "35.00", currencyCode: "USD" },
+    sellingPlanId: "gid://shopify/SellingPlan/9",
+  };
+  const twoPackLine: CartItem = {
+    ...testItem,
+    lineId: "gid://shopify/CartLine/two-pack",
+    variantId: "gid://shopify/ProductVariant/2",
+    variantTitle: "2 Bottles",
+    price: { amount: "68.00", currencyCode: "USD" },
+  };
+
+  function shopifyCart(items: CartItem[], subtotal: string) {
+    return {
+      id: "gid://shopify/Cart/1",
+      checkoutUrl: "https://example.myshopify.com/checkout",
+      totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
+      cost: {
+        subtotalAmount: { amount: subtotal, currencyCode: "USD" },
+        totalAmount: { amount: subtotal, currencyCode: "USD" },
+      },
+      lines: {
+        edges: items.map((item) => ({
+          node: {
+            id: item.lineId,
+            quantity: item.quantity,
+            cost: { amountPerQuantity: item.price },
+            merchandise: { id: item.variantId },
+            sellingPlanAllocation: item.sellingPlanId
+              ? { sellingPlan: { id: item.sellingPlanId } }
+              : null,
+          },
+        })),
+      },
+    };
+  }
+
+  beforeEach(() => {
+    useCartStore.setState({
+      cartId: "gid://shopify/Cart/1",
+      checkoutUrl: "https://example.myshopify.com/checkout",
+      items: [oneTimeLine, twoPackLine, subscriptionLine],
+      cost: shopifyCart([oneTimeLine, twoPackLine, subscriptionLine], "179.00").cost,
+    });
+  });
+
+  it("removes the exact subscription line without touching the same-variant one-time line", async () => {
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: {
+        cartLinesRemove: {
+          cart: shopifyCart([oneTimeLine, twoPackLine], "144.00"),
+          userErrors: [],
+        },
+      },
+    });
+
+    const result = await useCartStore.getState().removeItem(subscriptionLine.lineId);
+
+    expect(result.success).toBe(true);
+    expect(mockStorefrontApiRequest).toHaveBeenCalledWith(
+      expect.stringContaining("cartLinesRemove"),
+      { cartId: "gid://shopify/Cart/1", lineIds: [subscriptionLine.lineId] },
+    );
+    expect(useCartStore.getState().items).toEqual([oneTimeLine, twoPackLine]);
+    expect(useCartStore.getState().cost?.subtotalAmount.amount).toBe("144.00");
+  });
+
+  it("updates only the exact subscription line", async () => {
+    const updatedSubscription = { ...subscriptionLine, quantity: 3 };
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: {
+        cartLinesUpdate: {
+          cart: shopifyCart([oneTimeLine, twoPackLine, updatedSubscription], "249.00"),
+          userErrors: [],
+        },
+      },
+    });
+
+    const result = await useCartStore.getState().updateQuantity(subscriptionLine.lineId, 3);
+
+    expect(result.success).toBe(true);
+    expect(mockStorefrontApiRequest).toHaveBeenCalledWith(
+      expect.stringContaining("cartLinesUpdate"),
+      { cartId: "gid://shopify/Cart/1", lines: [{ id: subscriptionLine.lineId, quantity: 3 }] },
+    );
+    expect(useCartStore.getState().items.find((item) => item.lineId === oneTimeLine.lineId)?.quantity).toBe(2);
+    expect(useCartStore.getState().items.find((item) => item.lineId === subscriptionLine.lineId)?.quantity).toBe(3);
+    expect(useCartStore.getState().cost?.subtotalAmount.amount).toBe("249.00");
+  });
+
+  it("re-adding one-time inventory increments only that line", async () => {
+    const updatedOneTime = { ...oneTimeLine, quantity: 3 };
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: {
+        cartLinesUpdate: {
+          cart: shopifyCart([updatedOneTime, twoPackLine, subscriptionLine], "217.00"),
+          userErrors: [],
+        },
+      },
+    });
+
+    const result = await useCartStore.getState().addItem(testItem);
+
+    expect(result.success).toBe(true);
+    expect(mockStorefrontApiRequest).toHaveBeenCalledWith(
+      expect.stringContaining("cartLinesUpdate"),
+      { cartId: "gid://shopify/Cart/1", lines: [{ id: oneTimeLine.lineId, quantity: 3 }] },
+    );
+    expect(useCartStore.getState().items.find((item) => item.lineId === oneTimeLine.lineId)?.quantity).toBe(3);
+    expect(useCartStore.getState().items.find((item) => item.lineId === subscriptionLine.lineId)?.quantity).toBe(1);
+  });
+
+  it("restores a Shopify line that an older client dropped from persisted local state", async () => {
+    const restoredOneTime: CartItem = {
+      ...buildCartItem(BUY_TIERS[0]),
+      lineId: "gid://shopify/CartLine/restored-one-time",
+    };
+    const restoredSubscription: CartItem = {
+      ...buildCartItem(BUY_TIERS[2]),
+      lineId: "gid://shopify/CartLine/restored-subscription",
+    };
+    useCartStore.setState({
+      cartId: "gid://shopify/Cart/legacy-corrupt",
+      items: [restoredOneTime],
+    });
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: { cart: shopifyCart([restoredOneTime, restoredSubscription], "73.00") },
+    });
+
+    await useCartStore.getState().syncCart();
+
+    expect(useCartStore.getState().items.map((item) => item.lineId)).toEqual([
+      restoredOneTime.lineId,
+      restoredSubscription.lineId,
+    ]);
+    expect(useCartStore.getState().items[1]).toMatchObject({
+      variantTitle: "Subscribe & Save · every 6 weeks",
+      sellingPlanId: BUY_TIERS[2].sellingPlanGid,
+      price: { amount: "35.00", currencyCode: "USD" },
+    });
+    expect(useCartStore.getState().cost?.subtotalAmount.amount).toBe("73.00");
+  });
+
+  it("drops a persisted local ghost that Shopify no longer has", async () => {
+    useCartStore.setState({
+      cartId: "gid://shopify/Cart/legacy-ghost",
+      items: [oneTimeLine, subscriptionLine],
+    });
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: { cart: shopifyCart([oneTimeLine], "76.00") },
+    });
+
+    await useCartStore.getState().syncCart();
+
+    expect(useCartStore.getState().items).toEqual([oneTimeLine]);
+  });
+
+  it("renders an unexpected authoritative Shopify line instead of hiding a checkout charge", async () => {
+    useCartStore.setState({ cartId: "gid://shopify/Cart/unexpected", items: [] });
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: {
+        cart: {
+          ...shopifyCart([], "12.00"),
+          totalQuantity: 1,
+          lines: {
+            edges: [{
+              node: {
+                id: "gid://shopify/CartLine/unexpected",
+                quantity: 1,
+                cost: { amountPerQuantity: { amount: "12.00", currencyCode: "USD" } },
+                merchandise: {
+                  id: "gid://shopify/ProductVariant/unexpected",
+                  title: "Travel Size",
+                  selectedOptions: [{ name: "Size", value: "Travel" }],
+                  product: {
+                    id: "gid://shopify/Product/unexpected",
+                    title: "Recovered Product",
+                    handle: "recovered-product",
+                  },
+                },
+                sellingPlanAllocation: null,
+              },
+            }],
+          },
+        },
+      },
+    });
+
+    await useCartStore.getState().syncCart();
+
+    expect(useCartStore.getState().items).toEqual([
+      expect.objectContaining({
+        lineId: "gid://shopify/CartLine/unexpected",
+        variantId: "gid://shopify/ProductVariant/unexpected",
+        variantTitle: "Travel Size",
+        price: { amount: "12.00", currencyCode: "USD" },
+        product: expect.objectContaining({ node: expect.objectContaining({ title: "Recovered Product" }) }),
+      }),
+    ]);
+  });
+
+  it("does not detach a retained subscription when the last known local line is removed before legacy recovery", async () => {
+    const legacyTwoPack: CartItem = {
+      ...buildCartItem(BUY_TIERS[1]),
+      lineId: "gid://shopify/CartLine/legacy-two-pack",
+    };
+    const retainedSubscription: CartItem = {
+      ...buildCartItem(BUY_TIERS[2]),
+      lineId: "gid://shopify/CartLine/retained-subscription",
+    };
+    useCartStore.setState({
+      cartId: "gid://shopify/Cart/remove-race",
+      checkoutUrl: "https://example.myshopify.com/checkout",
+      items: [legacyTwoPack],
+    });
+    mockStorefrontApiRequest.mockResolvedValueOnce({
+      data: {
+        cartLinesRemove: {
+          cart: shopifyCart([retainedSubscription], "35.00"),
+          userErrors: [],
+        },
+      },
+    });
+
+    const result = await useCartStore.getState().removeItem(legacyTwoPack.lineId);
+
+    expect(result.success).toBe(true);
+    expect(useCartStore.getState()).toMatchObject({
+      cartId: "gid://shopify/Cart/remove-race",
+      items: [expect.objectContaining({
+        lineId: retainedSubscription.lineId,
+        sellingPlanId: BUY_TIERS[2].sellingPlanGid,
+      })],
+      cost: expect.objectContaining({ subtotalAmount: { amount: "35.00", currencyCode: "USD" } }),
+    });
+  });
+
+  it("serializes drawer removal behind an in-flight authoritative sync", async () => {
+    const pendingSync = deferred<{ data: { cart: ReturnType<typeof shopifyCart> } }>();
+    mockStorefrontApiRequest.mockReturnValueOnce(pendingSync.promise);
+
+    const syncPromise = useCartStore.getState().syncCart();
+    expect(useCartStore.getState().isSyncing).toBe(true);
+
+    const removeResult = await useCartStore.getState().removeItem(twoPackLine.lineId);
+
+    expect(removeResult.success).toBe(false);
+    expect(mockStorefrontApiRequest).toHaveBeenCalledTimes(1);
+    expect(useCartStore.getState().items).toEqual([oneTimeLine, twoPackLine, subscriptionLine]);
+
+    pendingSync.resolve({
+      data: { cart: shopifyCart([oneTimeLine, twoPackLine, subscriptionLine], "179.00") },
+    });
+    await syncPromise;
+    expect(useCartStore.getState().isSyncing).toBe(false);
+  });
+
+  it("queues an add behind an in-flight sync so the older response cannot hide the new Shopify line", async () => {
+    const pendingSync = deferred<{ data: { cart: ReturnType<typeof shopifyCart> } }>();
+    const updatedOneTime = { ...oneTimeLine, quantity: 3 };
+    mockStorefrontApiRequest
+      .mockReturnValueOnce(pendingSync.promise)
+      .mockResolvedValueOnce({
+        data: {
+          cartLinesUpdate: {
+            cart: shopifyCart([updatedOneTime, twoPackLine, subscriptionLine], "217.00"),
+            userErrors: [],
+          },
+        },
+      });
+
+    const syncPromise = useCartStore.getState().syncCart();
+    const addPromise = useCartStore.getState().addItem(testItem);
+
+    // The add must not make a stale line decision until the authoritative read
+    // completes. This is the ordering guarantee that prevents the older sync
+    // from landing after the mutation and erasing the new line locally.
+    expect(mockStorefrontApiRequest).toHaveBeenCalledTimes(1);
+    pendingSync.resolve({
+      data: { cart: shopifyCart([oneTimeLine, twoPackLine, subscriptionLine], "179.00") },
+    });
+
+    await syncPromise;
+    const result = await addPromise;
+
+    expect(result.success).toBe(true);
+    expect(mockStorefrontApiRequest).toHaveBeenCalledTimes(2);
+    expect(mockStorefrontApiRequest).toHaveBeenLastCalledWith(
+      expect.stringContaining("cartLinesUpdate"),
+      { cartId: "gid://shopify/Cart/1", lines: [{ id: oneTimeLine.lineId, quantity: 3 }] },
+    );
+    expect(useCartStore.getState().items.find((item) => item.lineId === oneTimeLine.lineId)?.quantity).toBe(3);
+    expect(useCartStore.getState().cost?.subtotalAmount.amount).toBe("217.00");
+    expect(useCartStore.getState()).toMatchObject({ isLoading: false, isSyncing: false });
+  });
+
+  it("queues an add behind discount reconciliation so a stale discount response cannot hide the added line", async () => {
+    const pendingDiscount = deferred<{
+      data: {
+        cartDiscountCodesUpdate: {
+          cart: ReturnType<typeof shopifyCart> & { discountCodes: Array<{ code: string; applicable: boolean }> };
+          userErrors: never[];
+        };
+      };
+    }>();
+    const updatedOneTime = { ...oneTimeLine, quantity: 3 };
+    mockStorefrontApiRequest
+      .mockReturnValueOnce(pendingDiscount.promise)
+      .mockResolvedValueOnce({
+        data: {
+          cartLinesUpdate: {
+            cart: shopifyCart([updatedOneTime, twoPackLine, subscriptionLine], "217.00"),
+            userErrors: [],
+          },
+        },
+      });
+
+    const discountPromise = useCartStore.getState().applyDiscountCode("QUIZ15");
+    // applyDiscountCode crosses the preparation helper before claiming the
+    // mutation lock; let that continuation start its Storefront request.
+    await Promise.resolve();
+    const addPromise = useCartStore.getState().addItem(testItem);
+
+    expect(useCartStore.getState().isLoading).toBe(true);
+    expect(mockStorefrontApiRequest).toHaveBeenCalledTimes(1);
+    pendingDiscount.resolve({
+      data: {
+        cartDiscountCodesUpdate: {
+          cart: {
+            ...shopifyCart([oneTimeLine, twoPackLine, subscriptionLine], "179.00"),
+            discountCodes: [{ code: "QUIZ15", applicable: true }],
+          },
+          userErrors: [],
+        },
+      },
+    });
+
+    const discountResult = await discountPromise;
+    const addResult = await addPromise;
+
+    expect(discountResult).toEqual({ success: true, applicable: true });
+    expect(addResult.success).toBe(true);
+    expect(mockStorefrontApiRequest).toHaveBeenCalledTimes(2);
+    expect(useCartStore.getState().items.find((item) => item.lineId === oneTimeLine.lineId)?.quantity).toBe(3);
+    expect(useCartStore.getState().cost?.subtotalAmount.amount).toBe("217.00");
+  });
+});
+
 describe("cartStore addItem — in-flight guard", () => {
   it("drops a second addItem fired while the first is still in flight: one line, quantity 1", async () => {
     const { promise, resolve } = deferred<ReturnType<typeof cartCreateResponse>>();
@@ -367,7 +725,7 @@ describe("cartStore addItem — in-flight guard", () => {
   });
 });
 
-describe("cartStore updateQuantity(variantId, 0) — delegates to removeItem", () => {
+describe("cartStore updateQuantity(lineId, 0) — delegates to removeItem", () => {
   async function seedCartWithOneItem() {
     mockStorefrontApiRequest.mockResolvedValueOnce(cartCreateResponse("gid://shopify/CartLine/1"));
     await useCartStore.getState().addItem(testItem);
@@ -378,7 +736,7 @@ describe("cartStore updateQuantity(variantId, 0) — delegates to removeItem", (
     await seedCartWithOneItem();
     mockStorefrontApiRequest.mockResolvedValueOnce(cartLinesRemoveResponse());
 
-    await useCartStore.getState().updateQuantity(testItem.variantId, 0);
+    await useCartStore.getState().updateQuantity("gid://shopify/CartLine/1", 0);
 
     // This is the fragile assertion: updateQuantity delegates to removeItem
     // BEFORE setting isLoading: true, which is the only reason removeItem's
@@ -552,14 +910,14 @@ describe("cartStore — cart error classification, copy, and retry affordance", 
     mockStorefrontApiRequest.mockResolvedValueOnce({
       data: { cartLinesRemove: { cart: null, userErrors: [{ code: "VALIDATION_CUSTOM", field: null, message: "nope" }] } },
     });
-    await useCartStore.getState().removeItem(testItem.variantId);
+    await useCartStore.getState().removeItem("gid://shopify/CartLine/1");
     expect(mockTrackEvent).toHaveBeenCalledWith("cart_error", { kind: "other", operation: "remove" });
 
     mockTrackEvent.mockClear();
     mockStorefrontApiRequest.mockResolvedValueOnce({
       data: { cartLinesUpdate: { cart: null, userErrors: [{ code: "MAXIMUM_EXCEEDED", field: null, message: "Too many." }] } },
     });
-    await useCartStore.getState().updateQuantity(testItem.variantId, 5);
+    await useCartStore.getState().updateQuantity("gid://shopify/CartLine/1", 5);
     expect(mockTrackEvent).toHaveBeenCalledWith("cart_error", { kind: "quantity", operation: "update" });
   });
 
@@ -717,7 +1075,7 @@ describe("cartStore updateQuantity / removeItem — same userErrors handling as 
       data: { cartLinesUpdate: { cart: null, userErrors: [{ code: "MAXIMUM_EXCEEDED", field: ["lines", "0", "quantity"], message: "Too many." }] } },
     });
 
-    const result = await useCartStore.getState().updateQuantity(testItem.variantId, 5);
+    const result = await useCartStore.getState().updateQuantity("gid://shopify/CartLine/1", 5);
 
     expect(result.success).toBe(false);
     expect(useCartStore.getState().items[0].quantity).toBe(1);
@@ -731,7 +1089,7 @@ describe("cartStore updateQuantity / removeItem — same userErrors handling as 
     });
     mockStorefrontApiRequest.mockResolvedValueOnce(cartCreateResponse("gid://shopify/CartLine/new"));
 
-    const result = await useCartStore.getState().updateQuantity(testItem.variantId, 5);
+    const result = await useCartStore.getState().updateQuantity("gid://shopify/CartLine/1", 5);
 
     expect(result.success).toBe(true);
     expect(useCartStore.getState().items[0].quantity).toBe(5);
@@ -744,7 +1102,7 @@ describe("cartStore updateQuantity / removeItem — same userErrors handling as 
       data: { cartLinesRemove: { cart: null, userErrors: [{ code: "VALIDATION_CUSTOM", field: null, message: "nope" }] } },
     });
 
-    const result = await useCartStore.getState().removeItem(testItem.variantId);
+    const result = await useCartStore.getState().removeItem("gid://shopify/CartLine/1");
 
     expect(result.success).toBe(false);
     expect(useCartStore.getState().items).toHaveLength(1);
@@ -757,7 +1115,7 @@ describe("cartStore updateQuantity / removeItem — same userErrors handling as 
       data: { cartLinesRemove: { cart: null, userErrors: [{ code: "INVALID", field: ["cartId"], message: "Cart does not exist" }] } },
     });
 
-    const result = await useCartStore.getState().removeItem(testItem.variantId);
+    const result = await useCartStore.getState().removeItem("gid://shopify/CartLine/1");
 
     expect(result.success).toBe(true);
     expect(useCartStore.getState().items).toHaveLength(0);
