@@ -228,7 +228,14 @@ const ShopifyCartDrawer = () => {
                 disabled={isLoading || isSyncing}
                 aria-label="Checkout"
               >
-                {isLoading || isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ExternalLink className="w-4 h-4 mr-2" />Checkout</>}
+                {isLoading || isSyncing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <span className="inline-flex items-center justify-center gap-2">
+                    <ExternalLink className="w-4 h-4" aria-hidden="true" />
+                    <span>Checkout</span>
+                  </span>
+                )}
               </Button>
             </div>
           </>
