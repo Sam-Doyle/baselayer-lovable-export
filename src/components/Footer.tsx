@@ -49,10 +49,10 @@ const Footer = () => {
           </div>
 
           {/* Support */}
-          <div>
+          <div className="min-w-0">
             <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-foreground mb-4">Support</h3>
             <ul className="space-y-2">
-              <li><a href="mailto:contact@baselayerskin.co" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">contact@baselayerskin.co</a></li>
+              <li><a href="mailto:contact@baselayerskin.co" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block [overflow-wrap:anywhere]">contact@baselayerskin.co</a></li>
               <li><Link to="/refund-policy" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Returns & Refunds</Link></li>
               <li><Link to="/shipping-policy" className="font-body text-xs text-[#4A5560] hover:text-foreground transition-colors py-2 inline-block">Shipping</Link></li>
             </ul>
