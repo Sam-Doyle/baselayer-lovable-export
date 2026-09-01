@@ -5,6 +5,7 @@ import {
 import { Link } from "react-router-dom";
 import { urlFor } from "@/lib/sanity";
 import type { BlockContent } from "@/lib/sanity";
+import { portableArticleImageAlt } from "@/lib/articleImages";
 
 /**
  * Slugify heading text into an anchor id. Shared by the h2/h3 block
@@ -162,7 +163,7 @@ const components: Partial<PortableTextReactComponents> = {
           <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-muted">
             <img
               src={urlFor(value).width(800).auto("format").url()}
-              alt={value.alt || ""}
+              alt={portableArticleImageAlt(value)}
               className="w-full h-full object-cover"
               width={800}
               height={450}
@@ -185,7 +186,7 @@ const components: Partial<PortableTextReactComponents> = {
         {value.image?.asset && (
           <img
             src={urlFor(value.image).width(800).auto("format").url()}
-            alt={value.alt || ""}
+            alt={portableArticleImageAlt(value)}
             className="w-full rounded"
             loading="lazy"
             width={800}

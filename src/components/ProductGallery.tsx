@@ -209,7 +209,10 @@ const ProductGallery = ({
               <ChevronRight className="h-5 w-5" aria-hidden="true" />
             </button>
 
-            <div className="absolute bottom-1 left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full bg-black/15 px-1 backdrop-blur-[2px] md:hidden">
+            <div
+              className="absolute bottom-1 left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full bg-black/15 px-1 backdrop-blur-[2px] md:hidden"
+              data-product-gallery-pagination
+            >
               {images.map((image, index) => (
                 <button
                   key={image.id}
@@ -217,7 +220,7 @@ const ProductGallery = ({
                   onClick={() => selectIndex(index)}
                   aria-label={`Show product image ${index + 1} of ${imageCount}`}
                   aria-current={activeIndex === index ? "true" : undefined}
-                  className="flex h-11 w-11 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className="flex h-11 w-10 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white min-[360px]:w-11"
                 >
                   <span
                     className={cn(

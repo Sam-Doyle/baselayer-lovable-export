@@ -64,6 +64,15 @@ describe("ProductGallery", () => {
     expect(onActiveImageChange).toHaveBeenLastCalledWith(0);
   });
 
+  it("keeps all seven mobile pagination targets inside a 320px viewport", () => {
+    const { container } = render(<ProductGallery images={PRODUCT_GALLERY_IMAGES} />);
+    const pagination = container.querySelector("[data-product-gallery-pagination]");
+
+    expect(pagination).toBeInTheDocument();
+    expect(pagination?.querySelectorAll("button")).toHaveLength(7);
+    expect(pagination?.querySelector("button")).toHaveClass("w-10", "min-[360px]:w-11");
+  });
+
   it("renders nothing for an empty image list", () => {
     const { container } = render(<ProductGallery images={[]} />);
     expect(container).toBeEmptyDOMElement();

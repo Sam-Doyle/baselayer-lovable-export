@@ -31,6 +31,7 @@ import environmentSink from "@/assets/generated-creatives/asset_environment_sink
 import pumpDispensing from "@/assets/generated-creatives/asset_texture_pump_dispensing_1772750527399.png";
 import skinMildRedness from "@/assets/generated-creatives/asset_skin_mild_redness_1772750869168.png";
 import skinDryTight from "@/assets/generated-creatives/asset_skin_dry_tight_1772750846168.png";
+import { buildArticleHeroImage } from "@/lib/articleImages";
 
 const articleHeroImages: Record<string, string> = {
   "3-step-skincare-routine": minimalistRoutine,
@@ -70,7 +71,11 @@ const ArticleDetail = () => {
   const headings = art?.body ? extractHeadings(art.body) : [];
   const title = art?.metaTitle || (article ? `${article.title} | Base Layer` : "Article | Base Layer");
   const description = art?.metaDescription || toPlainText(art?.excerpt) || art?.extractableSummary || "";
-  const imageUrl = art?.heroImage?.asset?.url || (slug ? articleHeroImages[slug] : undefined) || environmentSink;
+  const rawImageUrl = art?.heroImage?.asset?.url || (slug ? articleHeroImages[slug] : undefined) || environmentSink;
+  const heroImage = art?.heroImage?.asset?.url
+    ? buildArticleHeroImage(art.heroImage.asset.url)
+    : { src: rawImageUrl, srcSet: undefined, sizes: undefined };
+  const imageUrl = heroImage.src;
 
   useMetaTags({ title, description, type: "article", image: imageUrl });
 
@@ -113,7 +118,7 @@ const ArticleDetail = () => {
       <Navbar />
       <main className="pt-24 pb-20 px-6">
         <div className="max-w-[720px] mx-auto">
-          <nav className="flex items-center gap-2 font-body text-xs tracking-[0.15em] uppercase text-muted-foreground mb-10 min-h-[1.25rem]">
+          <nav className="flex items-center gap-2 font-body text-xs tracking-[0.15em] uppercase text-[#5F695F] mb-10 min-h-[1.25rem]">
             <Link to="/" className="hover:text-foreground transition-colors">Home</Link>
             <span>/</span>
             <Link to="/articles" className="hover:text-foreground transition-colors">Articles</Link>
@@ -141,7 +146,7 @@ const ArticleDetail = () => {
           {article && art && (
             <article className="min-h-[80vh]">
               {art.publishDate && (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-body text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-body text-[11px] tracking-[0.15em] uppercase text-[#5F695F]">
                   <span>
                     Published: <time dateTime={new Date(art.publishDate).toISOString().split("T")[0]}>
                       {format(new Date(art.publishDate), "MMMM d, yyyy")}
@@ -157,7 +162,7 @@ const ArticleDetail = () => {
                 </div>
               )}
               <h1 className="font-heading text-3xl md:text-4xl font-bold mt-2 mb-4">{article.title}</h1>
-              <p className="font-body text-sm text-muted-foreground mb-8">
+              <p className="font-body text-sm text-[#5F695F] mb-8">
                 By{" "}
                 <Link to="/about" className="underline hover:text-foreground">
                   {art.author?.name || "The Base Layer Team"}
@@ -168,11 +173,11 @@ const ArticleDetail = () => {
               {/* Key Takeaways */}
               {(art.excerpt || art.extractableSummary) && (
                 <div className="bg-card border border-border rounded-lg p-6 mb-8">
-                  <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-muted-foreground mb-3">Key Takeaways</h2>
+                  <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-[#5F695F] mb-3">Key Takeaways</h2>
                   {art.excerpt && isPortableText(art.excerpt) ? (
-                    <PortableText value={art.excerpt} className="font-body text-sm text-muted-foreground leading-relaxed" />
+                    <PortableText value={art.excerpt} className="font-body text-sm text-[#5F695F] leading-relaxed" />
                   ) : (
-                    <p className="font-body text-sm text-muted-foreground leading-relaxed">
+                    <p className="font-body text-sm text-[#5F695F] leading-relaxed">
                       {art.excerpt || art.extractableSummary}
                     </p>
                   )}
@@ -182,12 +187,12 @@ const ArticleDetail = () => {
               {/* In This Guide — jump links for long articles */}
               {headings.length >= 4 && (
                 <nav aria-label="Table of contents" className="bg-card border border-border rounded-lg p-6 mb-8">
-                  <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-muted-foreground mb-3">In This Guide</h2>
+                  <h2 className="font-heading text-sm font-bold uppercase tracking-wide text-[#5F695F] mb-3">In This Guide</h2>
                   <ol className="font-body text-sm space-y-2">
                     {headings.map((h, i) => (
                       <li key={h.id}>
                         <a href={`#${h.id}`} className="text-foreground/80 hover:text-foreground underline-offset-4 hover:underline">
-                          <span className="text-muted-foreground tabular-nums mr-2">{i + 1}.</span>
+                          <span className="text-[#5F695F] tabular-nums mr-2">{i + 1}.</span>
                           {h.text}
                         </a>
                       </li>
@@ -200,10 +205,13 @@ const ArticleDetail = () => {
                 <div className="mb-10 rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                   <img
                     src={imageUrl}
+                    srcSet={heroImage.srcSet}
+                    sizes={heroImage.sizes}
                     alt={art.heroImage?.alt || article.title}
                     className="w-full h-full object-cover"
                     width={1200}
                     height={675}
+                    loading="eager"
                     decoding="async"
                     fetchPriority="high"
                   />
@@ -253,7 +261,7 @@ const ArticleDetail = () => {
                       <Link key={ra.slug} to={`/articles/${ra.slug}`} className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
                         <h3 className="font-heading font-bold text-sm">{ra.title}</h3>
                         {ra.excerpt && (
-                          <p className="font-body text-xs text-muted-foreground mt-1 line-clamp-2">{typeof ra.excerpt === "string" ? ra.excerpt : ""}</p>
+                          <p className="font-body text-xs text-[#5F695F] mt-1 line-clamp-2">{typeof ra.excerpt === "string" ? ra.excerpt : ""}</p>
                         )}
                       </Link>
                     ))
@@ -261,19 +269,19 @@ const ArticleDetail = () => {
                     <>
                       <Link to="/comparisons/best-mens-face-moisturizers-compared" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
                         <h3 className="font-heading font-bold text-sm">Best Men's Face Moisturizers Compared</h3>
-                        <p className="font-body text-xs text-muted-foreground mt-1">Side-by-side comparison of the top moisturizers for men.</p>
+                        <p className="font-body text-xs text-[#5F695F] mt-1">Side-by-side comparison of the top moisturizers for men.</p>
                       </Link>
                       <Link to="/comparisons/cerave-vs-base-layer" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
                         <h3 className="font-heading font-bold text-sm">CeraVe vs Base Layer</h3>
-                        <p className="font-body text-xs text-muted-foreground mt-1">How drugstore moisturizer stacks up against clinical-grade actives.</p>
+                        <p className="font-body text-xs text-[#5F695F] mt-1">How drugstore moisturizer stacks up against clinical-grade actives.</p>
                       </Link>
                       <Link to="/skin-concerns/aging-wrinkles-men" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
                         <h3 className="font-heading font-bold text-sm">Aging & Wrinkles Guide for Men</h3>
-                        <p className="font-body text-xs text-muted-foreground mt-1">Fight fine lines with copper peptide GHK-Cu and proven actives.</p>
+                        <p className="font-body text-xs text-[#5F695F] mt-1">Fight fine lines with copper peptide GHK-Cu and proven actives.</p>
                       </Link>
                       <Link to="/skin-concerns/dark-circles-men" className="block bg-card p-4 rounded-lg hover:bg-muted transition-colors border border-border">
                         <h3 className="font-heading font-bold text-sm">Dark Circles Under Eyes for Men</h3>
-                        <p className="font-body text-xs text-muted-foreground mt-1">Reduce tired-looking eyes with peptides and hyaluronic acid.</p>
+                        <p className="font-body text-xs text-[#5F695F] mt-1">Reduce tired-looking eyes with peptides and hyaluronic acid.</p>
                       </Link>
                     </>
                   )}
@@ -288,7 +296,7 @@ const ArticleDetail = () => {
                     {art.faqs.map((faq: any) => (
                       <AccordionItem key={faq._key} value={faq._key}>
                         <AccordionTrigger className="font-body text-left">{faq.question}</AccordionTrigger>
-                        <AccordionContent className="font-body text-muted-foreground">{faq.answer}</AccordionContent>
+                        <AccordionContent className="font-body text-[#5F695F]">{faq.answer}</AccordionContent>
                       </AccordionItem>
                     ))}
                   </Accordion>
@@ -296,7 +304,7 @@ const ArticleDetail = () => {
               )}
               {/* Trust signal */}
               <div className="mt-10 pt-6 border-t border-border">
-                <p className="font-body text-xs text-muted-foreground/60 italic">
+                <p className="font-body text-xs text-[#5F695F] italic">
                   Reviewed by the Base Layer skincare team. Based on published dermatological research and clinical ingredient data.
                 </p>
               </div>
@@ -310,7 +318,7 @@ const ArticleDetail = () => {
           <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide mb-4">
             Ready to Try Base Layer?
           </h2>
-          <p className="font-body text-sm text-muted-foreground mb-6">
+          <p className="font-body text-sm text-[#5F695F] mb-6">
             6 clinical-grade actives. One step. $38. In stock, ships in 1-2 business days.
           </p>
           <Link
@@ -323,7 +331,7 @@ const ArticleDetail = () => {
           >
             <span className="relative z-10">GRAB YOURS — $38</span>
           </Link>
-          <p className="font-body text-[11px] text-muted-foreground/60 mt-3 uppercase tracking-wider">
+          <p className="font-body text-[11px] text-[#5F695F] mt-3 uppercase tracking-wider">
             In stock — ships in 1-2 business days
           </p>
         </div>

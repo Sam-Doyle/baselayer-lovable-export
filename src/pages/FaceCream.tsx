@@ -26,6 +26,7 @@ import CustomerProofStrip from "@/components/CustomerProofStrip";
 import FormulaEvidenceSection from "@/components/FormulaEvidenceSection";
 import BlueprintPriceContrast from "@/components/BlueprintPriceContrast";
 import SkinProfileCards from "@/components/SkinProfileCards";
+import DeferredImageBand from "@/components/DeferredImageBand";
 
 const PRODUCT_SCHEMA = {
   "@context": "https://schema.org",
@@ -204,7 +205,6 @@ const FaceCream = () => {
               <a
                 href="#reviews"
                 className="group mb-1 inline-flex w-fit items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A2F4C] focus-visible:ring-offset-2"
-                aria-label={`${PRODUCT_RATING.rating.toFixed(1)} · ${PRODUCT_RATING.count} ${PRODUCT_RATING.count === 1 ? "review" : "reviews"} — rated ${PRODUCT_RATING.rating.toFixed(1)} out of 5; read customer reviews`}
               >
                 <StarRating rating={PRODUCT_RATING.rating} />
                 <span className="font-body text-[13px] text-[#4A5568]">
@@ -416,14 +416,17 @@ const FaceCream = () => {
           </div>
         </section>
 
-        {/* 2. TEXTURE IMAGE (Parallax) */}
-        <div 
-          className="w-full h-[400px] md:h-[500px] bg-fixed bg-cover bg-center hidden md:block" 
-          style={{ backgroundImage: `url(${textureSmearStone})` }}
+        {/* 2. TEXTURE IMAGE — the reserved-height placeholder prevents layout
+            shift while IntersectionObserver holds the PNG outside Chromium's
+            generous native lazy-loading distance on cold mobile visits. */}
+        <DeferredImageBand
+          src={textureSmearStone}
+          alt="Close-up of lightweight face cream spread across dark stone"
+          className="h-[400px] w-full overflow-hidden bg-[#E2E8F0] md:h-[500px]"
+          imageClassName="h-full w-full object-cover"
+          width={1200}
+          height={800}
         />
-        <div className="w-full md:hidden">
-          <img src={textureSmearStone} alt="Texture close-up" className="w-full h-auto object-cover" loading="lazy" width={1200} height={800} />
-        </div>
 
         <div id="formula" className="scroll-mt-[160px]">
           <FormulaEvidenceSection />
