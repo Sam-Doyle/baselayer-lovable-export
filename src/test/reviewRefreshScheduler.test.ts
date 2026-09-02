@@ -8,7 +8,7 @@ describe("review refresh scheduler", () => {
     const fetcher = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
 
     await expect(runReviewRefresh({
-      env: { NETLIFY_REVIEW_BUILD_HOOK: BUILD_HOOK },
+      env: { REVIEW_REFRESH_BUILD_HOOK: BUILD_HOOK },
       fetcher,
     })).resolves.toEqual({ success: true, status: 200 });
 
@@ -22,7 +22,7 @@ describe("review refresh scheduler", () => {
 
   it("fails closed when the build hook is missing", async () => {
     await expect(runReviewRefresh({ env: {}, fetcher: vi.fn() })).rejects.toThrow(
-      "missing NETLIFY_REVIEW_BUILD_HOOK",
+      "missing REVIEW_REFRESH_BUILD_HOOK",
     );
   });
 
@@ -32,7 +32,7 @@ describe("review refresh scheduler", () => {
     "https://example.com/build_hooks/example-token",
   ])("rejects an unsafe build hook URL: %s", async (buildHookUrl) => {
     await expect(runReviewRefresh({
-      env: { NETLIFY_REVIEW_BUILD_HOOK: buildHookUrl },
+      env: { REVIEW_REFRESH_BUILD_HOOK: buildHookUrl },
       fetcher: vi.fn(),
     })).rejects.toThrow(/invalid build hook URL|api\.netlify\.com over HTTPS/u);
   });
@@ -41,7 +41,7 @@ describe("review refresh scheduler", () => {
     const fetcher = vi.fn().mockResolvedValue(new Response("no", { status: 503 }));
 
     await expect(runReviewRefresh({
-      env: { NETLIFY_REVIEW_BUILD_HOOK: BUILD_HOOK },
+      env: { REVIEW_REFRESH_BUILD_HOOK: BUILD_HOOK },
       fetcher,
     })).rejects.toThrow("HTTP 503");
   });

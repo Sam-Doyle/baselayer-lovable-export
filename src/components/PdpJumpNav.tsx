@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { hasReviews } from "@/lib/reviews";
 
 const PDP_SECTIONS = [
   { id: "offer", label: "Offer" },
@@ -25,7 +24,7 @@ interface PdpJumpNavProps {
  * bar from hiding under it in either state. Target sections should use a scroll
  * margin of at least 160px so anchor jumps clear both fixed bars.
  */
-const PdpJumpNav = ({ showReviews = hasReviews }: PdpJumpNavProps) => {
+const PdpJumpNav = ({ showReviews = true }: PdpJumpNavProps) => {
   const sections = showReviews ? PDP_SECTIONS : PDP_SECTIONS_WITHOUT_REVIEWS;
   const [activeSection, setActiveSection] = useState<string>(DEFAULT_SECTION);
   const [headerCollapsed, setHeaderCollapsed] = useState(

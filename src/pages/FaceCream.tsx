@@ -61,7 +61,8 @@ const PRODUCT_SCHEMA = {
    * Never emit it with reviewCount: 0 — Google's Rich Results Test treats that
    * as an error on the Product itself, which can cost the whole rich result
    * rather than just the stars. reviewAggregate zeroes below the gate, so this
-   * hides on exactly the same condition as <StarRating> and <ReviewsSection>.
+   * hides on exactly the same condition as <StarRating> and the aggregate/list
+   * inside <ReviewsSection>. The section's collection CTA remains available.
    *
    * `review` rides the same gate and answers the other half of the Search
    * Console warning ("Missing field review"). It is safe here and only here:

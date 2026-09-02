@@ -7,9 +7,9 @@ const REQUEST_TIMEOUT_MS = 10_000;
  * minutes or forcing deploys.
  */
 export async function runReviewRefresh({ env = process.env, fetcher = globalThis.fetch } = {}) {
-  const buildHookUrl = env.NETLIFY_REVIEW_BUILD_HOOK || "";
+  const buildHookUrl = env.REVIEW_REFRESH_BUILD_HOOK || "";
   if (!buildHookUrl) {
-    throw new Error("Review refresh scheduler is missing NETLIFY_REVIEW_BUILD_HOOK");
+    throw new Error("Review refresh scheduler is missing REVIEW_REFRESH_BUILD_HOOK");
   }
 
   let parsed;

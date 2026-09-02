@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Star, BadgeCheck, ArrowUpRight } from "lucide-react";
-import { PRODUCT_REVIEW_URL } from "@/config/reviews";
+import { Star, BadgeCheck } from "lucide-react";
+import ReviewCollectionCta from "@/components/ReviewCollectionCta";
 import { reviews, reviewAggregate, hasReviews, histogram } from "@/lib/reviews";
 
 /**
  * Customer reviews on the PDP, from Judge.me via the build-time fetch.
  *
- * Renders nothing below REVIEW_GATE (src/lib/reviews.ts), which exists for the
- * zero-review case — an empty block reads worse than no block, and a
- * reviewCount of 0 errors in Google's Rich Results Test.
+ * The aggregate/list are gated below REVIEW_GATE (src/lib/reviews.ts), but the
+ * section and collection CTA remain available even when there are no reviews.
+ * Product schema still omits a zero-count aggregate.
  *
  * The rating link in the FaceCream buy box targets this section's #reviews id,
  * so the scroll offset below has to clear the fixed Navbar.
@@ -80,7 +80,26 @@ const ReviewsSection = () => {
    */
   const [starFilter, setStarFilter] = useState<number | null>(null);
 
-  if (!hasReviews) return null;
+  if (!hasReviews) {
+    return (
+      <section id="reviews" className="scroll-mt-[160px] px-6 py-20 bg-[#F8FAFC]">
+        <div className="max-w-[860px] mx-auto">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold uppercase tracking-wide text-center mb-8 text-[#1A2F4C]">
+            Customer Reviews
+          </h2>
+          <div className="mx-auto max-w-[560px] border border-[#E2E8F0] bg-white px-6 py-8 text-center">
+            <p className="font-heading text-[18px] font-semibold text-[#1A2F4C]">
+              Be the first to share your experience.
+            </p>
+            <p className="mt-2 font-body text-[14px] leading-[1.65] text-[#64748B]">
+              Already using Base Layer? Your honest feedback helps the next customer decide.
+            </p>
+          </div>
+          <ReviewCollectionCta />
+        </div>
+      </section>
+    );
+  }
 
   const shown = starFilter === null ? reviews : reviews.filter((r) => r.rating === starFilter);
 
@@ -285,27 +304,10 @@ const ReviewsSection = () => {
           ))}
         </ul>
 
-        <div className="mt-12 border border-[#CBD5E1] bg-white px-6 py-7 text-center">
-          <p className="font-body text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">
-            For Base Layer customers
-          </p>
-          <p className="mt-2 font-heading text-[17px] font-semibold text-[#1A2F4C]">
-            Share what worked—and what didn&apos;t.
-          </p>
-          <a
-            href={PRODUCT_REVIEW_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Write a product review for Performance Daily Face Cream on Judge.me (opens in a new tab)"
-            className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 border-2 border-[#1A2F4C] bg-[#1A2F4C] px-7 py-3 font-body text-[12px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-white hover:text-[#1A2F4C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A2F4C] focus-visible:ring-offset-2"
-          >
-            Write a review
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          </a>
-        </div>
+        <ReviewCollectionCta />
 
         <p className="font-body text-[12px] text-[#6B7280] text-center mt-10 leading-[1.5]">
-          Reviews are collected by Judge.me. Every review is shown, including critical ones,
+          Reviews are collected by Judge.me. Every published review is shown, including critical ones,
           and none are edited or reordered by rating. Filtering by star rating is yours to
           apply and clear; every rating with reviews behind it can be filtered to. The
           Verified Purchase badge appears only where Judge.me matched the reviewer to a
