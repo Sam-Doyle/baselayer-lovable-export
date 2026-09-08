@@ -4,7 +4,6 @@ import App from "./App.tsx";
 import {
   hideSnapshotConsentBanner,
   hideSnapshotFixedUi,
-  retirePrerenderSnapshot,
 } from "./lib/prerenderHandoff.ts";
 import "./index.css";
 
@@ -32,20 +31,9 @@ const ClientReady = ({ onReady }: { onReady: () => void }) => {
 
 if (prerenderSnapshot && hasMatchingPrerenderSnapshot) {
   const isFaceCreamHandoff = window.location.pathname === "/face-cream";
-  const isSingleBottleOffer =
-    isFaceCreamHandoff && new URLSearchParams(window.location.search).get("offer") === "single";
-  const isMobileSingleBottleOffer =
-    isSingleBottleOffer && window.matchMedia("(max-width: 768px)").matches;
 
   if (isFaceCreamHandoff) {
     root.dataset.prerenderHandoff = "active";
-    if (isMobileSingleBottleOffer) {
-      // The build snapshot uses the direct-PDP two-bottle default. Acquisition
-      // links that explicitly promise one bottle keep only the identical
-      // navigation + gallery portion of that snapshot; the live $38 offer is
-      // visible below it from the first frame, so $68 and $38 never conflict.
-      prerenderSnapshot.style.height = "515px";
-    }
   }
 
   const revealClientApp = () => {
@@ -64,39 +52,11 @@ if (prerenderSnapshot && hasMatchingPrerenderSnapshot) {
     prerenderSnapshot.style.pointerEvents = "none";
     prerenderSnapshot.setAttribute("aria-hidden", "true");
     prerenderSnapshot.inert = true;
-
-    if (isFaceCreamHandoff) {
-      const interactionEvents = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
-      const completeFaceCreamHandoff = () => {
-        // Reveal the live gallery and retire the identical shell in one task,
-        // before the next paint. The initiating input also closes the browser's
-        // LCP window, so an interacted-with PDP cannot manufacture a late LCP.
-        delete root.dataset.prerenderHandoff;
-        retirePrerenderSnapshot(prerenderSnapshot);
-        interactionEvents.forEach((eventName) => {
-          window.removeEventListener(eventName, completeFaceCreamHandoff, true);
-        });
-      };
-
-      // On desktop the offer copy shares the first row with the gallery, so a
-      // partial shell cannot isolate it. Retire the shell as soon as React is
-      // ready; desktop remains fast, while the selected $38 state is truthful.
-      if (isSingleBottleOffer && !isMobileSingleBottleOffer) {
-        completeFaceCreamHandoff();
-        return;
-      }
-
-      interactionEvents.forEach((eventName) => {
-        window.addEventListener(eventName, completeFaceCreamHandoff, {
-          capture: true,
-          once: true,
-          passive: eventName === "wheel" || eventName === "touchstart",
-        });
-      });
-    }
   };
 
-  createRoot(root).render(<ClientReady onReady={revealClientApp} />);
+  // App can commit its Suspense fallback before the lazy PDP exists. Only the
+  // PDP's own layout effect can safely reveal its live offer and gallery.
+  createRoot(root).render(isFaceCreamHandoff ? <App /> : <ClientReady onReady={revealClientApp} />);
 } else {
   createRoot(root).render(<App />);
 }

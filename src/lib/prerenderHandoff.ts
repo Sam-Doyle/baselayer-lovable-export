@@ -26,10 +26,22 @@ export function hideSnapshotFixedUi(snapshot: HTMLElement): void {
   });
 }
 
-/** Permanently retire the initial homepage shell after the SPA leaves `/`. */
+/** Permanently retire a visual shell after its live page owns the pixels. */
 export function retirePrerenderSnapshot(snapshot: HTMLElement): void {
   snapshot.style.display = "none";
   snapshot.style.pointerEvents = "none";
   snapshot.setAttribute("aria-hidden", "true");
   snapshot.inert = true;
+}
+
+/** Called by the actual lazy PDP at commit, never by the App fallback. */
+export function completePdpPrerenderHandoff(): void {
+  const snapshot = document.getElementById("bl-prerender-root");
+  if (snapshot?.dataset.prerenderPath !== "/face-cream") return;
+  const root = document.getElementById("root");
+  if (root) delete root.dataset.prerenderHandoff;
+  retirePrerenderSnapshot(snapshot);
+  // Native fragment links and jump-nav observers must resolve the live page,
+  // not the hidden, earlier sibling. Keep only the shell's own lifecycle ID.
+  snapshot.querySelectorAll("[id]").forEach(element => element.removeAttribute("id"));
 }

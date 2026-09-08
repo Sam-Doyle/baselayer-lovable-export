@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { completePdpPrerenderHandoff } from "@/lib/prerenderHandoff";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -39,8 +40,8 @@ interface ErrorBoundaryState {
  * -- the skeleton ships, never this fallback. This fallback additionally
  * renders no <nav>/<footer> itself, so it can never accidentally satisfy
  * that check either. Nothing below touches window/document at module
- * scope or in the constructor — only inside the reload button's onClick,
- * which never runs during prerender (Puppeteer doesn't click anything).
+ * scope or in the constructor. If a PDP route fails, componentDidCatch also
+ * retires its visual snapshot so it cannot obscure the recovery controls.
  */
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { hasError: false };
@@ -50,6 +51,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
+    completePdpPrerenderHandoff();
     // No error-reporting service wired up in this repo — console is the
     // only sink available without adding a dependency.
     console.error("[ErrorBoundary] caught a render error:", error, info.componentStack);

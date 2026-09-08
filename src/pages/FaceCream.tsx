@@ -6,7 +6,8 @@ import { AVAILABLE_TIERS, buildCartItem, getInitialTier, metaContentId, tierCtaL
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { trackEvent } from "@/lib/analytics";
 import { trackLifecycleProductViewed } from "@/lib/lifecycle";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
+import { completePdpPrerenderHandoff } from "@/lib/prerenderHandoff";
 import textureSmearStone from "@/assets/generated-creatives/asset_texture_smear_stone_1772750541116.png";
 import { Mountain, ShieldCheck, Droplets, Timer, Leaf, Check, Sun, Moon } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -98,6 +99,7 @@ const BUY_OPTIONS = AVAILABLE_TIERS;
 const PRODUCT_RATING = reviewAggregate;
 
 const FaceCream = () => {
+  useLayoutEffect(completePdpPrerenderHandoff, []);
   const [searchParams] = useSearchParams();
   const initialTier = getInitialTier(searchParams.get("offer"));
   const [quantity, setQuantity] = useState(() => initialTier.id);

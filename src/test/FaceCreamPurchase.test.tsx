@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { lazy, Suspense } from "react";
 import { MemoryRouter, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import FaceCream from "@/pages/FaceCream";
@@ -44,6 +45,61 @@ beforeEach(() => {
 });
 
 describe("PDP purchase journey", () => {
+  it("keeps the snapshot until the lazy PDP is ready, then hands off without input", async () => {
+    const snapshot = document.createElement("div");
+    snapshot.id = "bl-prerender-root";
+    snapshot.dataset.prerenderPath = "/face-cream";
+    const liveRoot = document.createElement("div");
+    liveRoot.id = "root";
+    liveRoot.dataset.prerenderHandoff = "active";
+    document.body.append(snapshot, liveRoot);
+    let resolvePage: (page: { default: typeof FaceCream }) => void;
+    const PendingPdp = lazy(() => new Promise<{ default: typeof FaceCream }>(resolve => { resolvePage = resolve; }));
+    const view = render(<MemoryRouter initialEntries={["/face-cream?offer=single"]}>
+      <Suspense fallback={<div>Loading route</div>}><PendingPdp /></Suspense>
+    </MemoryRouter>, { container: liveRoot });
+    try {
+      expect(liveRoot).toHaveTextContent("Loading route");
+      expect(snapshot.style.display).not.toBe("none");
+      expect(liveRoot).toHaveAttribute("data-prerender-handoff", "active");
+      await act(async () => resolvePage({ default: FaceCream }));
+      expect(snapshot.style.display).toBe("none");
+      expect(liveRoot).not.toHaveAttribute("data-prerender-handoff");
+      expect(liveRoot.querySelector("[data-pdp-primary-cta]")).toHaveTextContent(tierCtaLabel(AVAILABLE_TIERS[0]));
+    } finally {
+      view.unmount();
+      liveRoot.remove();
+      snapshot.remove();
+    }
+  });
+
+  it.each(["single", "two", "subscription"])("retires stale snapshot pixels on offer=%s commit without user input", offer => {
+    const snapshot = document.createElement("div");
+    snapshot.id = "bl-prerender-root";
+    snapshot.dataset.prerenderPath = "/face-cream";
+    snapshot.innerHTML = '<div id="purchase-options">Stale $68 snapshot</div><section id="reviews">Stale reviews</section>';
+    const liveRoot = document.createElement("div");
+    liveRoot.id = "root";
+    liveRoot.dataset.prerenderHandoff = "active";
+    document.body.append(snapshot, liveRoot);
+    const view = render(<MemoryRouter initialEntries={[`/face-cream?offer=${offer}`]}><FaceCream /></MemoryRouter>, { container: liveRoot });
+    try {
+      expect(snapshot.style.display).toBe("none");
+      expect(snapshot).toHaveAttribute("aria-hidden", "true");
+      expect(snapshot.inert).toBe(true);
+      expect(liveRoot).not.toHaveAttribute("data-prerender-handoff");
+      expect(snapshot.querySelectorAll("[id]")).toHaveLength(0);
+      expect(document.getElementById("reviews")).toBe(liveRoot.querySelector("#reviews"));
+      const tier = AVAILABLE_TIERS.find(t => t.id === (offer === "single" ? 1 : offer === "two" ? 2 : 3))!;
+      expect(liveRoot.querySelector("[data-pdp-primary-cta]")).toHaveTextContent(tierCtaLabel(tier));
+      expect(liveRoot.querySelector("[data-pdp-sticky-cta] button")).toHaveTextContent(tierCtaLabel(tier));
+    } finally {
+      view.unmount();
+      liveRoot.remove();
+      snapshot.remove();
+    }
+  });
+
   it.each([
     ["single", 1], ["two", 2], ["subscription", 3], ["unknown", 2],
   ])("honors offer=%s and sends the exact selected Shopify line", async (offer, tierId) => {

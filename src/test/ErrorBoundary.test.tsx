@@ -14,6 +14,28 @@ afterEach(() => {
 });
 
 describe("ErrorBoundary", () => {
+  it("uncovers recovery controls when the PDP fails before its handoff", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const snapshot = document.createElement("div");
+    snapshot.id = "bl-prerender-root";
+    snapshot.dataset.prerenderPath = "/face-cream";
+    snapshot.innerHTML = "Stale purchase page";
+    const liveRoot = document.createElement("div");
+    liveRoot.id = "root";
+    liveRoot.dataset.prerenderHandoff = "active";
+    document.body.append(snapshot, liveRoot);
+    const view = render(<MemoryRouter><ErrorBoundary><Bomb /></ErrorBoundary></MemoryRouter>, { container: liveRoot });
+    try {
+      expect(snapshot.style.display).toBe("none");
+      expect(liveRoot).not.toHaveAttribute("data-prerender-handoff");
+      expect(screen.getByRole("button", { name: /reload/i })).toBeInTheDocument();
+    } finally {
+      view.unmount();
+      snapshot.remove();
+      liveRoot.remove();
+    }
+  });
+
   it("renders children normally when nothing throws", () => {
     render(
       <MemoryRouter>

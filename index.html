@@ -6,6 +6,12 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Guard streamed SSR pixels before the body arrives. Cleared by bootstrap. -->
+  <script>
+    if (location.pathname === "/face-cream" && ["single", "subscription"].includes(new URLSearchParams(location.search).get("offer"))) {
+      document.documentElement.dataset.pdpSnapshotOffer = "alternate";
+    }
+  </script>
   <title>Base Layer | Men's Face Cream That Actually Works | $38</title>
   <meta name="description"
     content="One face cream. 15 seconds. Done. Base Layer is the daily moisturizer built for men who want results without a routine. 6 active ingredients. $38. Free shipping.">
@@ -46,9 +52,15 @@
 
   <!-- Critical inline CSS for above-the-fold rendering -->
   <style>
+    html[data-pdp-snapshot-offer] #root #purchase-options,
+    html[data-pdp-snapshot-offer] #root main > :not(#offer) {
+      visibility: hidden;
+    }
+
     /* During the PDP's prerender handoff, the initial snapshot owns the hero
        pixels. Keep the duplicate live gallery from becoming a later LCP
-       candidate; main.tsx reveals it atomically on the shopper's first input. */
+       candidate while its route chunk loads. FaceCream reveals the live tree
+       atomically when the actual PDP commits, without waiting for input. */
     #root[data-prerender-handoff="active"] [data-product-gallery-track] img {
       visibility: hidden;
     }
@@ -233,11 +245,40 @@
       const isReleaseRoute = location.pathname === "/" || location.pathname === "/face-cream";
       const isPrerenderedReleaseRoute = isReleaseRoute && Array.from(snapshot?.childNodes || [])
         .some((node) => node.nodeType === 8 && node.nodeValue === "SSR");
-      if (!snapshot || !isPrerenderedReleaseRoute) return;
+      if (!snapshot || !isPrerenderedReleaseRoute) {
+        delete document.documentElement.dataset.pdpSnapshotOffer;
+        return;
+      }
 
       snapshot.id = "bl-prerender-root";
       snapshot.dataset.prerenderPath = location.pathname;
       snapshot.style.cssText = "position:absolute;inset:0;width:100%;height:100svh;overflow:hidden;z-index:1";
+
+      if (location.pathname === "/face-cream") {
+        // Serialized controls have no React ownership. Even hidden/inert radios
+        // with the live group's name participate in React's document-wide radio
+        // restoration and throw. Keep their checked appearance, not their names.
+        snapshot.querySelectorAll('input[type="radio"][name]').forEach((radio) => {
+          radio.removeAttribute("name");
+        });
+        snapshot.inert = true;
+        snapshot.style.pointerEvents = "none";
+        snapshot.setAttribute("aria-hidden", "true");
+
+        // The static PDP is the default two-pack. Acquisition links must not
+        // paint that price/CTA while the requested offer's route chunk loads.
+        // Reserve layout and retain navigation/gallery, without a pixel crop
+        // that can drift when the responsive gallery changes. No-JS is untouched.
+        const offer = new URLSearchParams(location.search).get("offer");
+        if (offer === "single" || offer === "subscription") {
+          snapshot.querySelectorAll("#purchase-options, main > :not(#offer)").forEach((element) => {
+            element.style.visibility = "hidden";
+          });
+        }
+      }
+
+      // The renamed snapshot now owns its guard; never hide the live root.
+      delete document.documentElement.dataset.pdpSnapshotOffer;
 
       const clientRoot = document.createElement("div");
       clientRoot.id = "root";

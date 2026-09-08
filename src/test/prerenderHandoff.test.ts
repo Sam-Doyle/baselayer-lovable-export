@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { hideSnapshotConsentBanner, hideSnapshotFixedUi, retirePrerenderSnapshot } from "@/lib/prerenderHandoff";
+import { completePdpPrerenderHandoff, hideSnapshotConsentBanner, hideSnapshotFixedUi, retirePrerenderSnapshot } from "@/lib/prerenderHandoff";
 
 describe("homepage prerender handoff", () => {
+  it("does not retire the homepage snapshot through the PDP-only helper", () => {
+    const snapshot = document.createElement("div");
+    snapshot.id = "bl-prerender-root";
+    snapshot.dataset.prerenderPath = "/";
+    document.body.append(snapshot);
+    try {
+      completePdpPrerenderHandoff();
+      expect(snapshot.style.display).not.toBe("none");
+    } finally {
+      snapshot.remove();
+    }
+    expect(completePdpPrerenderHandoff).not.toThrow();
+  });
+
   it("hides the inert snapshot consent banner once the live app owns it", () => {
     const snapshot = document.createElement("div");
     snapshot.innerHTML = `
