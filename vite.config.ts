@@ -797,6 +797,11 @@ function prerenderPlugin(): Plugin {
               containerSelectors: [
                 "nav",
                 "#offer",
+                // Retain both serialized and live sticky states even when
+                // offscreen at the scan height: shorter phones need them at
+                // first paint, before the full stylesheet arrives.
+                '[data-pdp-sticky-cta]',
+                '#root [data-pdp-sticky-cta]',
                 '[aria-label="Cookie consent"]',
               ],
             },

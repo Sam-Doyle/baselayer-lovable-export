@@ -18,6 +18,13 @@ afterEach(() => {
 });
 
 describe("query-offer snapshot before React loads", () => {
+  it("keeps the sticky purchase control in critical CSS even when the scan viewport hides it", () => {
+    const config = readFileSync(resolve(process.cwd(), "vite.config.ts"), "utf8");
+    const pdpTarget = config.match(/route: "\/face-cream",[\s\S]*?containerSelectors: \[([\s\S]*?)\n\s*\]/)![1];
+    expect(pdpTarget).toContain("[data-pdp-sticky-cta]");
+    expect(pdpTarget).toContain("#root [data-pdp-sticky-cta]");
+  });
+
   it.each(["single", "subscription", "two", "unknown", ""])("handles offer=%s without a stale acquisition offer", offer => {
     window.history.replaceState(null, "", `/face-cream?offer=${offer}`);
     const style = document.createElement("style");
