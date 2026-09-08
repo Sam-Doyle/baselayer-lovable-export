@@ -88,21 +88,9 @@ const App = () => {
   }, [quizRuntimeReady]);
 
   useEffect(() => {
-    // ── UTM + fbclid Capture ──
-    // Persist UTMs to sessionStorage so downstream events (CAPI, analytics.ts)
-    // can attach campaign data even after React Router consumes the URL.
-    const params = new URLSearchParams(window.location.search);
+    // Campaign UI behavior is separate from analytics identifiers. The latter
+    // are captured inside analytics.ts only once its consent gate permits it.
     captureEmailCampaignSession(window.location.search);
-    const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
-    utmKeys.forEach((key) => {
-      const value = params.get(key);
-      if (value) sessionStorage.setItem(key, value);
-    });
-    const fbclid = params.get("fbclid");
-    if (fbclid) {
-      const fbc = `fb.1.${Date.now()}.${fbclid}`;
-      sessionStorage.setItem("_fbc", fbc);
-    }
 
     // Brevo lifecycle tracking is provider-isolated from GA4/Meta and only
     // initializes for a previously identified marketing subscriber. A new
@@ -118,8 +106,8 @@ const App = () => {
 
     // ── Immediate CAPI PageView ──
     // Fire a server-side PageView via Meta Conversions API right now.
-    // This captures 100% of page views regardless of whether the browser
-    // pixel loads in time. Uses raw fetch() — no Supabase SDK import.
+    // This starts the permitted server event without waiting for the browser
+    // pixel. Receipt still depends on network/backend availability.
     // The deferred browser pixel fires the same event_id for dedup.
     //
     // COOKIE-CONSENT GATE: the fetch above (and the bl_session/_fbp cookies

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { analyticsBlocked } from "@/lib/analytics";
+import { getConsentEpoch, onConsentChange } from "@/lib/consent";
 
 function readSessionValue(key: string): string | null {
   try {
@@ -50,6 +51,7 @@ export default function MetaRouterTracker() {
     }
 
     if (analyticsBlocked()) return;
+    const consentEpoch = getConsentEpoch();
 
     const url = window.location.origin + location.pathname + location.search;
     const eventId = crypto.randomUUID();
@@ -85,25 +87,29 @@ export default function MetaRouterTracker() {
     }).catch(() => {});
 
     // ── Browser-side GA4 + Pixel (poll until available) ──
+    let ga4Fired = false;
+    let metaFired = false;
     const fire = () => {
-      let fired = false;
+      // Returning true ends polling permanently, including Reject→Accept that
+      // happens entirely between two timer ticks.
+      if (analyticsBlocked() || consentEpoch !== getConsentEpoch()) return true;
       const trackingWindow = window as TrackingWindow;
 
-      if (typeof trackingWindow.gtag === "function") {
+      if (!ga4Fired && typeof trackingWindow.gtag === "function") {
         trackingWindow.gtag("event", "page_view", {
           page_path: location.pathname + location.search,
           page_location: url,
           page_title: document.title,
         });
-        fired = true;
+        ga4Fired = true;
       }
 
-      if (typeof trackingWindow.fbq === "function") {
+      if (!metaFired && typeof trackingWindow.fbq === "function") {
         trackingWindow.fbq("track", "PageView", {}, { eventID: eventId });
-        fired = true;
+        metaFired = true;
       }
 
-      return fired;
+      return ga4Fired && metaFired;
     };
 
     if (fire()) return;
@@ -116,8 +122,14 @@ export default function MetaRouterTracker() {
         clearInterval(timer);
       }
     }, 200);
+    const stopOnReject = onConsentChange((choice) => {
+      if (choice === "rejected") clearInterval(timer);
+    });
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      stopOnReject();
+    };
   }, [location.pathname, location.search]);
 
   return null;

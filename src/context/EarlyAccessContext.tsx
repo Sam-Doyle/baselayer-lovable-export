@@ -17,11 +17,9 @@ const EarlyAccessContext = createContext<EarlyAccessContextType | undefined>(und
 
 export const EarlyAccessProvider = ({ children }: { children: ReactNode }) => {
   const openModal = useCallback((source?: string) => {
-    // Mirrors the in-flight guard in cartStore.addItem. Without it a double-click would
-    // be correctly blocked at the cart but still fire a second add_to_cart to GA4/Meta,
-    // inflating the conversion metric. addItem flips isLoading synchronously before its
-    // first await, so a second click in the same tick always sees true here.
-    if (useCartStore.getState().isLoading) return;
+    // Let the store serialize preparation (sync/discount) before adding. A
+    // caller-side isLoading guard would discard a click during that preparation.
+    // The store still rejects duplicate mutations, including queued double-clicks.
     const { addItem } = useCartStore.getState();
     // trackEvent only fires once addItem confirms the line actually landed in
     // Shopify's cart — a rejected/failed add (out of stock, expired cart,

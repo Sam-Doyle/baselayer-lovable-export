@@ -1,4 +1,4 @@
-import { hasAnalyticsConsent } from "@/lib/consent";
+import { getConsentEpoch, hasAnalyticsConsent } from "@/lib/consent";
 import { DEFAULT_TIER, SINGLE_TIER, metaContentId } from "@/config/product";
 import type { Metric } from "web-vitals";
 import type { Json } from "@/integrations/supabase/types";
@@ -19,6 +19,7 @@ type AnalyticsWindow = Window & {
   gtag?: (...args: unknown[]) => void;
   fbq?: MetaPixelFunction;
   _fbq?: MetaPixelFunction;
+  "ga-disable-G-E1GTL9RHY0"?: boolean;
 };
 
 let _supabase: typeof import("@/integrations/supabase/client")["supabase"] | null = null;
@@ -145,6 +146,24 @@ function writeSessionValue(key: string, value: string): void {
   }
 }
 
+const CAMPAIGN_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"];
+let landingAttributionCaptured = false;
+
+/** Capture only when tracking is permitted. Revocation consumes this landing
+ *  snapshot so resuming in the same document cannot restore cleared IDs. */
+function captureLandingAttribution(): void {
+  if (analyticsBlocked() || landingAttributionCaptured) return;
+  landingAttributionCaptured = true;
+  const w = window as AnalyticsWindow;
+  const params = new URLSearchParams(w.__BL?.q ?? window.location.search);
+  for (const key of CAMPAIGN_KEYS) {
+    const value = params.get(key);
+    if (value) writeSessionValue(key, value);
+  }
+  const fbclid = params.get("fbclid");
+  if (fbclid) writeSessionValue("_fbc", `fb.1.${Date.now()}.${fbclid}`);
+}
+
 function storedCampaignParams(): Record<string, string> {
   const source = readSessionValue("utm_source");
   const medium = readSessionValue("utm_medium");
@@ -175,6 +194,7 @@ function getSessionId(): string {
 /** Store email after capture so all subsequent events include it */
 let capturedEmail: string | null = null;
 export function setCapturedEmail(email: string) {
+  if (analyticsBlocked()) return;
   capturedEmail = email.trim().toLowerCase();
 }
 
@@ -265,6 +285,7 @@ interface QueuedBrowserEvent {
   eventName: string;
   eventId: string;
   payload: Record<string, unknown>;
+  consentEpoch: number;
 }
 
 /* Bounded so a page where the scripts never arrive at all (bot, iframe,
@@ -273,7 +294,8 @@ interface QueuedBrowserEvent {
 const PENDING_CAP = 25;
 const pendingBrowserEvents: QueuedBrowserEvent[] = [];
 
-function fireBrowserEvent({ eventName, eventId, payload }: QueuedBrowserEvent): void {
+function fireBrowserEvent({ eventName, eventId, payload, consentEpoch }: QueuedBrowserEvent): void {
+  if (analyticsBlocked() || consentEpoch !== getConsentEpoch()) return;
   try {
     const w = window as AnalyticsWindow;
     const { email: _email, ...safePayload } = payload;
@@ -326,14 +348,15 @@ function flushPendingBrowserEvents(): void {
 }
 
 export async function trackEvent(eventName: string, payload: Record<string, unknown> = {}) {
-  // Consent gate: until the visitor has explicitly accepted analytics
-  // cookies (src/lib/consent.ts), every event is dropped here — nothing
+  // Consent gate: when tracking is not permitted by the existing policy,
+  // every event is dropped here — nothing
   // reaches gtag/fbq/CAPI/Supabase, and getSessionId() below (which writes
   // the bl_session cookie) never runs. Events fired before a decision are
   // NOT queued; they're simply lost, which is intentional — queuing and
   // replaying arbitrary interaction events (add_to_cart, etc.) risks
   // sending stale/misleading data once consent is later granted.
-  if (!hasAnalyticsConsent()) return;
+  if (analyticsBlocked()) return;
+  const consentEpoch = getConsentEpoch();
 
   // Generate a unique event_id for deduplication between pixel + CAPI
   const eventId = crypto.randomUUID();
@@ -342,7 +365,7 @@ export async function trackEvent(eventName: string, payload: Record<string, unkn
   // otherwise waits in the queue for initAnalyticsScripts() to flush it —
   // see the DEFERRED-SCRIPT QUEUE note above.
   const w = window as AnalyticsWindow;
-  const queued: QueuedBrowserEvent = { eventName, eventId, payload };
+  const queued: QueuedBrowserEvent = { eventName, eventId, payload, consentEpoch };
   if (typeof w.gtag === "function" || typeof w.fbq === "function") {
     fireBrowserEvent(queued);
   } else if (pendingBrowserEvents.length < PENDING_CAP) {
@@ -357,6 +380,9 @@ export async function trackEvent(eventName: string, payload: Record<string, unkn
   // Supabase analytics
   try {
     const supabase = await getSupabase();
+    // A slow SDK import must not recreate identifiers or insert a pre-reject
+    // event, even if consent was granted again while the import was pending.
+    if (analyticsBlocked() || consentEpoch !== getConsentEpoch()) return;
     await supabase.from("analytics_events").insert({
       event_name: eventName,
       payload: payload as Json,
@@ -406,8 +432,11 @@ export function fireInitialCapiPageView(): void {
     return;
   }
 
+  captureLandingAttribution();
+
   const pageViewEventId = crypto.randomUUID();
   _initialCapiPageViewEventId = pageViewEventId;
+  _initialCapiPageViewEpoch = getConsentEpoch();
   w.__BL_PV_EID = pageViewEventId;
 
   const bl = w.__BL || { u: location.href, q: location.search };
@@ -464,6 +493,7 @@ export function fireInitialCapiPageView(): void {
 let _analyticsScriptsInitialized = false;
 let _webVitalsInitialized = false;
 let _initialCapiPageViewEventId: string | null = null;
+let _initialCapiPageViewEpoch: number | null = null;
 
 const grantedConsent = {
   analytics_storage: "granted",
@@ -481,6 +511,7 @@ const deniedConsent = {
 
 function grantLoadedAnalytics(): void {
   const w = window as AnalyticsWindow;
+  w["ga-disable-G-E1GTL9RHY0"] = false;
   if (typeof w.gtag === "function") w.gtag("consent", "update", grantedConsent);
   if (typeof w.fbq === "function") w.fbq("consent", "grant");
 }
@@ -494,10 +525,13 @@ function grantLoadedAnalytics(): void {
 export function initWebVitalsReporting(): void {
   if (analyticsBlocked() || _webVitalsInitialized) return;
   _webVitalsInitialized = true;
+  const consentEpoch = getConsentEpoch();
 
   void import("web-vitals")
     .then(({ onCLS, onINP, onLCP }) => {
+      if (analyticsBlocked() || consentEpoch !== getConsentEpoch()) return;
       const report = (metric: Metric) => {
+        if (analyticsBlocked() || consentEpoch !== getConsentEpoch()) return;
         void trackEvent("web_vital", {
           metric_name: metric.name,
           value: metric.value,
@@ -523,6 +557,9 @@ export function initWebVitalsReporting(): void {
  *  short-circuits repeat calls regardless. */
 export function initAnalyticsScripts(): void {
   if (analyticsBlocked()) return;
+  // Calling the public initializers in either order keeps one logical
+  // PageView identity; a caller cannot accidentally create a browser-only ID.
+  fireInitialCapiPageView();
   if (_analyticsScriptsInitialized) {
     grantLoadedAnalytics();
     return;
@@ -532,6 +569,10 @@ export function initAnalyticsScripts(): void {
   const w = window as AnalyticsWindow;
   const bl = w.__BL || { u: location.href, q: location.search };
   const landingParams = new URLSearchParams(bl.q || "");
+  // Never replay a browser counterpart that was delayed across withdrawal.
+  // Re-accepting is a policy transition, not another page visit.
+  const sendInitialPageView = _initialCapiPageViewEpoch === getConsentEpoch();
+  w["ga-disable-G-E1GTL9RHY0"] = false;
 
   // ── GA4 (gtag.js) ──
   if (!document.querySelector('script[src*="googletagmanager.com/gtag"]')) {
@@ -541,10 +582,12 @@ export function initAnalyticsScripts(): void {
     document.head.appendChild(gtagScript);
 
     w.dataLayer = w.dataLayer || [];
-    w.gtag = (...args: unknown[]) => { w.dataLayer?.push(args); };
+    // Preserve the provider's standard Arguments-shaped queue contract.
+    // eslint-disable-next-line prefer-rest-params -- gtag consumes the original Arguments command shape.
+    w.gtag = function (..._args: unknown[]) { w.dataLayer?.push(arguments); };
     w.gtag("js", new Date());
     w.gtag("config", "G-E1GTL9RHY0", {
-      send_page_view: true,
+      send_page_view: sendInitialPageView,
       page_location: bl.u,
       // Pass UTMs explicitly so GA4 attributes correctly even if
       // the URL has already been rewritten by React Router
@@ -577,7 +620,9 @@ export function initAnalyticsScripts(): void {
 
     w.fbq("init", "916078074161719");
     // Use the same event_id as the CAPI PageView for deduplication
-    w.fbq("track", "PageView", {}, { eventID: w.__BL_PV_EID });
+    if (sendInitialPageView) {
+      w.fbq("track", "PageView", {}, { eventID: w.__BL_PV_EID });
+    }
   }
 
   grantLoadedAnalytics();
@@ -606,6 +651,7 @@ export function clearAnalyticsCookies(): void {
       || name === "_gid"
       || name === "_gat"
       || name.startsWith("_ga_")
+      || name.startsWith("_gat_")
       || name.startsWith("_gac_"),
     );
   const domain = window.location.hostname.replace(/^www\./, "");
@@ -614,10 +660,38 @@ export function clearAnalyticsCookies(): void {
     document.cookie = `${name}=; path=/; max-age=0; domain=${domain}`;
     document.cookie = `${name}=; path=/; max-age=0; domain=.${domain}`;
   }
-  try {
-    sessionStorage.removeItem("bl_session");
-  } catch {
-    // ignore — best-effort cleanup only
+  for (const key of ["bl_session", "_fbc", ...CAMPAIGN_KEYS]) {
+    try {
+      window.sessionStorage.removeItem(key);
+    } catch {
+      // Continue clearing independent keys when storage is partially blocked.
+    }
+  }
+}
+
+/** The owned stubs may have queued hits while vendor scripts were in flight.
+ *  Remove those hits before denial/resumption; commands already transmitted
+ *  cannot be recalled. Preserve initialization so a later grant can work. */
+function discardQueuedVendorEvents(w: AnalyticsWindow): void {
+  if (Array.isArray(w.fbq?.queue)) {
+    const controls = w.fbq.queue.filter((args) =>
+      !["track", "trackCustom", "trackSingle", "trackSingleCustom"].includes(String(args[0])),
+    );
+    w.fbq.queue.splice(0, w.fbq.queue.length, ...controls);
+  }
+  if (Array.isArray(w.dataLayer)) {
+    const command = (entry: unknown): { [index: number]: unknown } | null =>
+      Array.isArray(entry) || Object.prototype.toString.call(entry) === "[object Arguments]"
+        ? entry as { [index: number]: unknown }
+        : null;
+    const controls = w.dataLayer.filter((entry) => command(entry)?.[0] !== "event");
+    for (const entry of controls) {
+      const args = command(entry);
+      if (args?.[0] === "config" && args[1] === "G-E1GTL9RHY0") {
+        args[2] = { ...(args[2] as Record<string, unknown>), send_page_view: false };
+      }
+    }
+    w.dataLayer.splice(0, w.dataLayer.length, ...controls);
   }
 }
 
@@ -627,6 +701,8 @@ export function clearAnalyticsCookies(): void {
  *  the vendor runtimes are then absent from the new document as well. */
 export function revokeAnalyticsTracking(): void {
   const w = window as AnalyticsWindow;
+  w["ga-disable-G-E1GTL9RHY0"] = true;
+  discardQueuedVendorEvents(w);
   try {
     if (typeof w.gtag === "function") w.gtag("consent", "update", deniedConsent);
   } catch {
@@ -638,5 +714,8 @@ export function revokeAnalyticsTracking(): void {
     // Cookie and queue cleanup below must still run.
   }
   pendingBrowserEvents.length = 0;
+  _webVitalsInitialized = false;
+  capturedEmail = null;
+  landingAttributionCaptured = true;
   clearAnalyticsCookies();
 }

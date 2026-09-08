@@ -6,7 +6,8 @@
  * that loads GA4, the Meta Pixel, Meta CAPI, or writes the bl_session
  * cookie must check `hasAnalyticsConsent()` first — see src/lib/analytics.ts.
  *
- * Default (no decision on file yet) is "no" — strictly-necessary only.
+ * With no decision, the existing regional default below applies. An explicit
+ * choice takes precedence, including when browser storage is unavailable.
  * This module never touches window/document/browser storage at module scope;
  * every access happens inside a function so it stays safe to import from
  * code that runs during the Puppeteer prerender (see vite.config.ts).
@@ -28,6 +29,7 @@ const MAX_DATE_MS = 8_640_000_000_000_000;
 
 let memoryConsent: ConsentRecord | null = null;
 let memoryFallbackActive = false;
+let consentEpoch = 0;
 
 export type ConsentChoice = "accepted" | "rejected";
 
@@ -54,43 +56,43 @@ function parseConsent(raw: string | null): ConsentRecord | null {
   }
 }
 
-function readLocalConsent(): ConsentRecord | null {
+function readLocalConsent(): ConsentRecord | null | undefined {
   try {
     return parseConsent(window.localStorage.getItem(STORAGE_KEY));
   } catch {
-    return null;
+    return undefined;
   }
 }
 
-function readSessionConsent(): ConsentRecord | null {
+function readSessionConsent(): ConsentRecord | null | undefined {
   try {
     return parseConsent(window.sessionStorage.getItem(SESSION_STORAGE_KEY));
   } catch {
-    return null;
+    return undefined;
   }
 }
 
 /** Resolve two durable records by recency. A same-millisecond disagreement
  *  fails closed so a Reject can never be reversed by ambiguous storage state. */
-function newestDurableConsent(): ConsentRecord | null {
+function newestDurableConsent(useMemoryOnReadFailure = false): ConsentRecord | null {
   const local = readLocalConsent();
   const session = readSessionConsent();
-  if (!local) return session;
-  if (!session) return local;
-  const localTime = Date.parse(local.timestamp);
-  const sessionTime = Date.parse(session.timestamp);
-  if (localTime === sessionTime && local.choice !== session.choice) {
-    return local.choice === "rejected" ? local : session;
-  }
-  return sessionTime > localTime ? session : local;
+  const records = [local, session];
+  if (useMemoryOnReadFailure && (local === undefined || session === undefined)) records.push(memoryConsent);
+  return records.reduce<ConsentRecord | null>((latest, record) => {
+    if (!record) return latest;
+    if (!latest) return record;
+    const difference = Date.parse(record.timestamp) - Date.parse(latest.timestamp);
+    return difference > 0 || (difference === 0 && record.choice === "rejected") ? record : latest;
+  }, null);
 }
 
 /** Generate a timestamp later than any readable prior record. This keeps the
  *  user's newest action authoritative even if a device clock moved backward
  *  or cleanup of a stale fallback record is blocked. */
 function nextDecisionTimestamp(): string {
-  const priorTimes = [readLocalConsent(), readSessionConsent()]
-    .filter((record): record is ConsentRecord => record !== null)
+  const priorTimes = [readLocalConsent(), readSessionConsent(), memoryConsent]
+    .filter((record): record is ConsentRecord => record != null)
     .map((record) => Date.parse(record.timestamp));
   const nextTime = Math.max(Date.now(), ...priorTimes.map((time) => Math.min(time + 1, MAX_DATE_MS)));
   return new Date(Math.min(nextTime, MAX_DATE_MS)).toISOString();
@@ -103,7 +105,7 @@ export function getStoredConsent(): ConsentRecord | null {
   // The decision made in this document is authoritative even if a storage
   // provider is read-only and still exposes an older record.
   if (memoryFallbackActive && memoryConsent) return memoryConsent;
-  return newestDurableConsent();
+  return newestDurableConsent(true);
 }
 
 /** True when the current choice will survive a reload in this tab. */
@@ -113,6 +115,12 @@ export function isConsentDecisionDurable(): boolean {
   if (!durable) return false;
   return !memoryConsent
     || (durable.choice === memoryConsent.choice && durable.timestamp === memoryConsent.timestamp);
+}
+
+/** Invalidates work begun before withdrawal even if Accept follows before an
+ *  async callback runs. Reconfirming Accept does not invalidate current work. */
+export function getConsentEpoch(): number {
+  return consentEpoch;
 }
 
 /*
@@ -162,10 +170,8 @@ export function requiresOptIn(): boolean {
  *  Reject keeps working everywhere including the US. With no decision on
  *  file the answer depends on where the visitor is — opt-in regions get
  *  nothing until they accept, everyone else is measured under notice plus
- *  opt-out. This is the correct legal model for US traffic and it recovers
- *  the large majority of visitors who simply ignore a banner; running a
- *  GDPR-shaped hard block on US visitors was costing Meta and GA4 most of
- *  their volume, server-side included. */
+ *  opt-out. This preserves the existing regional configuration; it is not a
+ *  legal determination of which policy the business should use. */
 export function hasAnalyticsConsent(): boolean {
   const stored = getStoredConsent();
   if (stored) return stored.choice === "accepted";
@@ -179,25 +185,33 @@ export function setConsent(choice: ConsentChoice): void {
   const record: ConsentRecord = { version: CONSENT_VERSION, choice, timestamp: nextDecisionTimestamp() };
   const serialized = JSON.stringify(record);
   memoryConsent = record;
-  let stored = false;
+  if (choice === "rejected") consentEpoch++;
+  let localStored = false;
   try {
     window.localStorage.setItem(STORAGE_KEY, serialized);
-    stored = true;
+    const readback = readLocalConsent();
+    localStored = readback?.choice === choice && readback.timestamp === record.timestamp;
+  } catch {
+    // Use the session fallback below, including when the getter itself throws.
+  }
+  if (localStored) {
     try {
       window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
     } catch {
-      // The primary localStorage record is already durable.
+      // The new timestamp outranks the stale fallback when it remains readable.
     }
-  } catch {
+  } else {
     try {
       window.sessionStorage.setItem(SESSION_STORAGE_KEY, serialized);
-      stored = true;
     } catch {
       // The in-memory record below still keeps the explicit choice effective
       // for the current document when all browser storage is unavailable.
     }
   }
-  memoryFallbackActive = !stored;
+  // A successful/no-op write is not proof the new decision is readable. This
+  // also handles getters/readbacks becoming blocked or stale records winning
+  // an ambiguous timestamp tie: the current document still honors the click.
+  memoryFallbackActive = !isConsentDecisionDurable();
   window.dispatchEvent(new CustomEvent<ConsentRecord>(CHANGE_EVENT, { detail: record }));
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, act } from "@testing-library/react";
+import { render, act, cleanup } from "@testing-library/react";
 import { MemoryRouter, useNavigate } from "react-router-dom";
 import MetaRouterTracker from "@/analytics/MetaRouterTracker";
 import { setConsent } from "@/lib/consent";
@@ -67,12 +67,16 @@ const OPT_OUT_TZ = "America/Denver"; // notice plus opt-out: no decision means t
 beforeEach(() => {
   window.localStorage.clear();
   window.sessionStorage.clear();
+  delete (window as unknown as { gtag?: unknown }).gtag;
+  delete (window as unknown as { fbq?: unknown }).fbq;
   fetchMock = vi.fn().mockResolvedValue({ ok: true });
   global.fetch = fetchMock as unknown as typeof fetch;
 });
 
 afterEach(() => {
+  cleanup();
   global.fetch = originalFetch;
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -81,6 +85,56 @@ function capiCalls() {
 }
 
 describe("MetaRouterTracker — consent gate", () => {
+  it("cancels a pending browser PageView across Reject→Accept before its next poll", async () => {
+    vi.useFakeTimers();
+    setConsent("accepted");
+    const router = renderTracker("/a");
+    await act(async () => router.navigate("/b"));
+    expect(capiCalls()).toHaveLength(1);
+    setConsent("rejected");
+    setConsent("accepted");
+    const gtag = vi.fn();
+    const fbq = vi.fn();
+    Object.assign(window, { gtag, fbq });
+    await act(async () => { vi.advanceTimersByTime(4_000); });
+    expect(gtag).not.toHaveBeenCalled();
+    expect(fbq).not.toHaveBeenCalled();
+    await act(async () => router.navigate("/c"));
+    expect(capiCalls()).toHaveLength(2);
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(fbq).toHaveBeenCalledTimes(1);
+  });
+
+  it("waits for each browser provider without resending the provider already available", async () => {
+    vi.useFakeTimers();
+    setConsent("accepted");
+    const gtag = vi.fn();
+    Object.assign(window, { gtag });
+    const router = renderTracker("/a");
+    await act(async () => router.navigate("/b"));
+    await act(async () => { vi.advanceTimersByTime(400); });
+    expect(gtag).toHaveBeenCalledTimes(1);
+    const fbq = vi.fn();
+    Object.assign(window, { fbq });
+    await act(async () => { vi.advanceTimersByTime(400); });
+    const body = JSON.parse((capiCalls()[0][1] as RequestInit).body as string);
+    expect(gtag).toHaveBeenCalledTimes(1);
+    expect(fbq).toHaveBeenCalledWith("track", "PageView", {}, { eventID: body.event_id });
+    expect(fbq).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the allowed CAPI event alive when the sessionStorage getter throws", async () => {
+    setConsent("accepted");
+    vi.spyOn(window, "sessionStorage", "get").mockImplementation(() => {
+      throw new DOMException("Blocked", "SecurityError");
+    });
+    const router = renderTracker("/a");
+    await act(async () => router.navigate("/b"));
+    expect(capiCalls()).toHaveLength(1);
+    const body = JSON.parse((capiCalls()[0][1] as RequestInit).body as string);
+    expect(body.user_data.external_id).toBe("");
+  });
+
   it("no consent decision yet in an opt-in region: a route change fires zero CAPI fetches", async () => {
     pinTimezone(OPT_IN_TZ);
     const router = renderTracker("/a");
