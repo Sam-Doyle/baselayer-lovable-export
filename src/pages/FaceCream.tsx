@@ -26,6 +26,7 @@ import CustomerProofStrip from "@/components/CustomerProofStrip";
 import FormulaEvidenceSection from "@/components/FormulaEvidenceSection";
 import BlueprintPriceContrast from "@/components/BlueprintPriceContrast";
 import SkinProfileCards from "@/components/SkinProfileCards";
+import PurchaseOptions from "@/components/PurchaseOptions";
 import DeferredImageBand from "@/components/DeferredImageBand";
 
 const PRODUCT_SCHEMA = {
@@ -100,6 +101,8 @@ const FaceCream = () => {
   const [searchParams] = useSearchParams();
   const initialTier = getInitialTier(searchParams.get("offer"));
   const [quantity, setQuantity] = useState(() => initialTier.id);
+  // React Router can change just the advertised offer without remounting the PDP.
+  useEffect(() => setQuantity(initialTier.id), [initialTier.id]);
   // Mobile shoppers should never have to scroll just to find the purchase
   // action. Start visible, hide only while the full buy-box CTA is on screen.
   const [showStickyBottom, setShowStickyBottom] = useState(true);
@@ -158,8 +161,8 @@ const FaceCream = () => {
     });
 
     const observer = new IntersectionObserver(([entry]) => {
-      setShowStickyBottom(!entry.isIntersecting);
-    }, { threshold: 0.15 });
+      setShowStickyBottom(entry.intersectionRatio < 1);
+    }, { threshold: [0, 1], rootMargin: "-100px 0px 0px 0px" });
     if (ctaRef.current) observer.observe(ctaRef.current);
     return () => observer.disconnect();
   }, [initialTier.label, initialTier.price, initialTier.variantGid]);
@@ -167,23 +170,23 @@ const FaceCream = () => {
   return (
     <div className="min-h-screen bg-white text-[#1A2F4C]">
       <JsonLd data={[PRODUCT_SCHEMA, buildBreadcrumbSchema([{ name: "Home", path: "/" }, { name: "Face Cream" }]), buildFaqSchema(faqs)]} />
-      <Navbar />
+      <Navbar compactMobile />
       
-      <main className="pt-24 pb-0">
-        <PdpJumpNav />
+      <main className="flex flex-col pt-20 pb-20 md:block md:pt-28 md:pb-0">
+        <PdpJumpNav compactMobile showReviews={PRODUCT_RATING.count > 0} />
         
         {/* ABOVE THE FOLD — TWO COLUMN LAYOUT */}
-        <section id="offer" className="scroll-mt-[160px] mx-auto grid max-w-[1200px] grid-cols-1 gap-0 md:grid-cols-[minmax(0,55fr)_minmax(0,45fr)] md:gap-[32px] md:px-6 md:py-8 lg:grid-cols-2 lg:gap-[48px] lg:px-12">
+        <section id="offer" className="order-first scroll-mt-[160px] mx-auto grid w-full max-w-[1200px] grid-cols-1 gap-0 md:grid-cols-[minmax(0,55fr)_minmax(0,45fr)] md:gap-[32px] md:px-6 md:py-8 lg:grid-cols-2 lg:gap-[48px] lg:px-12">
           
           {/* LEFT COLUMN: IMAGE GALLERY */}
-          <ProductGallery images={PRODUCT_GALLERY_IMAGES} className="self-start" />
+          <ProductGallery images={PRODUCT_GALLERY_IMAGES} compactMobile className="min-w-0 self-start" />
 
           {/* RIGHT COLUMN: BUY BOX */}
-          <div id="purchase-options" className="flex min-h-[500px] flex-col px-5 pb-8 pt-6 sm:px-8 md:min-h-[600px] md:px-0 md:pb-0 md:pt-0">
+          <div id="purchase-options" className="flex min-w-0 flex-col px-4 pb-6 pt-3 sm:px-8 md:px-0 md:pb-0 md:pt-0">
             {/* 1. Selected-offer context. The global founding price remains
                 $38; this line tells the shopper exactly what the displayed
                 total covers when the higher-value two-pack is selected. */}
-            <div className="flex items-center mb-3">
+            <div className="mb-3 hidden items-center md:flex">
               <span className="font-heading font-semibold text-[11px] tracking-[0.12em] uppercase text-brand">
                 {selectedOption.kind === "subscription" ? "Subscribe & Save" : "Founding Offer"}
               </span>
@@ -193,9 +196,13 @@ const FaceCream = () => {
             </div>
 
             {/* 2. Title & H1 SEO */}
-            <h1 className="font-heading text-[24px] md:text-[28px] font-bold text-[#1A2F4C] leading-[1.2] mb-1">
+            <h1 className="mb-1 font-heading text-[20px] font-bold uppercase leading-[1.2] text-[#1A2F4C] md:text-[28px]">
               Performance Daily Face Cream
             </h1>
+
+            <p className="mb-1 font-body text-[14px] leading-5 text-[#4A5568]">
+              Lightweight daily hydration. Matte finish. Fragrance-free.
+            </p>
 
             {/* 2b. Judge.me rating summary — the "ranking widget" slot.
                 Jumps to the review block rather than being a dead badge: the
@@ -205,7 +212,7 @@ const FaceCream = () => {
             {PRODUCT_RATING.count > 0 && (
               <a
                 href="#reviews"
-                className="group mb-1 inline-flex w-fit items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A2F4C] focus-visible:ring-offset-2"
+                className="group mb-1 inline-flex min-h-11 w-fit items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A2F4C] focus-visible:ring-offset-2"
               >
                 <StarRating rating={PRODUCT_RATING.rating} />
                 <span className="font-body text-[13px] text-[#4A5568]">
@@ -220,25 +227,20 @@ const FaceCream = () => {
               </a>
             )}
 
-            {/* 3. Short Desc */}
-            <p className="font-body text-[15px] text-[#4A5568] mb-4">
-              The one-step daily moisturizer for men.
-            </p>
-
             {/* 4. Price Block */}
-            <div className="flex items-center mb-5">
+            <div className="mb-1 flex flex-wrap items-baseline gap-y-1">
               <span className="font-body text-[16px] text-[#6B7280] line-through mr-2">${msrp}</span>
-              <span className="font-heading text-[32px] font-bold text-[#1A2F4C] leading-none">${selectedOption.price}</span>
-              <span className="bg-[#E8F5E9] text-[#2E7D32] font-heading font-semibold text-[11px] px-2 py-1 rounded-[4px] ml-2">
-                {Math.round(((msrp - selectedOption.price) / msrp) * 100)}% BELOW FUTURE RETAIL
+              <span className="font-heading text-[28px] font-bold text-[#1A2F4C] leading-none md:text-[32px]">${selectedOption.price}</span>
+              <span className="ml-3 font-body text-[12px] text-[#4A5568]">
+                {selectedOption.bottles > 1 ? `${selectedOption.bottles} × ` : ""}50 mL / 1.7 fl oz
               </span>
             </div>
-            <p className="-mt-3 mb-5 font-body text-[12px] font-semibold text-[#4A5568]">
-              {tierSummary(selectedOption)}
+            <p className="mb-3 font-body text-[12px] font-semibold text-[#4A5568]" aria-live="polite" aria-atomic="true">
+              {tierSummary(selectedOption)}{selectedOption.kind === "one-time" ? " · one-time purchase" : ""}
             </p>
 
             {/* 5. Benefit Checkmarks */}
-            <div className="flex flex-col gap-2 mb-[24px]">
+            <div className="mb-4 hidden flex-col gap-2 md:flex">
               <div className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-[#2E7D32] mt-1 shrink-0" />
                 <span className="font-body text-[14px] text-[#2D3748] leading-[1.6]">Fast-absorbing, lightweight finish designed to stay matte</span>
@@ -254,41 +256,14 @@ const FaceCream = () => {
             </div>
 
             {/* 6. Quantity Selector */}
-            <div className="mb-[20px] grid grid-cols-3 gap-2 sm:gap-3" role="radiogroup" aria-label="Select quantity">
-              {BUY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={quantity === opt.id}
-                  onClick={() => setQuantity(opt.id)}
-                  className={`relative min-w-0 cursor-pointer rounded-[2px] px-1.5 py-4 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:px-3 sm:py-5 ${quantity === opt.id ? "border-[2px] border-[#1A2F4C] bg-white shadow-[0_2px_8px_rgba(26,47,76,0.08)]" : "border border-[#E2E8F0] bg-[#F7F8FA]"}`}
-                >
-                  {opt.badge && (
-                    <div className={`absolute -top-[10px] left-1/2 -translate-x-1/2 ${opt.badgeColor} whitespace-nowrap rounded-[10px] px-2 py-[4px] font-heading text-[8px] font-semibold uppercase tracking-[0.08em] text-white sm:px-[10px] sm:text-[9px] sm:tracking-[0.12em]`}>
-                      {opt.badge}
-                    </div>
-                  )}
-                  <div className="font-heading text-[13px] font-bold uppercase leading-tight text-[#1A2F4C] sm:text-[16px]">{opt.label}</div>
-                  <div className="font-body text-[11px] font-medium leading-tight text-[#6B7280] sm:text-[13px]">{opt.duration}</div>
-                  <div className="mt-3 font-heading text-[21px] font-extrabold text-[#1A2F4C] sm:text-[24px]">${opt.price}</div>
-                  {opt.savings > 0 ? (
-                    <div className="font-body font-semibold text-[12px] text-[#2E7D32]">
-                      save ${opt.savings} {opt.kind === "subscription" ? "vs one-time" : "vs 2 singles"}
-                    </div>
-                  ) : (
-                    <div className="h-[18px]"></div> 
-                  )}
-                  <div className="font-body text-[11px] text-[#6B7280] mt-1">{opt.kind === "subscription" ? "per bottle, delivered on your schedule" : `$${(opt.price / opt.bottles).toFixed(2).replace(/\.00$/, '')}/bottle`}</div>
-                </button>
-              ))}
-            </div>
+            <PurchaseOptions options={BUY_OPTIONS} selectedId={quantity} onSelect={setQuantity} />
 
             {/* 7. CTA Button */}
             <button
               ref={ctaRef}
               disabled={isAddingToCart}
-              className="w-full bg-brand text-white font-heading font-bold text-[15px] tracking-[0.1em] py-[16px] rounded-[4px] hover:bg-brand-hover active:scale-[0.98] transition-all mb-[12px] disabled:opacity-70 disabled:cursor-not-allowed"
+              data-pdp-primary-cta
+              className="mb-2 min-h-[52px] w-full rounded-[4px] bg-brand px-3 py-3 font-heading text-[14px] font-bold tracking-[0.05em] text-white transition-colors hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C] disabled:cursor-not-allowed disabled:opacity-70"
               onClick={() => handleAddToCart("buy_box")}
             >
               {tierCtaLabel(selectedOption)}
@@ -300,8 +275,12 @@ const FaceCream = () => {
 
             {/* 8. Trust Micro-Copy */}
             <p className="text-center font-body text-[12px] text-[#6B7280]">
-              {FREE_SHIPPING_PHRASE} &middot; 30-day money-back guarantee &middot; In stock, ships in 1-2 business days
+              {FREE_SHIPPING_PHRASE} &middot; 30-day money-back guarantee
             </p>
+
+            <div className="mt-4" data-pdp-customer-proof>
+              <CustomerProofStrip compact />
+            </div>
 
             {/* 9. Trust Badges Row */}
             <div className="mt-6 grid grid-cols-2 border-t border-[#E2E8F0] pt-4 sm:grid-cols-4">
@@ -371,26 +350,23 @@ const FaceCream = () => {
               </AccordionItem>
             </Accordion>
 
-            <div className="mt-5">
-              <CustomerProofStrip />
-            </div>
-
           </div>
         </section>
 
         {/* STICKY MOBILE CTA BAR */}
         <div
+          data-pdp-sticky-cta
           aria-hidden={!showStickyBottom}
           className={`fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-[#E2E8F0] bg-white px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] transition-transform duration-300 md:hidden ${showStickyBottom ? 'translate-y-0' : 'pointer-events-none translate-y-full'}`}
         >
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <span className="font-heading font-bold text-[20px] text-[#1A2F4C] leading-none">${selectedOption.price}</span>
-            <span className="mt-1 font-body text-[11px] text-[#6B7280]">{selectedOption.label} · Free shipping</span>
+            <span className="mt-1 font-body text-[11px] text-[#6B7280]">{selectedOption.kind === "subscription" ? "Every 6 weeks" : `${selectedOption.bottles} ${selectedOption.bottles === 1 ? "bottle" : "bottles"}`} · Free shipping</span>
           </div>
           <button
             disabled={isAddingToCart}
             tabIndex={showStickyBottom ? 0 : -1}
-            className="min-h-12 shrink-0 rounded-[4px] bg-brand px-5 py-3 font-heading text-[12px] font-bold uppercase tracking-[0.08em] text-white disabled:cursor-not-allowed disabled:opacity-70"
+            className="min-h-12 max-w-[65%] rounded-[4px] bg-brand px-3 py-3 font-heading text-[12px] font-bold uppercase tracking-[0.04em] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1A2F4C] disabled:cursor-not-allowed disabled:opacity-70"
             onClick={() => handleAddToCart("sticky_mobile_cta")}
           >
             {tierCtaLabel(selectedOption)}

@@ -20,6 +20,7 @@ interface ProductGalleryProps {
   label?: string;
   initialIndex?: number;
   className?: string;
+  compactMobile?: boolean;
   onActiveImageChange?: (index: number) => void;
 }
 
@@ -49,6 +50,7 @@ const ProductGallery = ({
   label = "Product image gallery",
   initialIndex = 0,
   className,
+  compactMobile = false,
   onActiveImageChange,
 }: ProductGalleryProps) => {
   const imageCount = images.length;
@@ -141,10 +143,10 @@ const ProductGallery = ({
       aria-roledescription="carousel"
       aria-label={label}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-[2px] bg-[#E2E8F0]">
+      <div className={cn("relative w-full overflow-hidden rounded-[2px] bg-[#F7F8FA]", compactMobile ? "h-[clamp(184px,28svh,228px)] pb-11 md:aspect-square md:h-auto md:pb-0" : "aspect-square")}>
         <div
           ref={viewportRef}
-          className="hide-scrollbar flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth"
+          className="flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           tabIndex={0}
           onKeyDown={handleKeyDown}
           onScroll={(event) => handleScroll(event.currentTarget.scrollLeft, event.currentTarget.clientWidth)}
@@ -174,7 +176,7 @@ const ProductGallery = ({
                     srcSet={image.srcSet}
                     sizes={image.srcSet ? image.sizes ?? DEFAULT_IMAGE_SIZES : undefined}
                     alt={image.alt}
-                    className="h-full w-full bg-[#E2E8F0] object-cover"
+                    className={cn("h-full w-full", compactMobile ? "object-contain md:object-cover" : "bg-[#E2E8F0] object-cover")}
                     style={image.objectPosition ? { objectPosition: image.objectPosition } : undefined}
                     loading={index === 0 ? "eager" : "lazy"}
                     decoding={index === 0 ? "sync" : "async"}
@@ -210,7 +212,7 @@ const ProductGallery = ({
             </button>
 
             <div
-              className="absolute bottom-1 left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full bg-black/15 px-1 backdrop-blur-[2px] md:hidden"
+              className={cn("absolute left-1/2 z-20 flex -translate-x-1/2 items-center rounded-full px-1 md:hidden", compactMobile ? "bottom-0 bg-[#E2E8F0]" : "bottom-1 bg-black/15 backdrop-blur-[2px]")}
               data-product-gallery-pagination
             >
               {images.map((image, index) => (
@@ -237,7 +239,7 @@ const ProductGallery = ({
 
       {imageCount > 1 && (
         <div
-          className="hide-scrollbar mt-4 hidden max-w-full gap-3 overflow-x-auto pb-1 md:flex"
+          className="mt-4 hidden max-w-full gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex"
           aria-label="Choose a product image"
         >
           {images.map((image, index) => (

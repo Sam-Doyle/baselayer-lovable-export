@@ -1,15 +1,27 @@
 {
-  "fetchedAt": "2026-09-02",
+  "fetchedAt": "2026-09-08",
   "rating": 4.9,
-  "count": 7,
+  "count": 8,
   "histogram": [
     0,
     0,
     0,
     1,
-    6
+    7
   ],
   "reviews": [
+    {
+      "id": 1320061560,
+      "rating": 5,
+      "title": "",
+      "body": "Love it! Goes on easy, not shiny and works in well. Skin feels good and mixes well with a sunscreen I use.\n\nI love the size / style of it. Super compact, easy for on the go. Most creams I use as a guy are bulky and jars. This one is great for travel, throw in the car and put on on the go.",
+      "reviewer": "Robert Marshall",
+      "verified": true,
+      "createdAt": "2026-09-03",
+      "pictures": [
+        "https://review-images.judgeme.com/base-layer-skin/1788441266__1788441262405-image__original.jpg?quality=80&width=320"
+      ]
+    },
     {
       "id": 1317844428,
       "rating": 5,

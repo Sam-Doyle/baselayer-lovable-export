@@ -19,3 +19,13 @@ export const selectCustomerProofReview = (reviewList: readonly Review[]): Review
 
   return selected;
 };
+
+/** A verbatim prefix, marked as an excerpt; the complete review stays linked. */
+export function customerProofExcerpt(body: string, limit = 200): string {
+  const text = body.trim();
+  if (text.length <= limit) return text;
+  const prefix = text.slice(0, limit);
+  const sentenceEnd = Math.max(prefix.lastIndexOf(". "), prefix.lastIndexOf("! "), prefix.lastIndexOf("? "), prefix.lastIndexOf(".\n"));
+  const end = sentenceEnd >= 60 ? sentenceEnd + 1 : prefix.lastIndexOf(" ");
+  return `${prefix.slice(0, end > 0 ? end : limit)}…`;
+}

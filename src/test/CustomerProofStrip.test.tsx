@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import CustomerProofStrip from "@/components/CustomerProofStrip";
-import { selectCustomerProofReview } from "@/lib/customerProof";
+import { customerProofExcerpt, selectCustomerProofReview } from "@/lib/customerProof";
 import { reviewAggregate, type Review } from "@/lib/reviews";
 
 const review = (overrides: Partial<Review>): Review => ({
@@ -44,5 +44,21 @@ describe("CustomerProofStrip", () => {
     );
     expect(screen.getByText("Customer reviews via Judge.me.")).toBeInTheDocument();
     expect(screen.queryByText(/Free-product tester feedback/i)).not.toBeInTheDocument();
+  });
+
+  it("keeps a concise quote verbatim and links to the complete review", () => {
+    const { container } = render(<CustomerProofStrip compact />);
+    expect(screen.getByText("Verified Purchase")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Read full review" })).toHaveAttribute("href", expect.stringMatching(/^#review-\d+$/));
+    expect(container.querySelector("blockquote")!.textContent!.length).toBeLessThanOrEqual(203);
+  });
+
+  it("marks shortened text and never rewrites a customer's words", () => {
+    const body = "This is a complete first sentence that describes the product experience honestly. " + "More detail follows. ".repeat(20);
+    const excerpt = customerProofExcerpt(body);
+    expect(excerpt.endsWith("…")).toBe(true);
+    expect(body.startsWith(excerpt.slice(0, -1))).toBe(true);
+    expect(customerProofExcerpt("Short honest review.")).toBe("Short honest review.");
+    expect(customerProofExcerpt(" ")).toBe("");
   });
 });

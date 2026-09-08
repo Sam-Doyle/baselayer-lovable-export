@@ -121,7 +121,7 @@ const Stars = ({ className = "" }: { className?: string }) => (
 */
 const CtaButton = ({ className = "" }: { className?: string }) => (
   <Link
-    to="/face-cream"
+    to="/face-cream?offer=single"
     onClick={() => trackEvent("select_item", { content_name: "Base Layer Face Cream", source: "landing_page" })}
     className={`inline-flex items-center justify-center px-10 py-5 bg-[#F95D1A] text-[#FFFFFF] font-heading font-black tracking-widest text-[13px] md:text-[14px] uppercase hover:bg-[#1E201E] transition-all duration-300 rounded-none whitespace-nowrap ${className}`}
   >

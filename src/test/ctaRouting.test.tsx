@@ -158,6 +158,8 @@ describe("CTA funnel routing", () => {
     const links = getAllByRole("link", { name: /try it risk-free/i });
     // Four CtaButton instances render down the page; all share one component.
     expect(links.length).toBeGreaterThanOrEqual(4);
-    expectPdpLinkNoCartAdd(links[0], "landing_page");
+    for (const link of links) {
+      expectPdpLinkNoCartAdd(link, "landing_page", "/face-cream?offer=single");
+    }
   });
 });

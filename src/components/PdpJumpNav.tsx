@@ -14,6 +14,7 @@ const HEADER_COLLAPSE_SCROLL_Y = 100;
 
 interface PdpJumpNavProps {
   showReviews?: boolean;
+  compactMobile?: boolean;
 }
 
 /**
@@ -24,7 +25,7 @@ interface PdpJumpNavProps {
  * bar from hiding under it in either state. Target sections should use a scroll
  * margin of at least 160px so anchor jumps clear both fixed bars.
  */
-const PdpJumpNav = ({ showReviews = true }: PdpJumpNavProps) => {
+const PdpJumpNav = ({ showReviews = true, compactMobile = false }: PdpJumpNavProps) => {
   const sections = showReviews ? PDP_SECTIONS : PDP_SECTIONS_WITHOUT_REVIEWS;
   const [activeSection, setActiveSection] = useState<string>(DEFAULT_SECTION);
   const [headerCollapsed, setHeaderCollapsed] = useState(
@@ -77,7 +78,9 @@ const PdpJumpNav = ({ showReviews = true }: PdpJumpNavProps) => {
     <nav
       aria-label="Product page sections"
       className={`sticky z-40 border-y border-[#E2E8F0] bg-white/95 shadow-[0_1px_3px_rgba(26,47,76,0.06)] backdrop-blur-[8px] transition-[top] duration-300 ${
-        headerCollapsed ? "top-[68px]" : "top-[96px] md:top-[112px]"
+        headerCollapsed
+          ? compactMobile ? "top-[52px] md:top-[68px]" : "top-[68px]"
+          : compactMobile ? "top-[80px] md:top-[112px]" : "top-[96px] md:top-[112px]"
       }`}
     >
       <div className="hide-scrollbar mx-auto max-w-[1200px] overflow-x-auto px-1 sm:px-6">

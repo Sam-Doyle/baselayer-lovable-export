@@ -77,4 +77,10 @@ describe("ProductGallery", () => {
     const { container } = render(<ProductGallery images={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("uses an uncropped compact mobile gallery without changing the desktop gallery", () => {
+    const { container } = render(<ProductGallery images={images} compactMobile />);
+    expect(container.querySelector('[data-gallery-slide="0"] img')).toHaveClass("object-contain", "md:object-cover");
+    expect(container.querySelector("[data-product-gallery-track]")?.parentElement).toHaveClass("md:aspect-square", "md:h-auto");
+  });
 });

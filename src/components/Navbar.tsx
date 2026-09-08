@@ -5,7 +5,7 @@ import { trackEvent } from "@/lib/analytics";
 import { FREE_SHIPPING_ANNOUNCEMENT } from "@/config/legal";
 import { useCartStore } from "@/stores/cartStore";
 
-const Navbar = () => {
+const Navbar = ({ compactMobile = false }: { compactMobile?: boolean }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [heroCtaPassed, setHeroCtaPassed] = useState(false);
@@ -59,7 +59,7 @@ const Navbar = () => {
       </div>
 
       <nav
-        className={`w-full border-b py-3 transition-all duration-300 ${
+        className={`w-full border-b ${compactMobile ? "py-1 md:py-3" : "py-3"} transition-all duration-300 ${
           isScrolled
             ? "border-transparent bg-white/95 shadow-[0_1px_3px_rgba(0,0,0,0.08)] backdrop-blur-[8px]"
             : useNavyHeader
