@@ -34,6 +34,32 @@ export function retirePrerenderSnapshot(snapshot: HTMLElement): void {
   snapshot.inert = true;
 }
 
+/** Decode an ID, never a selector; malformed/empty fragments have no target. */
+export function homepageFragmentId(hash: string): string | null {
+  if (!hash.startsWith("#") || hash.length === 1) return null;
+  try {
+    return decodeURIComponent(hash.slice(1)) || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Called only after the homepage's lazy content commits, not its fallback. */
+export function completeHomepageFragmentHandoff(pathname: string, hash: string): boolean {
+  if (pathname !== "/") return false;
+  const id = homepageFragmentId(hash);
+  if (!id) return false;
+  const root = document.getElementById("root");
+  const target = Array.from(root?.querySelectorAll<HTMLElement>("[id]") || [])
+    .find(element => element.id === id);
+  if (!target) return false;
+
+  const snapshot = document.getElementById("bl-prerender-root");
+  if (snapshot?.dataset.prerenderPath === "/") retirePrerenderSnapshot(snapshot);
+  target.scrollIntoView({ block: "start" });
+  return true;
+}
+
 /** Called by the actual lazy PDP at commit, never by the App fallback. */
 export function completePdpPrerenderHandoff(): void {
   const snapshot = document.getElementById("bl-prerender-root");

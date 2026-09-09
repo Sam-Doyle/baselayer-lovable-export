@@ -143,7 +143,7 @@ const IngredientsShowcase = () => {
   }, []);
 
   return (
-    <section id="formula" ref={ref} className="bg-[#E8E4DC] px-6 py-14 sm:px-8 md:px-12 md:py-24">
+    <section id="formula" ref={ref} className="scroll-mt-24 bg-[#E8E4DC] px-6 py-14 sm:px-8 md:px-12 md:py-24">
       <div className="max-w-[1440px] mx-auto">
         {/* Header */}
         <div

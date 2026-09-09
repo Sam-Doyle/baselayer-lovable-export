@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import StickyMobileCTA from "@/components/StickyMobileCTA";
@@ -9,8 +10,19 @@ import SectionViewTracker from "@/analytics/SectionViewTracker";
 import { useCanonical, useMetaTags, JsonLd } from "@/components/SEO";
 import { metaFor } from "@/config/pageSeo";
 import { merchantOfferFields } from "@/config/merchantSchema";
+import { completeHomepageFragmentHandoff, homepageFragmentId } from "@/lib/prerenderHandoff";
 
 const HomeBelowFold = lazy(() => import("@/components/HomeBelowFold"));
+
+// This shares the lazy boundary so its effect cannot run against a fallback
+// or survive navigation away while the below-fold chunk is still pending.
+const HomepageFragmentReady = () => {
+  const { pathname, hash, key } = useLocation();
+  useLayoutEffect(() => {
+    completeHomepageFragmentHandoff(pathname, hash);
+  }, [pathname, hash, key]);
+  return null;
+};
 
 const REVIEW_SCHEMA = {
   "@context": "https://schema.org",
@@ -34,10 +46,15 @@ const REVIEW_SCHEMA = {
 };
 
 const Index = () => {
-  const [showBelowFold, setShowBelowFold] = useState(false);
+  const { hash } = useLocation();
+  const [showBelowFold, setShowBelowFold] = useState(() => homepageFragmentId(hash) !== null);
 
   useCanonical();
   useMetaTags(metaFor("/"));
+
+  useEffect(() => {
+    if (homepageFragmentId(hash)) setShowBelowFold(true);
+  }, [hash]);
 
   useEffect(() => {
     let idleId: number | undefined;
@@ -101,6 +118,7 @@ const Index = () => {
       {showBelowFold && (
         <Suspense fallback={null}>
           <HomeBelowFold />
+          <HomepageFragmentReady />
         </Suspense>
       )}
     </main>

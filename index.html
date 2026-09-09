@@ -254,6 +254,12 @@
       snapshot.dataset.prerenderPath = location.pathname;
       snapshot.style.cssText = "position:absolute;inset:0;width:100%;height:100svh;overflow:hidden;z-index:1";
 
+      if (location.pathname === "/") {
+        // Only the live homepage may own fragment targets. Leaving these IDs
+        // on the clipped static tree makes #formula scroll an inert shell.
+        snapshot.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+      }
+
       if (location.pathname === "/face-cream") {
         // Serialized controls have no React ownership. Even hidden/inert radios
         // with the live group's name participate in React's document-wide radio
