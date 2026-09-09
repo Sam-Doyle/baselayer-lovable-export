@@ -1,4 +1,4 @@
-import { FREE_SHIPPING_CODE, LEGAL } from "./legal";
+import { FREE_SHIPPING_CODE } from "./legal";
 
 /**
  * Title and description for every prerendered static route. One definition,
@@ -165,7 +165,7 @@ export const PAGE_SEO = {
   },
   "/shipping-policy": {
     title: "Shipping Policy | Base Layer",
-    description: `Free US standard shipping with code ${FREE_SHIPPING_CODE} or on orders $${LEGAL.freeShippingThresholdUsd}+, plus processing times and tracking.`,
+    description: `${FREE_SHIPPING_CODE}: free eligible U.S. shipping. Rates over $10 excluded; no minimum. Subscriptions: first payment only. Shipping times and tracking.`,
     changefreq: "yearly",
     priority: "0.3",
   },

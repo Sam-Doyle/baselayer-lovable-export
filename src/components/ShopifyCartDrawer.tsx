@@ -4,7 +4,7 @@ import { X, Minus, Plus, Trash2, ExternalLink, Loader2, ShoppingCart } from "luc
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
 import { BUY_TIERS, metaContentId } from "@/config/product";
-import { FREE_SHIPPING_CODE } from "@/config/legal";
+import { FREE_SHIPPING_CODE, FREE_SHIPPING_TERMS, SHIPPING_POLICY_PATH } from "@/config/legal";
 
 /** "$35" for a round number, "$34.50" otherwise. For prices sitting inside a sentence. */
 const inlinePrice = (amount: string) => `$${parseFloat(amount).toFixed(2).replace(/\.00$/, "")}`;
@@ -191,7 +191,7 @@ const ShopifyCartDrawer = () => {
                 >
                   <span className="font-heading text-xs font-bold uppercase tracking-wide text-brand">Add a second bottle — save $8</span>
                   <span className="block font-body text-xs text-muted-foreground mt-0.5">
-                    12 weeks for $68 instead of $76. Same free shipping either way.
+                    12 weeks for $68 instead of $76. Shipping terms below.
                   </span>
                 </button>
               )}
@@ -199,12 +199,14 @@ const ShopifyCartDrawer = () => {
                 <span className="font-heading text-sm font-bold uppercase tracking-wide">Subtotal</span>
                 <span className="font-body text-sm">${totalPrice.toFixed(2)}</span>
               </div>
-              <div className="flex items-center justify-between gap-3 font-body text-[11px] text-[#2F7D3C]">
-                <span>U.S. standard shipping</span>
-                <span className="font-semibold">FREE · {FREE_SHIPPING_CODE}</span>
+              <div className="flex items-center justify-between gap-3 font-body text-[11px] text-muted-foreground">
+                <span>Shipping</span>
+                <span className="font-semibold">Calculated at checkout</span>
               </div>
-              <p className="font-body text-[10px] text-muted-foreground text-center">
-                {FREE_SHIPPING_CODE} is applied automatically at Shopify checkout.
+              <p className="font-body text-[11px] text-muted-foreground text-center">
+                {FREE_SHIPPING_TERMS}{" "}
+                <a href={SHIPPING_POLICY_PATH} className="underline underline-offset-2">Shipping terms</a>.
+                {" "}{FREE_SHIPPING_CODE} is added automatically at Shopify checkout; eligibility is confirmed there.
               </p>
               {items.some(i => i.sellingPlanId) && (
                 <p className="font-body text-[11px] text-muted-foreground text-center">

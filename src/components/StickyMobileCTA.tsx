@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
+import { SHIPPING_POLICY_PATH } from "@/config/legal";
 
 /*
  * STICKY MOBILE CTA (homepage)
@@ -71,7 +72,7 @@ const StickyMobileCTA = () => {
       <div className="flex min-w-0 flex-col leading-none">
         <span className="font-heading font-bold text-[20px] text-[#1A2F4C]">$38</span>
         {/* #6B7280 (4.83:1 on white), not #ABB3BB — that was 2.12:1 and failed AA. */}
-        <span className="mt-1 truncate font-body text-[11px] text-[#6B7280]">1 Bottle &middot; Free shipping</span>
+        <span className="mt-1 font-body text-[11px] text-[#6B7280]">1 Bottle &middot; <Link to={SHIPPING_POLICY_PATH} tabIndex={visible ? 0 : -1} className="underline underline-offset-2">Shipping terms</Link></span>
       </div>
       {/*
         Routes to the PDP for the same reason as the hero CTA: this bar is the

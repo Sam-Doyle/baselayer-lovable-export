@@ -6,7 +6,7 @@ import { metaFor } from "@/config/pageSeo";
 import { trackEvent } from "@/lib/analytics";
 import { Check, X } from "lucide-react";
 import { BUY_TIERS } from "@/config/product";
-import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { FREE_SHIPPING_PHRASE, FREE_SHIPPING_TERMS, SHIPPING_POLICY_PATH } from "@/config/legal";
 import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 
 import ingredientsLabelImg from "@/assets/product-source/bottle-back-ingredients.webp";
@@ -132,7 +132,7 @@ const ConcentrationTest = () => {
       {/* Top banner — every claim here is independently true */}
       <div className="w-full bg-[#111111] text-white text-center py-2 px-4">
         <span className="font-body text-[12px] md:text-[13px] tracking-wide">
-          {FREE_SHIPPING_PHRASE} on every order · 30-day keep-the-bottle guarantee
+          {FREE_SHIPPING_PHRASE} · 30-day keep-the-bottle guarantee
         </span>
       </div>
 
@@ -471,7 +471,7 @@ const ConcentrationTest = () => {
             What It Costs
           </h2>
           <p className="mb-8">
-            One bottle is 50 ml and lasts about six weeks used morning and night. {FREE_SHIPPING_PHRASE} on every order.
+            One bottle is 50 ml and lasts about six weeks used morning and night. {FREE_SHIPPING_TERMS}{" "}<Link to={SHIPPING_POLICY_PATH} className="underline underline-offset-2">Shipping terms</Link>.
           </p>
 
           <div className="not-prose grid grid-cols-1 sm:grid-cols-3 gap-4 my-8">

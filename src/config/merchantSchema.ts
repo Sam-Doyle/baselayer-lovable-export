@@ -15,18 +15,19 @@ const OFFER_VALID_FROM = "2026-08-10";
  * GSC flags offers missing shippingDetails, hasMerchantReturnPolicy, and
  * priceSpecification.validFrom (Search Console URL inspection, 2026-08-10).
  *
- * Values must stay consistent with /shipping-policy and /refund-policy:
- * free US standard shipping through the automatically applied SHIP26 offer,
+ * Values describe the initial one-time purchase, not a subscription schedule:
+ * eligible US standard shipping through the automatically added SHIP26 offer,
  * 1–2 business day handling, 3–7 business day transit, and a 30-day
  * keep-the-bottle guarantee (no physical return; see the returnMethod note
  * below for why that last part cannot be expressed in schema.org).
  *
- * shippingRate is "0" for every offer because every purchase path applies the
- * shipping promotion. This is only true while LEGAL.freeShippingOnAllOrders
- * holds. Google Merchant Center reconciles this
- * against the rate the shopper is actually quoted at checkout and suspends
- * items that disagree, so the moment any order pays shipping this has to become
- * a derived value again — a stale "0" here is a suspension, not a typo.
+ * shippingRate "0" represents that initial standard rate while the promotion
+ * is active. It is not derived from LEGAL.freeShippingOnAllOrders and does not
+ * describe expedited rates or subscription renewals. SHIP26 excludes rates
+ * over $10 and covers only the first subscription payment; renewal exclusions
+ * do not change this initial one-time offer. Recheck these fields if the
+ * initial standard rate or promotion changes. Full conditions remain in the
+ * shipping policy; this helper does not calculate checkout eligibility.
  */
 export function merchantOfferFields(price: string, priceCurrency = "USD") {
   return {

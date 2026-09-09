@@ -1,8 +1,10 @@
+import { SHIPPING_POLICY_PATH } from "@/config/legal";
+
 const proofPoints = [
   { value: "5% Niacinamide", label: "Published concentration" },
   { value: "2% Panthenol", label: "Published concentration" },
   { value: "30 days", label: "Money-back guarantee" },
-  { value: "Free", label: "U.S. shipping" },
+  { value: "SHIP26", label: "Free eligible U.S. shipping", href: SHIPPING_POLICY_PATH },
 ];
 
 const ProofStrip = () => {
@@ -22,7 +24,7 @@ const ProofStrip = () => {
               {point.label}
             </dt>
             <dd className="order-1 font-heading text-[18px] font-black uppercase leading-[1.05] tracking-[-0.02em] text-[#1A2F4C] md:text-[21px]">
-              {point.value}
+              {point.href ? <a href={point.href} aria-label={`${point.value} shipping terms`} className="underline underline-offset-2">{point.value}</a> : point.value}
             </dd>
           </div>
         ))}

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
-import { FREE_SHIPPING_CODE, LEGAL } from "@/config/legal";
+import { FREE_SHIPPING_CODE, FREE_SHIPPING_TERMS, LEGAL } from "@/config/legal";
 import { metaFor } from "@/config/pageSeo";
 
 /*
@@ -55,14 +55,17 @@ const ShippingPolicy = () => {
               <p>
                 Standard U.S. shipping is ${LEGAL.standardShippingPriceUsd.toFixed(2)} for merchandise
                 subtotals under ${LEGAL.freeShippingThresholdUsd} and free for merchandise subtotals of
-                ${LEGAL.freeShippingThresholdUsd} or more. Every checkout started from this site applies code{" "}
-                <strong className="text-foreground">{FREE_SHIPPING_CODE}</strong> automatically, making
-                standard U.S. shipping free regardless of order value.
+                ${LEGAL.freeShippingThresholdUsd} or more, before any eligible promotion.
               </p>
               <p className="mt-3">
-                {FREE_SHIPPING_CODE} applies to standard U.S. shipping only. Expedited shipping, when
-                available, is charged at the rate displayed during checkout. Sales tax is calculated
-                separately where required.
+                {FREE_SHIPPING_TERMS}
+              </p>
+              <p className="mt-3">
+                This site adds <strong className="text-foreground">{FREE_SHIPPING_CODE}</strong> to Shopify
+                checkout automatically. Shopify confirms eligibility and the final shipping charge at checkout.
+                Rates over $10 are excluded from the promotion, not reduced by $10. Subscription renewal
+                shipping follows the subscription's shipping terms without this discount. Sales tax is
+                calculated separately where required.
               </p>
               <p className="mt-3">
                 We currently ship to addresses within the United States, including Alaska and Hawaii. We do not ship to PO

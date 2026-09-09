@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { trackEvent } from "@/lib/analytics";
-import { FREE_SHIPPING_ANNOUNCEMENT } from "@/config/legal";
+import { FREE_SHIPPING_ANNOUNCEMENT, SHIPPING_POLICY_PATH } from "@/config/legal";
 import { useCartStore } from "@/stores/cartStore";
 
 const Navbar = ({ compactMobile = false }: { compactMobile?: boolean }) => {
@@ -53,9 +53,9 @@ const Navbar = ({ compactMobile = false }: { compactMobile?: boolean }) => {
       className={`fixed inset-x-0 top-0 z-50 flex flex-col transition-transform duration-300 ${isScrolled ? "-translate-y-[28px]" : "translate-y-0"}`}
     >
       <div className="relative z-50 flex h-[28px] w-full items-center justify-center bg-[#1A2F4C] px-4 text-center text-white shadow-sm">
-        <span className="font-heading text-[10px] font-semibold uppercase leading-none tracking-[0.14em] sm:text-[11px]">
+        <Link to={SHIPPING_POLICY_PATH} aria-label={`${FREE_SHIPPING_ANNOUNCEMENT} — shipping terms`} className="font-heading text-[10px] font-semibold uppercase leading-none tracking-[0.14em] underline underline-offset-2 sm:text-[11px]">
           {FREE_SHIPPING_ANNOUNCEMENT}
-        </span>
+        </Link>
       </div>
 
       <nav

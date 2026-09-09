@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema, buildFaqSchema } from "@/components/SEO";
 import { metaFor } from "@/config/pageSeo";
 import { merchantOfferFields } from "@/config/merchantSchema";
+import { FREE_SHIPPING_TERMS } from "@/config/legal";
 import { trackEvent } from "@/lib/analytics";
 import { useEffect } from "react";
 import { Droplets, Timer, Shield, Leaf, Zap, FlaskConical, CheckCircle2, ArrowRight, DollarSign, Package, Clock } from "lucide-react";
@@ -78,7 +79,7 @@ const faqs = [
   {
     question: "Is there a subscription?",
     answer:
-      "Not unless you pick one. Nothing auto-bills by default. A bottle is $38, the 2-pack is $68, and shipping is free on both. Subscribe if you want to — it's $35 every delivery, $3 less than buying one at a time. If you like it, you'll come back. If you don't, you're not trapped.",
+      `Not unless you pick one. Nothing auto-bills by default. A bottle is $38, the 2-pack is $68. ${FREE_SHIPPING_TERMS} Subscribe if you want to — it's $35 every delivery, $3 less than buying one at a time. If you like it, you'll come back. If you don't, you're not trapped.`,
   },
 ];
 

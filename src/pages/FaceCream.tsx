@@ -17,7 +17,7 @@ import ReviewsSection from "@/components/ReviewsSection";
 import StarRating from "@/components/StarRating";
 import { reviewAggregate, reviewSchema } from "@/lib/reviews";
 import { merchantOfferFields } from "@/config/merchantSchema";
-import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { FREE_SHIPPING_PHRASE, FREE_SHIPPING_SUBSCRIPTION_TERMS, FREE_SHIPPING_TERMS, SHIPPING_POLICY_PATH } from "@/config/legal";
 import { metaFor } from "@/config/pageSeo";
 import ProductGallery from "@/components/ProductGallery";
 import { PRODUCT_GALLERY_IMAGES } from "@/data/productGallery";
@@ -272,12 +272,12 @@ const FaceCream = () => {
             </button>
 
             {selectedOption.kind === "subscription" && selectedOption.subCopy && (
-              <p className="text-center font-body text-[12px] text-[#4A5568] mb-3 -mt-1">{selectedOption.subCopy}</p>
+              <p className="text-center font-body text-[12px] text-[#4A5568] mb-3 -mt-1">{selectedOption.subCopy} {FREE_SHIPPING_SUBSCRIPTION_TERMS}</p>
             )}
 
             {/* 8. Trust Micro-Copy */}
             <p className="text-center font-body text-[12px] text-[#6B7280]">
-              {FREE_SHIPPING_PHRASE} &middot; 30-day money-back guarantee
+              <Link to={SHIPPING_POLICY_PATH} className="underline underline-offset-2">{FREE_SHIPPING_PHRASE} — terms</Link> &middot; 30-day money-back guarantee
             </p>
 
             <div className="mt-4" data-pdp-customer-proof>
@@ -330,7 +330,9 @@ const FaceCream = () => {
                   Shipping &amp; returns
                 </AccordionTrigger>
                 <AccordionContent className="font-body text-[13px] leading-[1.6] text-[#4A5568]">
-                  {FREE_SHIPPING_PHRASE}. In-stock orders ship in 1–2 business days. Your first order is covered by our 30-day guarantee, with no return shipment required.{" "}
+                  {FREE_SHIPPING_TERMS}{" "}
+                  <Link to={SHIPPING_POLICY_PATH} className="font-semibold text-[#1A2F4C] underline underline-offset-2 hover:no-underline">Shipping terms</Link>.
+                  {" "}In-stock orders ship in 1–2 business days. Your first order is covered by our 30-day guarantee, with no return shipment required.{" "}
                   <Link to="/refund-policy" className="font-semibold text-[#1A2F4C] underline underline-offset-2 hover:no-underline">
                     Read the policy
                   </Link>
@@ -363,7 +365,7 @@ const FaceCream = () => {
         >
           <div className="flex min-w-0 flex-col">
             <span className="font-heading font-bold text-[20px] text-[#1A2F4C] leading-none">${selectedOption.price}</span>
-            <span className="mt-1 font-body text-[11px] text-[#6B7280]">{selectedOption.kind === "subscription" ? "Every 6 weeks" : `${selectedOption.bottles} ${selectedOption.bottles === 1 ? "bottle" : "bottles"}`} · Free shipping</span>
+            <span className="mt-1 font-body text-[11px] text-[#6B7280]">{selectedOption.kind === "subscription" ? "Every 6 weeks" : `${selectedOption.bottles} ${selectedOption.bottles === 1 ? "bottle" : "bottles"}`} · <Link to={SHIPPING_POLICY_PATH} tabIndex={showStickyBottom ? 0 : -1} className="underline underline-offset-2">Shipping terms</Link></span>
           </div>
           <button
             disabled={isAddingToCart}

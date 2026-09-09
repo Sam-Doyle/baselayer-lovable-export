@@ -39,8 +39,8 @@ export const LEGAL = {
   siteDomain: "baselayerskin.co",
   /** Shared by privacy, terms, and refund. Shipping has its own revision date. */
   effectiveDate: "August 10, 2026",
-  /** Shipping changed when the SHIP26 promotion and paid fallback rate went live. */
-  shippingPolicyEffectiveDate: "August 13, 2026",
+  /** SHIP26 eligibility wording reconciled with Shopify's verified rules. */
+  shippingPolicyEffectiveDate: "September 9, 2026",
 
   // Fulfilment
   processingDays: "1–2 business days",
@@ -51,11 +51,11 @@ export const LEGAL = {
   standardShippingPriceUsd: 5.95,
   freeShippingThresholdUsd: 60,
   /*
-   * Every purchase path on this storefront applies SHIP26 automatically, so
-   * customers who enter checkout from the site receive free standard shipping.
-   * This must flip with merchant structured data if that promotion ends.
+   * SHIP26 is conditional: U.S. rates up to $10, subscription first payment
+   * only. This flag describes the broad claim, not the initial standard rate
+   * represented by the single-order merchant Offer schema.
    */
-  freeShippingOnAllOrders: true,
+  freeShippingOnAllOrders: false,
 
   // Guarantee — must stay consistent with on-site marketing claims.
   guaranteeDays: 30,
@@ -74,13 +74,14 @@ export const GUARANTEE_WINDOW_PHRASE = `${LEGAL.guaranteeDays} days from the dat
 
 /**
  * The short marketing form, used in the announcement bar, hero, PDP trust line,
- * and landing page. Import this rather than retyping it: if shipping ever stops
- * being unconditional, one edit here has to be able to correct every banner at
- * once. A stale "free shipping" in one place is exactly the mismatch the FTC
- * Mail, Internet, or Telephone Order Merchandise Rule punishes.
+ * and landing pages. Keep eligibility explicit; link to the shipping policy
+ * for the rate exclusion and subscription limit instead of promising renewals.
  */
-export const FREE_SHIPPING_PHRASE = "Free shipping";
+export const FREE_SHIPPING_PHRASE = "Free eligible U.S. shipping";
 
-/** Evergreen U.S. checkout promotion surfaced in the shared site announcement bar. */
+/** Shopify discount 1476328751175, verified September 9, 2026. No rate changes. */
 export const FREE_SHIPPING_CODE = "SHIP26";
-export const FREE_SHIPPING_ANNOUNCEMENT = `FREE U.S. SHIPPING — USE CODE ${FREE_SHIPPING_CODE}`;
+export const SHIPPING_POLICY_PATH = "/shipping-policy";
+export const FREE_SHIPPING_SUBSCRIPTION_TERMS = `For subscriptions, ${FREE_SHIPPING_CODE} applies to the first payment only, not renewals.`;
+export const FREE_SHIPPING_TERMS = `${FREE_SHIPPING_PHRASE} with ${FREE_SHIPPING_CODE}. Shipping rates over $10 are excluded. No minimum purchase. ${FREE_SHIPPING_SUBSCRIPTION_TERMS}`;
+export const FREE_SHIPPING_ANNOUNCEMENT = `${FREE_SHIPPING_CODE} · FREE ELIGIBLE U.S. SHIPPING`;

@@ -6,6 +6,7 @@ import { metaFor } from "@/config/pageSeo";
 import { trackEvent } from "@/lib/analytics";
 import { ChevronRight } from "lucide-react";
 import { BUY_TIERS } from "@/config/product";
+import { FREE_SHIPPING_PHRASE, FREE_SHIPPING_TERMS, SHIPPING_POLICY_PATH } from "@/config/legal";
 import { testimonials, TESTIMONIAL_DISCLOSURE } from "@/components/testimonialsData";
 
 import clutteredSinkImg from "@/assets/generated-creatives/article_hero_cluttered_sink_1772743561435.png";
@@ -247,14 +248,15 @@ const OneBottleExperiment = () => {
           </div>
 
           <p className="text-center">
-            Every order ships free. Every order is covered by a 30-day guarantee — if it's not for you, Base Layer refunds it in full and doesn't ask for the bottle back.
+            {FREE_SHIPPING_TERMS}{" "}<Link to={SHIPPING_POLICY_PATH} className="underline underline-offset-2">Shipping terms</Link>.
+            {" "}Every order is covered by a 30-day guarantee — if it's not for you, Base Layer refunds it in full and doesn't ask for the bottle back.
           </p>
 
           <div className="bg-[#1A2F4C] text-white p-8 md:p-12 rounded-xl text-center shadow-xl mt-10 mb-8 border-t-4 border-brand-accent-on-dark">
             <img src={productBoxBottle} alt="Base Layer Performance Daily Face Cream" className="w-32 h-32 object-cover rounded-full mx-auto mb-6 border-4 border-[#2A4469]" loading="lazy" />
             <h3 className="font-heading font-bold text-2xl md:text-3xl mb-4 text-white">One Bottle. Every Dose on the Label.</h3>
             <p className="text-[#ABB3BB] mb-8 max-w-md mx-auto text-base">
-              Free shipping on every order. 30-day guarantee — hate it, keep the bottle, full refund.
+              {FREE_SHIPPING_PHRASE}. 30-day guarantee — hate it, keep the bottle, full refund.
             </p>
             <Link to="/face-cream" onClick={handleCTAClick}>
               <Button className="w-full sm:w-auto px-12 py-7 font-heading font-bold tracking-[0.1em] text-[14px] uppercase bg-brand text-white hover:bg-[#8B2F08] border-none transition-all duration-300 rounded-[4px] h-auto">

@@ -10,7 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import absorptionProof from "@/assets/absorption-proof.jpg";
 import creamTextureMacro from "@/assets/cream-texture-macro.jpg";
 import { merchantOfferFields } from "@/config/merchantSchema";
-import { FREE_SHIPPING_PHRASE } from "@/config/legal";
+import { FREE_SHIPPING_PHRASE, FREE_SHIPPING_TERMS } from "@/config/legal";
 import { metaFor } from "@/config/pageSeo";
 
 /* ── Structured Data ────────────────────────────────────────────── */
@@ -87,7 +87,7 @@ const faqs = [
   {
     question: "Is there a subscription?",
     answer:
-      "Not unless you pick one. Buying once is the default. One bottle is $38, the 2-pack is $68, and shipping is free either way. If you do subscribe, it's $35 every delivery, $3 less than buying one at a time.",
+      `Not unless you pick one. Buying once is the default. One bottle is $38, the 2-pack is $68. ${FREE_SHIPPING_TERMS} If you do subscribe, it's $35 every delivery, $3 less than buying one at a time.`,
   },
 ];
 
