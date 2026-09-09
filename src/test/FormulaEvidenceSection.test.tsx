@@ -11,14 +11,15 @@ const renderSection = () =>
   );
 
 describe("FormulaEvidenceSection", () => {
-  it("shows all six published formula concentrations", () => {
+  it("shows the four confirmed formula concentrations", () => {
     const { container } = renderSection();
 
     expect(screen.getByText("5%")).toBeInTheDocument();
     expect(screen.getByText("0.03%")).toBeInTheDocument();
-    expect(screen.getAllByText("2%")).toHaveLength(2);
-    expect(screen.getByText("3%")).toBeInTheDocument();
-    expect(screen.getByText("0.5%")).toBeInTheDocument();
+    expect(screen.getByText("2%")).toBeInTheDocument();
+    expect(screen.getByText("1%")).toBeInTheDocument();
+    expect(screen.queryByText("3%")).not.toBeInTheDocument();
+    expect(screen.queryByText("0.5%")).not.toBeInTheDocument();
     expect(container).not.toHaveTextContent(/clinically proven/i);
   });
 

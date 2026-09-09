@@ -3,14 +3,15 @@ import { Button } from "@/components/ui/button";
 import { X, Minus, Plus, Trash2, ExternalLink, Loader2, ShoppingCart } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 import { useCartStore } from "@/stores/cartStore";
-import { BUY_TIERS, buildCartItem, metaContentId } from "@/config/product";
+import { BUY_TIERS, metaContentId } from "@/config/product";
 import { FREE_SHIPPING_CODE } from "@/config/legal";
 
 /** "$35" for a round number, "$34.50" otherwise. For prices sitting inside a sentence. */
 const inlinePrice = (amount: string) => `$${parseFloat(amount).toFixed(2).replace(/\.00$/, "")}`;
 
 const ShopifyCartDrawer = () => {
-  const { items, cost, isOpen, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart, toggleCart } = useCartStore();
+  const { items, cost, isOpen, isLoading, isSyncing, needsSync, updateQuantity, removeItem, getCheckoutUrl, syncCart, toggleCart } = useCartStore();
+  const editsBlocked = isLoading || isSyncing || needsSync;
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   /*
    * Shopify's own subtotal, not a sum we computed. The fallback only covers the
@@ -86,27 +87,15 @@ const ShopifyCartDrawer = () => {
 
   const handleUpsell = async () => {
     if (!upsellTier || !singleBottleLine) return;
-    // Same in-flight guard as the other add paths: this fires remove-then-add, and a
-    // second click before the first remove resolves would re-fire add_to_cart against
-    // an already-consumed line. (The trailing addItem is safe on its own — removeItem's
-    // finally clears isLoading before the await resumes.)
-    if (useCartStore.getState().isLoading) return;
-    if (!singleBottleLine.lineId) return;
-    const removeResult = await removeItem(singleBottleLine.lineId);
-    // If the remove failed (removeItem already surfaced its own toast), don't
-    // chase it with an add — that would leave the shopper with both the old
-    // single-bottle line AND the 2-bottle line instead of a clean swap.
-    if (!removeResult.success) return;
-    const addResult = await useCartStore.getState().addItem(buildCartItem(upsellTier));
-    // Only report the upsell as a successful add once Shopify actually
-    // confirms the 2-bottle line landed — a failed add must not fire a
-    // successful add_to_cart event to GA4/Meta.
-    if (!addResult.success) return;
+    const result = await useCartStore.getState().upgradeToTwoPack(singleBottleLine.lineId);
+    if (!result.success) return;
+    const confirmedPack = useCartStore.getState().items.find(item => item.variantId === upsellTier.variantGid && !item.sellingPlanId);
+    if (!confirmedPack) return;
     trackEvent("add_to_cart", {
       content_name: "Base Layer Face Cream",
       content_ids: [metaContentId(upsellTier.variantGid as string)],
-      value: upsellTier.price,
-      currency: "USD",
+      value: Number(confirmedPack.price.amount),
+      currency: confirmedPack.price.currencyCode,
       source: "cart_upsell",
     });
   };
@@ -170,14 +159,14 @@ const ShopifyCartDrawer = () => {
                     )}
                     <p className="font-body text-xs mt-0.5">${parseFloat(item.price.amount).toFixed(2)}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <button onClick={() => updateQuantity(item.lineId, item.quantity - 1)} disabled={!item.lineId || isLoading || isSyncing} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Decrease quantity of ${item.product.node.title}`}>
+                      <button onClick={() => updateQuantity(item.lineId, item.quantity - 1)} disabled={!item.lineId || editsBlocked} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Decrease quantity of ${item.product.node.title}`}>
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="font-body text-xs w-4 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.lineId, item.quantity + 1)} disabled={!item.lineId || isLoading || isSyncing} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Increase quantity of ${item.product.node.title}`}>
+                      <button onClick={() => updateQuantity(item.lineId, item.quantity + 1)} disabled={!item.lineId || editsBlocked} className="w-6 h-6 border border-border rounded flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Increase quantity of ${item.product.node.title}`}>
                         <Plus className="w-3 h-3" />
                       </button>
-                      <button onClick={() => removeItem(item.lineId)} disabled={!item.lineId || isLoading || isSyncing} className="ml-auto p-1 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Remove ${item.product.node.title} from cart`}>
+                      <button onClick={() => removeItem(item.lineId)} disabled={!item.lineId || editsBlocked} className="ml-auto p-1 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed" aria-label={`Remove ${item.product.node.title} from cart`}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -188,10 +177,16 @@ const ShopifyCartDrawer = () => {
             </div>
 
             <div className="px-6 py-4 border-t border-border space-y-3">
+              {needsSync && !isLoading && (
+                <div role="status" className="space-y-2 text-xs text-muted-foreground">
+                  <p>Cart update not confirmed. Refresh before making changes or checking out.</p>
+                  <Button onClick={() => syncCart()} disabled={isSyncing}>Refresh cart</Button>
+                </div>
+              )}
               {upsellTier && (
                 <button
                   onClick={handleUpsell}
-                  disabled={isLoading || isSyncing}
+                  disabled={editsBlocked}
                   className="w-full text-left border border-brand/40 bg-brand/5 rounded px-4 py-3 hover:bg-brand/10 transition-colors"
                 >
                   <span className="font-heading text-xs font-bold uppercase tracking-wide text-brand">Add a second bottle — save $8</span>
@@ -225,7 +220,7 @@ const ShopifyCartDrawer = () => {
                 size="lg"
                 className="w-full px-6 py-5 text-xs bg-brand text-white border-brand"
                 onClick={handleCheckout}
-                disabled={isLoading || isSyncing}
+                disabled={editsBlocked}
                 aria-label="Checkout"
               >
                 {isLoading || isSyncing ? (

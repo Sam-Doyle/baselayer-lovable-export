@@ -32,7 +32,7 @@ const ingredients = [
   {
     name: "Centella Asiatica",
     slug: "centella-asiatica",
-    concentration: "2%",
+    concentration: "1%",
     why: "Selected to support comfortable-feeling skin, especially after shaving or exposure to dry air.",
     image: "/images/ingredients/centella.png",
     responsiveImage: "/images/ingredients/responsive/centella",
@@ -40,7 +40,7 @@ const ingredients = [
   {
     name: "Hyaluronic Acid",
     slug: "hyaluronic-acid",
-    concentration: "0.5%",
+    concentration: null,
     why: "A humectant that helps draw and hold water at the skin's surface without adding a heavy feel.",
     image: "/images/ingredients/hyaluronic-acid.png",
     responsiveImage: "/images/ingredients/responsive/hyaluronic-acid",
@@ -48,7 +48,7 @@ const ingredients = [
   {
     name: "Squalane",
     slug: "squalane",
-    concentration: "3%",
+    concentration: null,
     why: "A lightweight emollient that helps reduce moisture loss without the waxy feel of a traditional cream.",
     image: "/images/ingredients/squalane.png",
     responsiveImage: "/images/ingredients/responsive/squalane",
@@ -157,7 +157,7 @@ const IngredientsShowcase = () => {
             Formula, without the mystery
           </h2>
           <p className="font-body text-sm md:text-base text-[#1A2F4C]/50 max-w-2xl mx-auto">
-            Six key ingredients at disclosed concentrations. See why each one is here.
+            Six key ingredients. See why each one is here.
           </p>
         </div>
 

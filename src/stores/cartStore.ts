@@ -58,7 +58,10 @@ interface CartStore {
   isOpen: boolean;
   isLoading: boolean;
   isSyncing: boolean;
+  /** A replacement may have reached Shopify without an acknowledgement. */
+  needsSync: boolean;
   addItem: (item: Omit<CartItem, 'lineId'>) => Promise<MutationResult>;
+  upgradeToTwoPack: (lineId: string | null) => Promise<MutationResult>;
   updateQuantity: (lineId: string | null, quantity: number) => Promise<MutationResult>;
   removeItem: (lineId: string | null) => Promise<MutationResult>;
   clearCart: () => void;
@@ -247,6 +250,19 @@ function cartLines(cart: ShopifyCart | null | undefined): ShopifyCartLine[] {
   return (cart?.lines?.edges || []).map(e => e.node);
 }
 
+// A partial/foreign response cannot resolve an ambiguous merchandise swap.
+function hasAuthoritativeCart(cart: ShopifyCart | null | undefined, cartId: string): boolean {
+  const validMoney = (money?: Money) => typeof money?.amount === 'string' && money.amount.trim() !== '' &&
+    Number.isFinite(Number(money.amount)) && Number(money.amount) >= 0 && !!money.currencyCode;
+  return cart?.id === cartId && !!cart.checkoutUrl && validMoney(cart.cost?.subtotalAmount) && validMoney(cart.cost?.totalAmount) &&
+    Array.isArray(cart.lines?.edges) && cart.lines.edges.every(edge => {
+      const line = edge?.node;
+      return !!line?.id && !!line.merchandise?.id && Number.isInteger(line.quantity) && line.quantity > 0 &&
+      validMoney(line.cost?.amountPerQuantity) && 'sellingPlanAllocation' in line &&
+      (line.sellingPlanAllocation === null || !!line.sellingPlanAllocation?.sellingPlan?.id);
+    }) && cart.totalQuantity === cartLines(cart).reduce((sum, line) => sum + line.quantity, 0);
+}
+
 /**
  * Rebuild local line state from Shopify's complete authoritative line set.
  *
@@ -265,7 +281,11 @@ function reconcileItems(items: CartItem[], cart: ShopifyCart | null | undefined)
 
   return lines.map(line => {
     let localIndex = items.findIndex((item, index) =>
-      !usedLocalIndexes.has(index) && !!item.lineId && item.lineId === line.id
+      !usedLocalIndexes.has(index) && !!item.lineId && item.lineId === line.id &&
+      // A merchandise swap can retain its line ID: do not retain the old identity.
+      (!line.merchandise?.id || item.variantId === line.merchandise.id) &&
+      (!('sellingPlanAllocation' in line) ||
+        (item.sellingPlanId || null) === (line.sellingPlanAllocation?.sellingPlan?.id || null))
     );
     if (localIndex < 0) {
       localIndex = items.findIndex((item, index) =>
@@ -632,6 +652,7 @@ export const useCartStore = create<CartStore>()(
       isOpen: false,
       isLoading: false,
       isSyncing: false,
+      needsSync: false,
 
       toggleCart: (open?: boolean) => set({ isOpen: open !== undefined ? open : !get().isOpen }),
 
@@ -642,7 +663,7 @@ export const useCartStore = create<CartStore>()(
         // state. The promotion itself is persisted separately and remains on
         // the checkout URL, so declining to race it is safer than applying a
         // stale cart snapshot over the mutation response.
-        if (get().isLoading) return { success: false };
+        if (get().isLoading || get().needsSync) return { success: false };
         const { cartId } = get();
         // No cart yet: the promotion module has already persisted the code,
         // and createShopifyCart() will include it on the shopper's first add.
@@ -688,6 +709,10 @@ export const useCartStore = create<CartStore>()(
         // await so only the first one starts a mutation and the rest retain the
         // existing double-submit behavior.
         if (get().isLoading) return { success: false };
+        if (get().needsSync) {
+          set({ isOpen: true }); // Show the refresh path even from a PDP/context CTA.
+          return { success: false };
+        }
         const { items, cartId, clearCart } = get();
         const existingItem = items.find(i => i.variantId === item.variantId && (i.sellingPlanId || null) === (item.sellingPlanId || null));
 
@@ -818,12 +843,82 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
+      upgradeToTwoPack: async (lineId) => {
+        if (activeCartPreparationPromise) await waitForCartPreparation();
+        if (get().isLoading || get().isSyncing || get().needsSync) return { success: false };
+        const { items, cartId } = get();
+        const single = items[0];
+        const tier = BUY_TIERS.find(candidate => candidate.id === 2 && candidate.variantGid);
+        // Recheck after a pending sync/discount; a captured drawer row is not authority.
+        if (!cartId || !lineId || !tier || items.length !== 1 || single.lineId !== lineId ||
+            single.quantity !== 1 || single.sellingPlanId || single.variantId !== BUY_TIERS[0].variantGid) {
+          return { success: false };
+        }
+        // Persist before sending: a reload mid-request must also require a read.
+        set({ isLoading: true, needsSync: true });
+        let cart: ShopifyCart | undefined;
+        let rejected = false;
+        let errorKind: CartErrorKind = 'network';
+        let errorMessage = 'Could not confirm the cart replacement.';
+        try {
+          try {
+            // One supported merchandise swap, never remove/add or an automatic write retry.
+            // Omit attributes and sellingPlanId: this is strictly one-time to one-time.
+            const data = await storefrontApiRequest(CART_LINES_UPDATE_MUTATION, {
+              cartId, lines: [{ id: lineId, merchandiseId: tier.variantGid, quantity: 1 }],
+            });
+            const payload = data?.data?.cartLinesUpdate;
+            const userErrors: ShopifyUserError[] = payload?.userErrors || [];
+            cart = payload?.cart;
+            if (userErrors.length) {
+              // A userError alone does not prove the server cart remained unchanged.
+              // Reconcile a complete receipt or read once, but never attribute success.
+              rejected = true;
+              errorKind = classifyUserErrors(userErrors);
+              errorMessage = userErrors.map(e => e.message).join('; ');
+            }
+            if (data === undefined) errorKind = 'silent';
+          } catch (error) {
+            errorMessage = error instanceof Error ? error.message : String(error);
+          }
+          if (!hasAuthoritativeCart(cart, cartId)) {
+            // Lost/partial acknowledgement: one read, no compensating write or replay.
+            try {
+              const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
+              cart = data?.data?.cart;
+            } catch { /* Keep the persisted guard until an explicit refresh succeeds. */ }
+          }
+          if (get().cartId !== cartId) return { success: false };
+          if (!hasAuthoritativeCart(cart, cartId)) {
+            notifyCartError(errorKind, errorMessage, 'update');
+            return { success: false };
+          }
+          const lines = cartLines(cart);
+          const sameLine = lines.find(line => line.id === lineId);
+          const isPack = (line: ShopifyCartLine) => line.merchandise?.id === tier.variantGid &&
+            line.quantity === 1 && !line.sellingPlanAllocation?.sellingPlan?.id;
+          const replaced = sameLine ? isPack(sameLine) :
+            lines.some(isPack) && !lines.some(line => line.merchandise?.id === single.variantId &&
+              !line.sellingPlanAllocation?.sellingPlan?.id);
+          set({ items: reconcileItems(get().items, cart), cost: cart.cost,
+            checkoutUrl: formatCheckoutUrl(cart.checkoutUrl), needsSync: false });
+          if (rejected || !replaced) {
+            notifyCartError(rejected ? errorKind : 'other', rejected ? errorMessage : 'Shopify did not confirm the requested replacement.', 'update');
+            return { success: false };
+          }
+          emitLifecycleCart(get());
+          return { success: true };
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
       updateQuantity: async (lineId, quantity) => {
         // Same in-flight guard as addItem. The drawer's +/- buttons stay clickable
         // while the Storefront API round-trips, and each click sends an absolute
         // quantity rather than a delta, so two overlapping calls race and the
         // slower response wins — the cart lands on a quantity the user never chose.
-        if (get().isLoading || get().isSyncing) return { success: false };
+        if (get().isLoading || get().isSyncing || get().needsSync) return { success: false };
         // Delegating below is safe because isLoading is still false here; the
         // set({ isLoading: true }) is deliberately after this branch so removeItem's
         // own guard doesn't reject the call. Don't hoist it.
@@ -879,7 +974,7 @@ export const useCartStore = create<CartStore>()(
         // Same in-flight guard as addItem. Reached both from the drawer's remove
         // button and from updateQuantity when quantity hits zero; that delegation
         // happens before updateQuantity sets isLoading, so it still passes.
-        if (get().isLoading || get().isSyncing) return { success: false };
+        if (get().isLoading || get().isSyncing || get().needsSync) return { success: false };
         const { items, cartId, clearCart } = get();
         const item = items.find(i => i.lineId === lineId);
         if (!item?.lineId || !cartId) return { success: false };
@@ -917,8 +1012,9 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      clearCart: () => set({ items: [], cartId: null, checkoutUrl: null, cost: null, isOpen: false }),
+      clearCart: () => set({ items: [], cartId: null, checkoutUrl: null, cost: null, isOpen: false, needsSync: false }),
       getCheckoutUrl: () => {
+        if (get().needsSync) return null;
         const checkoutUrl = get().checkoutUrl;
         return checkoutUrl ? formatCheckoutUrl(checkoutUrl) : null;
       },
@@ -944,8 +1040,14 @@ export const useCartStore = create<CartStore>()(
             const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
             if (!data) return;
             const cart: ShopifyCart = data?.data?.cart;
+            if (get().needsSync && !hasAuthoritativeCart(cart, cartId)) {
+              // Confirmed missing cart is different from omitted/partial response data.
+              if (data?.data?.cart === null) clearCart();
+              return;
+            }
             if (!cart || cart.totalQuantity === 0) { clearCart(); return; }
             set({
+              needsSync: false,
               items: reconcileItems(get().items, cart),
               cost: cart.cost ?? get().cost,
               checkoutUrl: cart.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : get().checkoutUrl,
@@ -964,7 +1066,7 @@ export const useCartStore = create<CartStore>()(
     {
       name: 'shopify-cart',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ items: state.items, cartId: state.cartId, checkoutUrl: state.checkoutUrl, cost: state.cost }),
+      partialize: (state) => ({ items: state.items, cartId: state.cartId, checkoutUrl: state.checkoutUrl, cost: state.cost, needsSync: state.needsSync }),
     }
   )
 );

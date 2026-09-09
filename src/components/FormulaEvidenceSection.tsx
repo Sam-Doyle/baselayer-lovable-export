@@ -22,19 +22,19 @@ const formulaIngredients = [
   },
   {
     name: "Centella Asiatica",
-    concentration: "2%",
+    concentration: "1%",
     slug: "centella-asiatica",
     role: "Helps calm the visible look of redness and supports sensitive-feeling skin.",
   },
   {
     name: "Squalane",
-    concentration: "3%",
+    concentration: null,
     slug: "squalane",
     role: "A lightweight emollient that helps hold moisture without a heavy feel.",
   },
   {
     name: "Hyaluronic Acid",
-    concentration: "0.5%",
+    concentration: null,
     slug: "hyaluronic-acid",
     role: "A water-binding humectant that helps skin feel hydrated and look smoother.",
   },
@@ -58,10 +58,10 @@ const FormulaEvidenceSection = () => (
           id="formula-evidence-heading"
           className="font-heading text-[32px] font-black uppercase leading-[0.95] tracking-[-0.035em] text-[#1A2F4C] md:text-[48px]"
         >
-          Six workhorse ingredients. Every dose disclosed.
+          Six key ingredients. One daily formula.
         </h2>
         <p className="mt-6 max-w-2xl font-body text-[16px] leading-[1.7] text-[#4A5568]">
-          No mystery blend. Base Layer publishes the concentration of every highlighted ingredient and prints the full INCI on the bottle.
+          See why each ingredient is included. Full INCI below.
         </p>
       </header>
 
@@ -71,12 +71,16 @@ const FormulaEvidenceSection = () => (
             key={ingredient.slug}
             className="flex min-h-full flex-col border-b border-r border-[#CFC8BC] bg-white p-6 md:p-8"
           >
-            <p className="font-heading text-[42px] font-black leading-none tracking-[-0.04em] text-[#1A2F4C]">
-              {ingredient.concentration}
-            </p>
-            <p className="mt-2 font-body text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6B7280]">
-              Formula concentration
-            </p>
+            {ingredient.concentration && (
+              <>
+                <p className="font-heading text-[42px] font-black leading-none tracking-[-0.04em] text-[#1A2F4C]">
+                  {ingredient.concentration}
+                </p>
+                <p className="mt-2 font-body text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6B7280]">
+                  Formula concentration
+                </p>
+              </>
+            )}
             <h3 className="mt-7 font-heading text-[17px] font-bold uppercase leading-tight text-[#1A2F4C]">
               {ingredient.name}
             </h3>

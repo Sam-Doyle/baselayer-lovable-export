@@ -314,30 +314,28 @@ describe("ShopifyCartDrawer line controls", () => {
 
   const rowFor = (item: CartItem) => screen.getByText(item.variantTitle).parentElement!.parentElement!;
 
-  it("the single-to-two-bottle upsell removes the exact line before adding its replacement", async () => {
+  it("the single-to-two-bottle upsell replaces the exact line in one update", async () => {
     const singleBottle = { ...oneTime, quantity: 1 };
     await open([singleBottle]);
-    mockRequest
-      .mockResolvedValueOnce(mutationResponse("cartLinesRemove", []))
-      .mockResolvedValueOnce({ data: { cartCreate: { cart: shopifyCart([thirdLine]), userErrors: [] } } });
+    mockRequest.mockResolvedValueOnce(mutationResponse("cartLinesUpdate", [thirdLine]));
     fireEvent.click(screen.getByRole("button", { name: /Add a second bottle/ }));
     await waitFor(() => expect(useCartStore.getState().items).toEqual([thirdLine]));
-    expect(mockRequest).toHaveBeenNthCalledWith(1, expect.stringContaining("cartLinesRemove"), {
-      cartId, lineIds: [singleBottle.lineId],
-    });
-    expect(mockRequest).toHaveBeenNthCalledWith(2, expect.stringContaining("cartCreate"), {
-      input: expect.objectContaining({ lines: [{ quantity: 1, merchandiseId: thirdLine.variantId }] }),
+    expect(mockRequest).toHaveBeenCalledExactlyOnceWith(expect.stringContaining("cartLinesUpdate"), {
+      cartId, lines: [{ id: singleBottle.lineId, quantity: 1, merchandiseId: thirdLine.variantId }],
     });
   });
 
-  it("a failed upsell removal keeps the single bottle and never adds the replacement", async () => {
+  it("a rejected upsell keeps the single bottle without a follow-up mutation", async () => {
     const singleBottle = { ...oneTime, quantity: 1 };
     await open([singleBottle]);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
-    mockRequest.mockRejectedValueOnce(new Error("test removal failure"));
+    mockRequest.mockResolvedValueOnce({ data: { cartLinesUpdate: { cart: null, userErrors: [
+      { code: "MERCHANDISE_NOT_APPLICABLE", field: ["lines"], message: "Unavailable" },
+    ] } } }).mockResolvedValueOnce({ data: { cart: shopifyCart([singleBottle]) } });
     fireEvent.click(screen.getByRole("button", { name: /Add a second bottle/ }));
     await waitFor(() => expect(useCartStore.getState().isLoading).toBe(false));
-    expect(mockRequest).toHaveBeenCalledTimes(1);
+    expect(mockRequest).toHaveBeenCalledTimes(2);
+    expect(mockRequest.mock.calls[1][0]).toContain('query cart');
     expect(useCartStore.getState().items).toEqual([singleBottle]);
   });
 
