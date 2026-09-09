@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { GUARANTEE_WINDOW_PHRASE } from "@/config/legal";
 
 const faqs = [
   {
@@ -20,7 +21,7 @@ const faqs = [
   },
   {
     question: "What if it doesn't work for me?",
-    answer: "Your first order is covered by our 30-day guarantee. Contact us within 30 days of delivery for a refund; no return shipment is required.",
+    answer: `Your first order is covered by our 30-day guarantee. Contact us within ${GUARANTEE_WINDOW_PHRASE} for a refund; no return shipment is required.`,
   },
   {
     question: "How long does one bottle last?",

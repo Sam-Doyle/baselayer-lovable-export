@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCanonical, useMetaTags, JsonLd, buildBreadcrumbSchema } from "@/components/SEO";
-import { LEGAL, GUARANTEE_WINDOW_PHRASE } from "@/config/legal";
+import { LEGAL, GUARANTEE_WINDOW_PHRASE, FREE_SHIPPING_TERMS } from "@/config/legal";
 import { metaFor } from "@/config/pageSeo";
 
 /*
@@ -110,7 +110,7 @@ const TermsOfService = () => {
             <section>
               <h2 className="font-heading text-xl font-bold uppercase tracking-wide mb-3 text-foreground">Shipping</h2>
               <p>
-                We ship within the United States. Shipping is free on every order, with no minimum. See our{" "}
+                We ship within the United States. {FREE_SHIPPING_TERMS} See our{" "}
                 <Link to="/shipping-policy" className="text-foreground underline underline-offset-4 hover:no-underline">
                   Shipping Policy
                 </Link>{" "}
