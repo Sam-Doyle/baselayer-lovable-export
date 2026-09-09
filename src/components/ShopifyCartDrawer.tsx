@@ -205,7 +205,7 @@ const ShopifyCartDrawer = () => {
               </div>
               <p className="font-body text-[11px] text-muted-foreground text-center">
                 {FREE_SHIPPING_TERMS}{" "}
-                <a href={SHIPPING_POLICY_PATH} className="underline underline-offset-2">Shipping terms</a>.
+                <a href={SHIPPING_POLICY_PATH} className="whitespace-nowrap underline underline-offset-2">Shipping terms</a>.
                 {" "}{FREE_SHIPPING_CODE} is added automatically at Shopify checkout; eligibility is confirmed there.
               </p>
               {items.some(i => i.sellingPlanId) && (

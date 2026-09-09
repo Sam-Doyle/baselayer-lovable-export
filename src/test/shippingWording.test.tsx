@@ -150,6 +150,7 @@ describe("verified SHIP26 copy", () => {
     expect(container).toHaveTextContent("Calculated at checkout");
     expect(container).toHaveTextContent(FREE_SHIPPING_TERMS);
     expect(screen.getByRole("link", { name: "Shipping terms" })).toHaveAttribute("href", "/shipping-policy");
+    expect(screen.getByRole("link", { name: "Shipping terms" })).toHaveClass("whitespace-nowrap");
     expect(container).not.toHaveTextContent(/FREE · SHIP26|Same free shipping either way/);
     expect(screen.getByRole("button", { name: "Checkout" })).toBeEnabled();
     expect(state.addItem).not.toHaveBeenCalled();
