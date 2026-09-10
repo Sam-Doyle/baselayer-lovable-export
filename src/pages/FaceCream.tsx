@@ -203,7 +203,10 @@ const FaceCream = () => {
             </h1>
 
             <p className="mb-1 font-body text-[14px] leading-5 text-[#4A5568]">
-              Lightweight daily hydration. Matte finish. Fragrance-free.
+              Lightweight daily hydration. Designed for a matte finish.
+            </p>
+            <p className="mb-2 font-body text-[13px] leading-5 text-[#4A5568]">
+              5% niacinamide + copper peptides. One daily cream.
             </p>
 
             {/* 2b. Judge.me rating summary — the "ranking widget" slot.
@@ -237,8 +240,11 @@ const FaceCream = () => {
                 {selectedOption.bottles > 1 ? `${selectedOption.bottles} × ` : ""}50 mL / 1.7 fl oz
               </span>
             </div>
-            <p className="mb-3 font-body text-[12px] font-semibold text-[#4A5568]" aria-live="polite" aria-atomic="true">
+            <p className="mb-1 font-body text-[12px] font-semibold text-[#4A5568]" aria-live="polite" aria-atomic="true">
               {tierSummary(selectedOption)}{selectedOption.kind === "one-time" ? " · one-time purchase" : ""}
+            </p>
+            <p className="mb-3 font-body text-[12px] leading-5 text-[#4A5568]">
+              About 6 weeks per bottle. Varies with use.
             </p>
 
             {/* 5. Benefit Checkmarks */}
@@ -258,7 +264,13 @@ const FaceCream = () => {
             </div>
 
             {/* 6. Quantity Selector */}
-            <PurchaseOptions options={BUY_OPTIONS} selectedId={quantity} onSelect={setQuantity} />
+            <PurchaseOptions
+              key={initialTier.id}
+              options={BUY_OPTIONS}
+              selectedId={quantity}
+              onSelect={setQuantity}
+              collapseAlternatives={initialTier.id === 1}
+            />
 
             {/* 7. CTA Button */}
             <button

@@ -128,6 +128,7 @@ describe("verified SHIP26 copy", () => {
 
   it("switches PDP offers without promising renewal shipping or changing purchase labels", () => {
     const { container } = renderRoute(<FaceCream />, "/face-cream?offer=single");
+    fireEvent.click(screen.getByRole("button", { name: "See 2-bottle & subscription options" }));
     for (const tier of [BUY_TIERS[0], BUY_TIERS[2], BUY_TIERS[1]]) {
       fireEvent.click(container.querySelector(`input[value="${tier.id}"]`)!);
       expect(container.querySelector("[data-pdp-primary-cta]")).toHaveTextContent(tierCtaLabel(tier));

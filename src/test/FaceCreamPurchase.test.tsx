@@ -33,7 +33,9 @@ class MockObserver {
 
 function Navigation() {
   const navigate = useNavigate();
-  return <button onClick={() => navigate("/face-cream?offer=single")}>Open advertised single offer</button>;
+  return <>{["single", "two", "subscription"].map(offer => (
+    <button key={offer} onClick={() => navigate(`/face-cream?offer=${offer}`)}>Open advertised {offer} offer</button>
+  ))}</>;
 }
 
 beforeEach(() => {
@@ -116,6 +118,7 @@ describe("PDP purchase journey", () => {
 
   it("updates every CTA when switching options and strips the selling plan for one-time purchases", async () => {
     const { container } = render(<MemoryRouter initialEntries={["/face-cream?offer=single"]}><FaceCream /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "See 2-bottle & subscription options" }));
     for (const tier of [AVAILABLE_TIERS[2], AVAILABLE_TIERS[1], AVAILABLE_TIERS[0]]) {
       fireEvent.click(container.querySelector(`input[value="${tier.id}"]`)!);
       expect(container.querySelector("[data-pdp-primary-cta]")).toHaveTextContent(tierCtaLabel(tier));
@@ -127,11 +130,65 @@ describe("PDP purchase journey", () => {
     expect(state.addItem.mock.lastCall?.[0].sellingPlanId).toBeNull();
   });
 
+  it("leads the advertised single offer with a one-time $38 bottle and keeps other offers optional", () => {
+    const { container } = render(<MemoryRouter initialEntries={["/face-cream?offer=single"]}><FaceCream /></MemoryRouter>);
+    const buyBox = container.querySelector("#purchase-options")!;
+    expect(screen.getAllByRole("radio")).toHaveLength(1);
+    expect(screen.getByRole("radio", { name: /1 Bottle \$38/ })).toBeChecked();
+    expect(buyBox).toHaveTextContent("One-time purchase · no subscription");
+    expect(buyBox).toHaveTextContent("5% niacinamide + copper peptides. One daily cream.");
+    expect(buyBox).toHaveTextContent("About 6 weeks per bottle. Varies with use.");
+    const disclosure = screen.getByRole("button", { name: "See 2-bottle & subscription options" });
+    expect(disclosure).toHaveAttribute("aria-expanded", "false");
+    expect(document.getElementById(disclosure.getAttribute("aria-controls")!)).toContainElement(screen.getByRole("radio"));
+    fireEvent.click(disclosure);
+    expect(disclosure).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getAllByRole("radio")).toHaveLength(3);
+    expect(screen.getByRole("radio", { name: /1 Bottle \$38/ })).toBeChecked();
+    expect(state.addItem).not.toHaveBeenCalled();
+  });
+
+  it("can collapse alternatives without hiding a selected subscription or changing its charge", () => {
+    const { container } = render(<MemoryRouter initialEntries={["/face-cream?offer=single"]}><FaceCream /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "See 2-bottle & subscription options" }));
+    fireEvent.click(screen.getByRole("radio", { name: /Subscribe & Save \$35/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Show fewer purchase options" }));
+    expect(screen.getAllByRole("radio")).toHaveLength(1);
+    expect(screen.getByRole("radio", { name: /Subscribe & Save \$35/ })).toBeChecked();
+    expect(container.querySelector("#purchase-options")).toHaveTextContent("$35 per delivery · 1 bottle every 6 weeks");
+    expect(container.querySelector("#purchase-options")).toHaveTextContent("Same $35 every time. Pause or cancel in one click.");
+    expect(container.querySelector("[data-pdp-primary-cta]")).toHaveTextContent("SUBSCRIBE · $35 PER DELIVERY");
+    expect(container.querySelector("[data-pdp-sticky-cta] button")).toHaveTextContent("SUBSCRIBE · $35 PER DELIVERY");
+    fireEvent.click(screen.getByRole("button", { name: "Change purchase option" }));
+    fireEvent.click(screen.getByRole("radio", { name: /1 Bottle \$38/ }));
+    expect(container.querySelector("[data-pdp-primary-cta]")).toHaveTextContent("ADD 1 BOTTLE · $38");
+  });
+
+  it.each(["/face-cream", "/face-cream?offer=two", "/face-cream?offer=subscription"])("keeps deliberate alternative entry %s expanded", entry => {
+    render(<MemoryRouter initialEntries={[entry]}><FaceCream /></MemoryRouter>);
+    expect(screen.getAllByRole("radio")).toHaveLength(3);
+    expect(screen.queryByRole("button", { name: /purchase options|subscription options|Change purchase option/ })).not.toBeInTheDocument();
+  });
+
   it("updates the offer after same-page navigation, not only the first mount", async () => {
     const { container } = render(<MemoryRouter initialEntries={["/face-cream?offer=subscription"]}><Navigation /><FaceCream /></MemoryRouter>);
     fireEvent.click(screen.getByText("Open advertised single offer"));
     await waitFor(() => expect(container.querySelector('input[value="1"]')).toBeChecked());
     expect(container.querySelector("[data-pdp-primary-cta]")).toHaveTextContent("ADD 1 BOTTLE · $38");
+    expect(screen.getAllByRole("radio")).toHaveLength(1);
+  });
+
+  it("resets disclosure for a new advertised offer while preserving explicit two-pack and subscription routes", async () => {
+    const { container } = render(<MemoryRouter initialEntries={["/face-cream?offer=single"]}><Navigation /><FaceCream /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "See 2-bottle & subscription options" }));
+    for (const [offer, tier] of [["two", AVAILABLE_TIERS[1]], ["subscription", AVAILABLE_TIERS[2]], ["single", AVAILABLE_TIERS[0]]] as const) {
+      fireEvent.click(screen.getByRole("button", { name: `Open advertised ${offer} offer` }));
+      await waitFor(() => expect(container.querySelector(`[data-pdp-primary-cta]`)).toHaveTextContent(tierCtaLabel(tier)));
+      expect(container.querySelector(`[data-pdp-sticky-cta] button`)).toHaveTextContent(tierCtaLabel(tier));
+      expect(container.querySelector(`input[value="${tier.id}"]`)).toBeChecked();
+      expect(screen.getAllByRole("radio")).toHaveLength(offer === "single" ? 1 : 3);
+    }
+    expect(screen.getByRole("button", { name: "See 2-bottle & subscription options" })).toHaveAttribute("aria-expanded", "false");
   });
 
   it("does not report a successful cart add when Shopify rejects it", async () => {
