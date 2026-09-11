@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import SkinConcernQuiz from "@/components/SkinConcernQuiz";
 import { SKIN_QUIZ_PROMOTION } from "@/config/promotions";
 import { SKIN_QUIZ_CONSENT_VERSION } from "@/lib/skinQuiz";
+import { trackEvent } from "@/lib/analytics";
 
 const mockSubmitSkinQuizLead = vi.fn();
 const mockApplyDiscountCode = vi.fn();
@@ -32,6 +33,7 @@ describe("SkinConcernQuiz", () => {
     mockSubmitSkinQuizLead.mockReset();
     mockApplyDiscountCode.mockReset();
     mockCartOpen = false;
+    vi.mocked(trackEvent).mockClear();
     mockSubmitSkinQuizLead.mockResolvedValue(undefined);
     mockApplyDiscountCode.mockResolvedValue({ success: true, applicable: true });
   });
@@ -134,7 +136,7 @@ describe("SkinConcernQuiz", () => {
     expect(retryId).toBe(firstId);
   });
 
-  it("waits for meaningful engagement instead of interrupting on page load", async () => {
+  it("waits a full 30 seconds before the automatic popup", async () => {
     vi.useFakeTimers();
     vi.spyOn(performance, "now").mockReturnValue(0);
     render(
@@ -144,10 +146,37 @@ describe("SkinConcernQuiz", () => {
     );
 
     expect(screen.queryByText("What's your main skin concern?")).not.toBeInTheDocument();
-    await act(async () => vi.advanceTimersByTime(14_999));
+    await act(async () => vi.advanceTimersByTime(29_999));
     expect(screen.queryByText("What's your main skin concern?")).not.toBeInTheDocument();
     await act(async () => vi.advanceTimersByTime(1));
     expect(screen.getByText("What's your main skin concern?")).toBeInTheDocument();
+    expect(trackEvent).toHaveBeenCalledWith("skin_quiz_view", expect.objectContaining({ trigger: "dwell_30s" }));
+  });
+
+  it("does not let deep scrolling bypass the 30-second delay", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(performance, "now").mockReturnValue(0);
+    vi.spyOn(document.documentElement, "scrollHeight", "get").mockReturnValue(2000);
+    vi.spyOn(window, "innerHeight", "get").mockReturnValue(800);
+    vi.spyOn(window, "scrollY", "get").mockReturnValue(1000);
+    render(<MemoryRouter initialEntries={["/face-cream?offer=single"]}><SkinConcernQuiz /></MemoryRouter>);
+    fireEvent.scroll(window);
+    await act(async () => vi.advanceTimersByTime(29_999));
+    fireEvent.scroll(window);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trackEvent).not.toHaveBeenCalled();
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("accounts for lazy loading while preserving 30 seconds from navigation", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(performance, "now").mockReturnValue(3000);
+    render(<MemoryRouter><SkinConcernQuiz /></MemoryRouter>);
+    await act(async () => vi.advanceTimersByTime(26_999));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await act(async () => vi.advanceTimersByTime(1));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("suppresses the quiz after a completed opt-in", async () => {
@@ -160,7 +189,7 @@ describe("SkinConcernQuiz", () => {
       </MemoryRouter>,
     );
 
-    await act(async () => vi.advanceTimersByTime(20_000));
+    await act(async () => vi.advanceTimersByTime(40_000));
     expect(screen.queryByText("What's your main skin concern?")).not.toBeInTheDocument();
   });
 
@@ -173,7 +202,7 @@ describe("SkinConcernQuiz", () => {
       </MemoryRouter>,
     );
 
-    await act(async () => vi.advanceTimersByTime(20_000));
+    await act(async () => vi.advanceTimersByTime(40_000));
     expect(screen.queryByText("What's your main skin concern?")).not.toBeInTheDocument();
     emailCampaign.unmount();
 
@@ -196,7 +225,7 @@ describe("SkinConcernQuiz", () => {
       </MemoryRouter>,
     );
 
-    await act(async () => vi.advanceTimersByTime(15_000));
+    await act(async () => vi.advanceTimersByTime(30_000));
     expect(screen.queryByText("What's your main skin concern?")).not.toBeInTheDocument();
 
     mockCartOpen = false;

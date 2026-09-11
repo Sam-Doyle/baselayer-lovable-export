@@ -24,8 +24,7 @@ const COMPLETED_KEY = "bl_skin_quiz_completed";
 const DISMISSED_UNTIL_KEY = "bl_skin_quiz_dismissed_until";
 const SHOWN_THIS_SESSION_KEY = "bl_skin_quiz_shown";
 const DISMISS_FOR_MS = 7 * 24 * 60 * 60 * 1000;
-const ENGAGEMENT_DELAY_MS = 15_000;
-const ENGAGEMENT_SCROLL_RATIO = 0.4;
+const ENGAGEMENT_DELAY_MS = 30_000;
 const COMMERCIAL_ROUTES = new Set([
   "/",
   "/face-cream",
@@ -53,16 +52,6 @@ function hasActiveFormInteraction(): boolean {
   const active = document.activeElement;
   if (!(active instanceof HTMLElement)) return false;
   return active.matches("input, textarea, select, [contenteditable='true']");
-}
-
-function hasMeaningfulScroll(): boolean {
-  const scrollableHeight = Math.max(
-    document.documentElement.scrollHeight - window.innerHeight,
-    document.body.scrollHeight - window.innerHeight,
-    0,
-  );
-  if (scrollableHeight === 0) return false;
-  return window.scrollY / scrollableHeight >= ENGAGEMENT_SCROLL_RATIO;
 }
 
 const SkinConcernQuiz = () => {
@@ -106,32 +95,26 @@ const SkinConcernQuiz = () => {
     if (window.top !== window.self) return;
 
     // The component itself is lazy-loaded after the initial render. Anchor the
-    // delay to navigation start so it remains a true 15-second dwell trigger
-    // rather than silently becoming 18+ seconds as loading strategy changes.
+    // delay to navigation start so visitors get at least 30 seconds before the
+    // automatic popup. Scrolling must not bypass this minimum delay.
     const elapsed = typeof performance !== "undefined" ? performance.now() : 0;
     const timer = window.setTimeout(
       () => setEngaged(true),
       Math.max(0, ENGAGEMENT_DELAY_MS - elapsed),
     );
-    const onScroll = () => {
-      if (hasMeaningfulScroll()) setEngaged(true);
-    };
     const onFocusIn = () => setInteractionBlocked(hasActiveFormInteraction());
     const onFocusOut = () => setInteractionBlocked(false);
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") setInteractionBlocked(hasActiveFormInteraction());
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("focusout", onFocusOut);
     document.addEventListener("visibilitychange", onVisibilityChange);
-    onScroll();
 
     const unsubscribe = onConsentChange(() => setConsentResolved(true));
     return () => {
       unsubscribe();
       window.clearTimeout(timer);
-      window.removeEventListener("scroll", onScroll);
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
       document.removeEventListener("visibilitychange", onVisibilityChange);
@@ -149,7 +132,7 @@ const SkinConcernQuiz = () => {
     setOpen(true);
     void trackEvent("skin_quiz_view", {
       source: SKIN_QUIZ_PROMOTION.source,
-      trigger: hasMeaningfulScroll() ? "scroll_40" : "dwell_15s",
+      trigger: "dwell_30s",
     });
   }, [cartOpen, consentResolved, engaged, forcePreview, interactionBlocked, open, pathname, search, suppressedThisRender]);
 

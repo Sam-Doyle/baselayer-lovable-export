@@ -790,3 +790,11 @@ Each session appends a digest here. Never edit or delete prior entries.
 - **Verification**: 242 tests / 43 files pass; TypeScript and focused ESLint pass; production build rendered 66/66 pages. Codex in-app browser checked 320px and 390px mobile layouts plus 1440px desktop. Shopify returned correct two-pack and subscription cart lines; temporary test items were removed. No payment was submitted.
 - **Release scope**: User approved deployment and explicitly deferred real application/finish footage on September 8. No synthetic demonstration or video placeholder added. Conversion lift is not yet measured.
 - **KB updates**: No domain research added; evidence and remaining limitations are in the verification report.
+
+## 2026-09-11 — Pause paid pilot and delay automatic quiz
+
+- **Task**: User requested paused spending and a 30-second quiz popup delay. Meta confirmed campaign 120254017678780198 off; refreshed delivery for all three ads reads “Campaign off.” No automatic restart authorized.
+- **Files changed**: `src/components/SkinConcernQuiz.tsx`, `src/test/SkinConcernQuiz.test.tsx`, `kb/_session-log.md`.
+- **Behavior**: Automatic quiz eligibility starts 30 seconds after document navigation, accounting for lazy loading. Removed the 40%-scroll shortcut so scrolling cannot open it earlier; telemetry trigger is `dwell_30s`. Existing preview override, cart/form suppression, email suppression, and dismissal/completion rules remain.
+- **Verification**: 444 tests across 53 files pass, including early-scroll and lazy-loading timing regressions. Application TypeScript, focused ESLint, and diff checks pass.
+- **KB updates**: No conversion lift claimed. This is a user-approved timing change, not proof that popup interruption is eliminated.
